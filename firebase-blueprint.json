@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "users": {
+      "title": "UserProfile",
+      "description": "User preferences, vibe profile, and visited stamps",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "vibeTag": { "type": "string" },
+        "avatar": { "type": "string" },
+        "travelStyle": { "type": "string" },
+        "visitedPlaceIds": { "type": "array", "items": { "type": "string" } },
+        "savedStoryIds": { "type": "array", "items": { "type": "string" } },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "bookings": {
+      "title": "ExperienceBooking",
+      "description": "Mediator bookings and cultural introduction requests",
+      "type": "object",
+      "properties": {
+        "actorId": { "type": "string" },
+        "actorName": { "type": "string" },
+        "experienceId": { "type": "string" },
+        "experienceTitle": { "type": "string" },
+        "dateTime": { "type": "string" },
+        "price": { "type": "string" },
+        "travelerName": { "type": "string" },
+        "travelerEmail": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "rsvps": {
+      "title": "EventRSVP",
+      "description": "RSVPs for gatherings, festivals, and ceremonies",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string" },
+        "eventTitle": { "type": "string" },
+        "travelerEmail": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "savedItineraries": {
+      "title": "SavedItinerary",
+      "description": "AI curated cultural routes saved to the traveler passport",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "duration": { "type": "string" },
+        "interests": { "type": "array", "items": { "type": "string" } },
+        "stops": { "type": "array", "items": { "type": "object" } },
+        "userEmail": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    }
+  }
+}
