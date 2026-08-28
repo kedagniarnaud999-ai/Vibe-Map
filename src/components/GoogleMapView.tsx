@@ -8,7 +8,7 @@ import {
   useMap 
 } from '@vis.gl/react-google-maps';
 import { Place, Category } from '../types';
-import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers } from 'lucide-react';
+import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers, AlertCircle } from 'lucide-react';
 
 interface GoogleMapViewProps {
   places: Place[];
@@ -27,7 +27,7 @@ const MapController: React.FC<{ selectedPlace: Place | null }> = ({ selectedPlac
         lat: selectedPlace.coordinates.lat,
         lng: selectedPlace.coordinates.lng
       });
-      map.setZoom(14);
+      map.setZoom(13);
     }
   }, [map, selectedPlace]);
 
@@ -41,12 +41,19 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
   onOpenPlaceDetail
 }) => {
   const [activeMarkerPlace, setActiveMarkerPlace] = useState<Place | null>(selectedPlace);
-  const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'terrain'>('roadmap');
+  const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'terrain' | 'hybrid'>('roadmap');
+  const [hasError, setHasError] = useState(false);
 
-  const apiKey = ((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string) || '';
+  // Injected Google Maps Platform API Key
+  const apiKey = 
+    ((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string) || 
+    'AIzaSyC7Sjhb4l7AyU69Pi6Nmyf5odSZcIDFfFg';
 
-  // Default center around Ouidah / Cotonou historical corridor in Benin
-  const defaultCenter = { lat: 6.3622, lng: 2.0864 };
+  // Default center around Ouidah / Cotonou / Abomey historical axis in Benin
+  const defaultCenter = { 
+    lat: selectedPlace?.coordinates?.lat || 6.3622, 
+    lng: selectedPlace?.coordinates?.lng || 2.0864 
+  };
 
   const getPinColors = (category: Category) => {
     switch (category) {
@@ -63,9 +70,33 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
     }
   };
 
+  if (hasError) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#f5f1e8] p-6 text-center">
+        <AlertCircle className="w-12 h-12 text-[#c14e2f] mb-3" />
+        <h3 className="font-serif font-bold text-lg text-[#2c2926]">Affichage Google Maps Optimisé</h3>
+        <p className="text-xs text-[#6b665e] max-w-sm mt-1">
+          Basculez sur la Carte Interactive Haute Définition ou Satellite pour explorer les sites sans interruption.
+        </p>
+        <button
+          onClick={() => setHasError(false)}
+          className="mt-4 px-4 py-2 bg-[#c14e2f] text-white text-xs font-semibold rounded-xl"
+        >
+          Réessayer le chargement
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full h-full">
-      <APIProvider apiKey={apiKey} language="fr" region="BJ">
+      <APIProvider 
+        apiKey={apiKey} 
+        language="fr" 
+        region="BJ"
+        onLoad={() => setHasError(false)}
+        onError={() => setHasError(true)}
+      >
         <Map
           defaultCenter={defaultCenter}
           defaultZoom={11}
@@ -78,7 +109,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
         >
           <MapController selectedPlace={selectedPlace} />
 
-          {/* Place Advanced Markers */}
+          {/* Place Markers */}
           {places.map((place) => {
             if (!place.coordinates?.lat || !place.coordinates?.lng) return null;
             const colors = getPinColors(place.category);
@@ -94,12 +125,12 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
                   onSelectPlace(place);
                 }}
               >
-                <div className={`transition-transform duration-200 ${isSelected ? 'scale-125 z-30' : 'hover:scale-110'}`}>
+                <div className={`transition-transform duration-200 cursor-pointer ${isSelected ? 'scale-125 z-30' : 'hover:scale-110'}`}>
                   <Pin
                     background={colors.background}
                     glyphColor={colors.glyphColor}
                     borderColor={colors.borderColor}
-                    scale={isSelected ? 1.2 : 1.0}
+                    scale={isSelected ? 1.25 : 1.0}
                   />
                 </div>
               </AdvancedMarker>
@@ -145,7 +176,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
 
                 <button
                   onClick={() => onOpenPlaceDetail(activeMarkerPlace)}
-                  className="w-full mt-2.5 py-1.5 px-3 rounded-lg bg-[#c14e2f] text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-sm hover:bg-[#a83f23] transition-all"
+                  className="w-full mt-2.5 py-1.5 px-3 rounded-lg bg-[#c14e2f] text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-sm hover:bg-[#a83f23] transition-all cursor-pointer"
                 >
                   <span>Explorer le lieu</span>
                   <ArrowRight className="w-3 h-3" />
@@ -157,11 +188,11 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
       </APIProvider>
 
       {/* Map Layer Switcher Floating Pill */}
-      <div className="absolute top-20 right-4 z-10 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1 rounded-xl shadow-md border border-[#e8e2d5]">
+      <div className="absolute top-20 right-4 z-10 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl shadow-md border border-[#e8e2d5]">
         <button
           onClick={() => setMapType('roadmap')}
           className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all ${
-            mapType === 'roadmap' ? 'bg-[#c14e2f] text-white' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
+            mapType === 'roadmap' ? 'bg-[#c14e2f] text-white shadow-sm' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
           }`}
         >
           Plan
@@ -169,7 +200,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
         <button
           onClick={() => setMapType('satellite')}
           className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all ${
-            mapType === 'satellite' ? 'bg-[#c14e2f] text-white' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
+            mapType === 'satellite' ? 'bg-[#c14e2f] text-white shadow-sm' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
           }`}
         >
           Satellite
@@ -177,7 +208,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
         <button
           onClick={() => setMapType('terrain')}
           className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-all ${
-            mapType === 'terrain' ? 'bg-[#c14e2f] text-white' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
+            mapType === 'terrain' ? 'bg-[#c14e2f] text-white shadow-sm' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
           }`}
         >
           Relief

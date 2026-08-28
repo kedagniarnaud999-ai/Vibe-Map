@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ScreenId, Place, Story, Actor, UserPreferences } from './types';
+import { ScreenId, Place, Story, Actor, UserPreferences, AppLanguage, UserProfile } from './types';
 import { PLACES_DATA } from './data/places';
 import { STORIES_DATA } from './data/stories';
 import { ACTORS_DATA } from './data/actors';
 import { EVENTS_DATA } from './data/events';
 import { INITIAL_USER } from './data/user';
-import { syncUserProfileToFirestore, loadUserProfileFromFirestore } from './lib/firebase';
+import { 
+  syncUserProfileToFirestore, 
+  loadUserProfileFromFirestore,
+  getPlacesFromFirestore,
+  onAuthStateChange
+} from './lib/firebase';
+import { TRANSLATIONS } from './lib/i18n';
 
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
@@ -23,17 +29,29 @@ import { JournalScreen } from './components/screens/JournalScreen';
 import { EventsScreen } from './components/screens/EventsScreen';
 import { AssistantScreen } from './components/screens/AssistantScreen';
 import { UserProfileScreen } from './components/screens/UserProfileScreen';
+import { AuthScreen } from './components/screens/AuthScreen';
+import { AdminScreen } from './components/screens/AdminScreen';
+import { GuidePortalScreen } from './components/screens/GuidePortalScreen';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
   const [screenHistory, setScreenHistory] = useState<ScreenId[]>(['home']);
+  const [currentLang, setCurrentLang] = useState<AppLanguage>('fr');
+  
+  const [places, setPlaces] = useState<Place[]>(PLACES_DATA);
+  const [actors, setActors] = useState<Actor[]>(ACTORS_DATA);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(PLACES_DATA[0]);
   const [selectedStory, setSelectedStory] = useState<Story | null>(STORIES_DATA[0]);
   const [selectedActor, setSelectedActor] = useState<Actor | null>(ACTORS_DATA[0]);
-  const [user, setUser] = useState<UserPreferences>(INITIAL_USER);
+  
+  const [user, setUser] = useState<UserProfile>({
+    ...INITIAL_USER,
+    role: 'admin' // Default to admin for full capability inspection
+  });
+  
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(true);
 
-  // Initialize onboarding & Firestore state
+  // Initialize onboarding, Firebase Auth & Firestore DB
   useEffect(() => {
     const onboarded = localStorage.getItem('lavibemap_onboarding_completed');
     if (!onboarded) {
@@ -41,19 +59,67 @@ export default function App() {
       setCurrentScreen('onboarding');
     }
 
-    // Try loading persistent profile from Firestore
-    loadUserProfileFromFirestore('kedagniarnaud999@gmail.com').then((savedProfile: any) => {
-      if (savedProfile) {
+    const savedLang = localStorage.getItem('lavibemap_language') as AppLanguage;
+    if (savedLang) {
+      setCurrentLang(savedLang);
+    }
+
+    // Listen to Firebase Auth state
+    const unsubscribeAuth = onAuthStateChange((authUser) => {
+      if (authUser) {
         setUser((prev) => ({
           ...prev,
-          ...savedProfile,
-          savedPlaces: savedProfile.savedPlaces || savedProfile.visitedPlaceIds || prev.savedPlaces
+          ...authUser,
+          role: authUser.email === 'kedagniarnaud999@gmail.com' ? 'admin' : (authUser.role || prev.role || 'traveler')
         }));
       }
-    }).catch((err) => {
-      console.warn('Firestore load profile notice:', err);
     });
+
+    // Load dynamic and verified places from Firestore & Cloud SQL
+    getPlacesFromFirestore().then((dbPlaces) => {
+      if (dbPlaces && dbPlaces.length > 0) {
+        const merged = [...PLACES_DATA];
+        dbPlaces.forEach((dbP) => {
+          const idx = merged.findIndex((m) => m.id === dbP.id);
+          if (idx >= 0) {
+            merged[idx] = dbP;
+          } else {
+            merged.unshift(dbP);
+          }
+        });
+        setPlaces(merged);
+      }
+    }).catch(console.warn);
+
+    // Dual-sync places to Cloud SQL
+    PLACES_DATA.forEach((p) => {
+      fetch('/api/db/places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: p.id,
+          name: p.name,
+          location: p.location,
+          category: p.category,
+          description: p.description,
+          deepHistory: p.deepHistory,
+          image: p.image,
+          lat: String(p.coordinates?.lat || 6.36),
+          lng: String(p.coordinates?.lng || 2.08),
+        }),
+      }).catch(() => {});
+    });
+
+    return () => {
+      if (unsubscribeAuth) unsubscribeAuth();
+    };
   }, []);
+
+  const handleLanguageChange = (lang: AppLanguage) => {
+    setCurrentLang(lang);
+    localStorage.setItem('lavibemap_language', lang);
+    handleUpdateUser({ language: lang });
+  };
 
   const navigateTo = (screen: ScreenId) => {
     setScreenHistory((prev) => [...prev, screen]);
@@ -97,22 +163,21 @@ export default function App() {
 
   const handleToggleSavePlace = (placeId: string) => {
     setUser((prev) => {
-      const exists = prev.savedPlaces.includes(placeId);
+      const exists = prev.savedPlaces?.includes(placeId);
       const updatedPlaces = exists
-        ? prev.savedPlaces.filter((id) => id !== placeId)
-        : [...prev.savedPlaces, placeId];
+        ? (prev.savedPlaces || []).filter((id) => id !== placeId)
+        : [...(prev.savedPlaces || []), placeId];
       const updatedUser = {
         ...prev,
         savedPlaces: updatedPlaces,
         placesCount: updatedPlaces.length
       };
-      // Async sync to Firestore
       syncUserProfileToFirestore(updatedUser as any).catch(console.warn);
       return updatedUser;
     });
   };
 
-  const handleUpdateUser = (updated: Partial<UserPreferences>) => {
+  const handleUpdateUser = (updated: Partial<UserProfile>) => {
     setUser((prev) => {
       const updatedUser = { ...prev, ...updated };
       syncUserProfileToFirestore(updatedUser as any).catch(console.warn);
@@ -120,70 +185,100 @@ export default function App() {
     });
   };
 
+  const handlePlaceAddedOrUpdated = (newPlace: Place) => {
+    setPlaces((prev) => {
+      const idx = prev.findIndex((p) => p.id === newPlace.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = newPlace;
+        return next;
+      }
+      return [newPlace, ...prev];
+    });
+  };
+
+  const handlePlaceDeleted = (placeId: string) => {
+    setPlaces((prev) => prev.filter((p) => p.id !== placeId));
+  };
+
+  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
+
   // Header configuration per screen
   const getHeaderConfig = () => {
     switch (currentScreen) {
       case 'place-detail':
-        return { show: false };
       case 'story-detail':
-        return { show: false };
       case 'actor-profile':
-        return { show: false };
       case 'onboarding':
+      case 'auth':
         return { show: false };
       case 'map':
         return {
           show: true,
-          title: 'Interactive Cultural Map',
-          subtitle: 'Ouidah & Kingdom of Dahomey',
+          title: t.navMap || 'Carte Interactive Google Maps',
+          subtitle: 'Sites et sanctuaires réels du Bénin',
           showBack: true
         };
       case 'library':
         return {
           show: true,
-          title: 'Digital Cultural Library',
-          subtitle: 'Essays, proverbs & textile decoders',
+          title: 'Bibliothèque Culturelle',
+          subtitle: 'Récits, proverbes et symboles royaux',
           showBack: true
         };
       case 'actors':
         return {
           show: true,
-          title: 'Verified Cultural Mediators',
-          subtitle: 'Scholars, custodians & masters',
+          title: t.navActors || 'Médiateurs Culturels Vérifiés',
+          subtitle: 'Guides et maîtres de tradition agréés',
           showBack: true
         };
       case 'itinerary-builder':
         return {
           show: true,
-          title: 'Weave Your Vibe',
-          subtitle: 'AI-assisted cultural sequencing',
+          title: 'Tissez Votre Immersion',
+          subtitle: 'Séquencement culturel et réservations',
           showBack: true
         };
       case 'journal':
         return {
           show: true,
-          title: 'My Cultural Passport',
-          subtitle: 'Visited sites, stories & badges',
+          title: 'Passeport Culturel',
+          subtitle: 'Sites visités et badges initiatiques',
           showBack: true
         };
       case 'events':
         return {
           show: true,
-          title: 'Cultural Gatherings',
-          subtitle: 'Rituals, festivals & ceremonies',
+          title: 'Célébrations & Fêtes Traditionnelles',
+          subtitle: 'Vodun Days, Gaani et rituels sacrés',
           showBack: true
         };
       case 'assistant':
         return {
           show: true,
-          title: 'Cultural AI Companion',
-          subtitle: 'Ask etiquette, Fon words & history',
+          title: t.askAiCompanion || 'Compagnon Culturel IA',
+          subtitle: 'Gemini 3.5 Flash & Search Grounding',
+          showBack: true
+        };
+      case 'admin':
+        return {
+          show: true,
+          title: 'Espace Administration du Patrimoine',
+          subtitle: 'Supervision des bases, scraping et validation',
+          showBack: true
+        };
+      case 'guide-portal':
+        return {
+          show: true,
+          title: 'Portail Médiateur & Guide',
+          subtitle: 'Réservations et catalogue d’expériences',
           showBack: true
         };
       case 'profile':
         return {
           show: true,
-          title: 'Traveler Settings',
+          title: t.navProfile || 'Mon Sanctuaire',
           subtitle: user.name,
           showBack: true
         };
@@ -191,7 +286,7 @@ export default function App() {
         return {
           show: true,
           title: 'La Vibe Map',
-          subtitle: 'Ouidah, Benin',
+          subtitle: 'Patrimoine & Sanctuaires du Bénin',
           showBack: false
         };
     }
@@ -202,6 +297,7 @@ export default function App() {
   // BottomNav visibility
   const showBottomNav =
     currentScreen !== 'onboarding' &&
+    currentScreen !== 'auth' &&
     currentScreen !== 'story-detail' &&
     currentScreen !== 'actor-profile' &&
     currentScreen !== 'place-detail';
@@ -217,6 +313,9 @@ export default function App() {
           title={headerConfig.title}
           subtitle={headerConfig.subtitle}
           showBack={headerConfig.showBack}
+          currentLang={currentLang}
+          onLanguageChange={handleLanguageChange}
+          user={user}
         />
       )}
 
@@ -225,21 +324,32 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentScreen}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
             className="w-full"
           >
             {currentScreen === 'onboarding' && (
               <OnboardingScreen onComplete={handleCompleteOnboarding} />
             )}
 
+            {currentScreen === 'auth' && (
+              <AuthScreen
+                currentLang={currentLang}
+                onAuthSuccess={(authenticatedUser) => {
+                  setUser(authenticatedUser);
+                  navigateTo(authenticatedUser.role === 'admin' ? 'admin' : authenticatedUser.role === 'guide' ? 'guide-portal' : 'home');
+                }}
+                onCancel={() => navigateTo('home')}
+              />
+            )}
+
             {currentScreen === 'home' && (
               <HomeScreen
-                places={PLACES_DATA}
+                places={places}
                 stories={STORIES_DATA}
-                actors={ACTORS_DATA}
+                actors={actors}
                 onSelectPlace={handleSelectPlace}
                 onSelectStory={handleSelectStory}
                 onSelectActor={handleSelectActor}
@@ -249,7 +359,7 @@ export default function App() {
 
             {currentScreen === 'map' && (
               <MapScreen
-                places={PLACES_DATA}
+                places={places}
                 selectedPlace={selectedPlace}
                 onSelectPlace={(p) => setSelectedPlace(p)}
                 onOpenPlaceDetail={handleSelectPlace}
@@ -259,10 +369,10 @@ export default function App() {
             {currentScreen === 'place-detail' && selectedPlace && (
               <PlaceDetailScreen
                 place={selectedPlace}
-                actors={ACTORS_DATA}
+                actors={actors}
                 onBack={handleBack}
                 onSelectActor={handleSelectActor}
-                isSaved={user.savedPlaces.includes(selectedPlace.id)}
+                isSaved={Boolean(user.savedPlaces?.includes(selectedPlace.id))}
                 onToggleSave={handleToggleSavePlace}
               />
             )}
@@ -286,7 +396,7 @@ export default function App() {
 
             {currentScreen === 'actors' && (
               <ActorDirectoryScreen
-                actors={ACTORS_DATA}
+                actors={actors}
                 onSelectActor={handleSelectActor}
               />
             )}
@@ -300,7 +410,7 @@ export default function App() {
 
             {currentScreen === 'itinerary-builder' && (
               <ItineraryBuilderScreen
-                places={PLACES_DATA}
+                places={places}
                 onSelectPlace={handleSelectPlace}
                 onSaveItinerary={() => {
                   setUser((prev) => ({
@@ -314,7 +424,7 @@ export default function App() {
             {currentScreen === 'journal' && (
               <JournalScreen
                 user={user}
-                places={PLACES_DATA}
+                places={places}
                 stories={STORIES_DATA}
                 onSelectPlace={handleSelectPlace}
                 onSelectStory={handleSelectStory}
@@ -326,13 +436,36 @@ export default function App() {
             )}
 
             {currentScreen === 'assistant' && (
-              <AssistantScreen />
+              <AssistantScreen currentLang={currentLang} />
+            )}
+
+            {currentScreen === 'admin' && (
+              <AdminScreen
+                currentLang={currentLang}
+                places={places}
+                actors={actors}
+                events={EVENTS_DATA}
+                onPlaceAddedOrUpdated={handlePlaceAddedOrUpdated}
+                onPlaceDeleted={handlePlaceDeleted}
+              />
+            )}
+
+            {currentScreen === 'guide-portal' && (
+              <GuidePortalScreen
+                user={user}
+                currentLang={currentLang}
+                actors={actors}
+              />
             )}
 
             {currentScreen === 'profile' && (
               <UserProfileScreen
                 user={user}
+                currentLang={currentLang}
+                onLanguageChange={handleLanguageChange}
                 onUpdateUser={handleUpdateUser}
+                onOpenAuth={() => navigateTo('auth')}
+                onNavigate={navigateTo}
               />
             )}
           </motion.div>
@@ -344,6 +477,8 @@ export default function App() {
         <BottomNav
           currentScreen={currentScreen}
           onNavigate={navigateTo}
+          currentLang={currentLang}
+          userRole={user.role}
         />
       )}
     </div>

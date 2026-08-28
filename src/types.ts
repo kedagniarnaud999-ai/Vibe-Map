@@ -1,3 +1,6 @@
+export type UserRole = 'traveler' | 'guide' | 'admin';
+export type AppLanguage = 'fr' | 'en' | 'fon' | 'goun' | 'yoruba';
+
 export type ScreenId = 
   | 'onboarding'
   | 'home'
@@ -11,7 +14,10 @@ export type ScreenId =
   | 'journal'
   | 'events'
   | 'assistant'
-  | 'profile';
+  | 'profile'
+  | 'auth'
+  | 'admin'
+  | 'guide-portal';
 
 export type Category = 'Spiritual' | 'Historical' | 'Nature' | 'Food' | 'Arts' | 'Heritage';
 
@@ -144,13 +150,13 @@ export interface Actor {
 export interface CulturalEvent {
   id: string;
   title: string;
-  type: 'Festival' | 'Workshop' | 'Ceremony' | 'Concert';
+  type: 'Festival' | 'Workshop' | 'Ceremony' | 'Concert' | string;
   date: string;
   location: string;
   image: string;
   isFeatured?: boolean;
   isHappeningThisWeek?: boolean;
-  accessType: 'Open to Public' | 'Invitation Only' | 'Ticketed';
+  accessType: 'Open to Public' | 'Invitation Only' | 'Ticketed' | string;
   description: string;
 }
 
@@ -162,6 +168,15 @@ export interface UserPreferences {
   vibeTag: string;
   travelStyle: 'Relaxed' | 'Explorer' | 'Cultural Deep-Dive';
   language: string;
+  role?: UserRole;
+  guideProfile?: {
+    phone?: string;
+    certified?: boolean;
+    pricing?: string;
+    bio?: string;
+    actorId?: string;
+    specialties?: string[];
+  };
   notificationsEnabled: boolean;
   interests: string[];
   savedPlaces: string[];

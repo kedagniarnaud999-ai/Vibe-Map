@@ -2,183 +2,238 @@ import { Actor } from '../types';
 
 export const ACTORS_DATA: Actor[] = [
   {
-    id: 'jean-marc-t',
-    name: 'Jean-Marc T.',
-    role: 'Cultural Historian',
-    badgeTitle: 'Verified Scholar',
-    rating: 4.9,
-    reviewsCount: 128,
-    location: 'Ouidah, Benin',
-    experienceYears: 18,
-    languages: ['English (Fluent)', 'French (Native)', 'Fon (Native)'],
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCOBwAO2hQQWAA9OHvGDKO4mWxpsFow-PevNyma39HaHhFrKO8upgdHcjhEjZep2cPMYofRNVXMhPuW3k6WB0N7O11q3jHzj5uOlb8pNAA_wMpPn7gSrpXnt39vxgzkJafdn8NA_XNHiun7EJlgO3z0S99C7WkzOlTnnjulIpxhSFZ4tGVu0kudyd4U_Q7IyPsp_dqgH2We7YnyGUa-IMNb1ju7fi8tvpuembDT0ri5mMrNwkbDUT4W',
-    heroImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCOBwAO2hQQWAA9OHvGDKO4mWxpsFow-PevNyma39HaHhFrKO8upgdHcjhEjZep2cPMYofRNVXMhPuW3k6WB0N7O11q3jHzj5uOlb8pNAA_wMpPn7gSrpXnt39vxgzkJafdn8NA_XNHiun7EJlgO3z0S99C7WkzOlTnnjulIpxhSFZ4tGVu0kudyd4U_Q7IyPsp_dqgH2We7YnyGUa-IMNb1ju7fi8tvpuembDT0ri5mMrNwkbDUT4W',
-    quote: '"History is not just facts; it is the rhythm of the soil." Specialized in pre-colonial West African states, bridging archival research with deep oral traditions.',
-    bio: 'Jean-Marc holds a Master’s degree in African History from the University of Abomey-Calavi and has worked as a consultant for UNESCO. He specializes in the historiography of the Kingdom of Dahomey and the Atlantic memorial routes.',
+    id: 'koffi-agbodjan',
+    name: 'Maître Koffi Agbodjan',
+    role: 'Guide Conférencier Certifié & Médiateur de Ouidah',
+    badgeTitle: 'Guide Titulaire du Patrimoine',
+    rating: 4.98,
+    reviewsCount: 142,
+    location: 'Ouidah, Atlantique, Bénin',
+    experienceYears: 19,
+    languages: ['Français (Courant)', 'Fon (Langue Maternelle)', 'Anglais (Professionnel)'],
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
+    heroImage: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800',
+    quote: '"Le patrimoine de Ouidah n’est pas un vestige silencieux : c’est la mémoire vivante de nos ancêtres et le phare de notre dignité."',
+    bio: 'Koffi est diplômé d’Histoire à l’Université d’Abomey-Calavi et membre de l’Association des Guides du Patrimoine de Ouidah. Il a conduit les visites officielles de l’UNESCO sur la Route de l’Esclave et dans le Temple des Pythons.',
     expertise: [
       {
-        title: 'Kingdom of Dahomey',
-        description: 'Royal court structures, dynastic succession, and military history of the Agojie.',
+        title: 'La Route des Esclaves & Mémoire Mémorielle',
+        description: 'Parcours historique commenté du Fort Portugais jusqu’à la Porte du Non-Retour sur la plage de Djègbadji.',
+        icon: 'map',
+        color: 'primary'
+      },
+      {
+        title: 'Cosmogonie Vodun & Temple de Dangbé',
+        description: 'Explication respectueuse des alliances totémiques et de la philosophie de paix des divinités.',
+        icon: 'account_balance',
+        color: 'secondary'
+      }
+    ],
+    experiences: [
+      {
+        id: 'circuit-complet-ouidah',
+        title: 'Immersion Complète : Route Mémorielle & Sanctuaires',
+        price: '25 000 FCFA (~38 €)',
+        duration: 'Demi-journée (3h30)',
+        description: 'Visite guidée exclusive à pied et en véhicule du Fort Portugais, de l’Arbre de l’Oubli, du Mémorial de Zoungbodji et de la Porte du Non-Retour.',
+        image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=600'
+      },
+      {
+        id: 'visite-temple-foret',
+        title: 'Sanctuaires Sacrés : Dangbé & Forêt de Kpassè',
+        price: '15 000 FCFA (~23 €)',
+        duration: '2h00',
+        description: 'Rencontre avec les gardiens traditionnels, rituels d’accueil et découverte des sculptures mythologiques en forêt sacrée.',
+        image: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=600'
+      }
+    ],
+    reviews: [
+      {
+        id: 'rev-koffi-1',
+        author: 'Arnaud Kedagni',
+        date: 'Janvier 2025',
+        comment: 'Une visite bouleversante et extrêmement documentée. Maître Koffi allie érudition universitaire et profonde spiritualité locale.',
+        rating: 5
+      },
+      {
+        id: 'rev-koffi-2',
+        author: 'Sophie M.',
+        date: 'Décembre 2024',
+        comment: 'Le meilleur guide de Ouidah sans hésitation. Il vous ouvre les portes avec un respect immense pour les traditions.',
+        rating: 5
+      }
+    ]
+  },
+  {
+    id: 'dr-sylvain-kpanlingan',
+    name: 'Pr. Sylvain Kpanlingan',
+    role: 'Griot Royal & Conservateur des Palais Royaux',
+    badgeTitle: 'Historien Émérite du Dahomey',
+    rating: 4.96,
+    reviewsCount: 118,
+    location: 'Abomey, Zou, Bénin',
+    experienceYears: 27,
+    languages: ['Français', 'Fon Royal', 'Yoruba'],
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
+    heroImage: 'https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&q=80&w=800',
+    quote: '"Chaque bas-relief d’Abomey est une page de notre constitution royale : l’histoire s’écoute avec le cœur."',
+    bio: 'Descendant direct de la lignée des panégyristes royaux Kpanlingan, le professeur Sylvain consacre sa vie à la conservation du site UNESCO d’Abomey et à la transmission des proverbes royaux et de l’épopée des Amazones Agojié.',
+    expertise: [
+      {
+        title: 'Dynasties Royales d’Abomey',
+        description: 'Généalogie des 12 rois du Danxomè, décodage des symboles de cour et des traités de guerre.',
         icon: 'account_balance',
         color: 'primary'
       },
       {
-        title: 'The Slave Route',
-        description: 'Tracing the historical stations from the Portuguese fort to the Door of No Return.',
-        icon: 'map',
+        title: 'Régiment des Amazones Agojié',
+        description: 'Récit authentique de l’organisation militaire, du code d’honneur et des batailles des combattantes.',
+        icon: 'military_tech',
         color: 'tertiary'
       }
     ],
     experiences: [
       {
-        id: 'private-heritage-tour',
-        title: 'Private Heritage Tour',
-        price: 'From $120',
-        duration: 'Half-day',
-        description: "A personalized walk through Ouidah's historical sites, tailored to your interests.",
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCk7Ksphb4eiZEt7qCqAyNwN88JHlRCgTjCMoKQDG6jKh2I0gejDBJ5NC76Zc5ynEQQbik3tty88GNcGKwjNnVgOy56dmB2jSTOli362YIG-YmX_7bYhX5U604Upb4nxXKx3kch3x93SrZpG0Gdgz2f7wipUfMuB0ET2MjfFNYSs4TLA6u3dg9QIxGzs6LrHdN8_D24ho98221wURSgpxkO4uh_st426lohOx_MA15vx7Ln3YjbSQl9'
-      },
-      {
-        id: 'virtual-storytelling',
-        title: 'Virtual Storytelling',
-        price: '$45',
-        duration: '1 Hour • Zoom',
-        description: 'An interactive online session delving into the myths and realities of the Agojie.',
-        isVirtual: true
+        id: 'palais-abomey-secret',
+        title: 'Dans l’Intimité des Rois du Dahomey',
+        price: '30 000 FCFA (~45 €)',
+        duration: '3h00',
+        description: 'Accès commenté aux cours intérieures privées de Glèlè et Ghézo, explications des bas-reliefs et chants de louanges royaux.',
+        image: 'https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&q=80&w=600'
       }
     ],
     reviews: [
       {
-        id: 'rev-1',
-        author: 'Sarah Jenkins',
-        date: 'October 2023',
-        comment: 'Jean-Marc brought the ruins to life. His knowledge of the Royal Court is unmatched, and his storytelling is captivating. A must-do experience.',
-        rating: 5
-      },
-      {
-        id: 'rev-2',
-        author: 'Marcus L.',
-        date: 'September 2023',
-        comment: "Deeply moving and educational. We learned things that aren't in any guidebook. Thank you, Jean-Marc!",
+        id: 'rev-syl-1',
+        author: 'Marc-André L.',
+        date: 'Février 2025',
+        comment: 'Écouter le professeur réciter les devises des rois dans la cour d’honneur est une expérience inoubliable.',
         rating: 5
       }
     ]
   },
   {
-    id: 'baba-ousmane',
-    name: 'Baba Ousmane',
-    role: 'Certified Cultural Mediator',
-    badgeTitle: 'Verified Cultural Mediator',
-    rating: 4.9,
-    reviewsCount: 94,
-    location: 'Ouidah, Benin',
-    experienceYears: 25,
-    languages: ['EN', 'FR', 'FON'],
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA0oM7E9hKBFHkAakmV0HrZZE4SZlACP0enQeNbCFdzQVg7m7tyD7viNibaLjgERt7vHIbbAc1JczHNZYFciIbYwWKtejcdBNShtVenhIQkE2BPYx_gREuDmQzidOkS5TG8RGOf3DxxjB4qeJiJYFgIIlJKKNdR57Z1xoEzuIxrrLLs9mO-OyWGktOgTOd0O9cEXJRpEnQY5pL7bhw1I62DueXK5hlQWjkf27YsTaNI1ZbnYCCMAei-',
-    quote: '"The sanctuary welcomes all who step with pure heart and quiet listening."',
+    id: 'basile-toviho',
+    name: 'Capitaine Basile Toviho',
+    role: 'Piroguier Émérite & Guide Communautaire de Ganvié',
+    badgeTitle: 'Guide Lacustre Agréé',
+    rating: 4.94,
+    reviewsCount: 89,
+    location: 'Ganvié, Lac Nokoué, Bénin',
+    experienceYears: 16,
+    languages: ['Français', 'Tofinu', 'Fon'],
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=400',
+    heroImage: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800',
+    quote: '"L’eau du lac Nokoué n’est pas seulement notre route, c’est le bouclier qui a sauvé nos aïeux."',
+    bio: 'Né à Ganvié dans une famille de pêcheurs Tofinu, Basile pilote les embarcations motorisées et pirogues traditionnelles. Il coordonne les circuits écotouristiques respectueux des familles lacustres.',
     expertise: [
       {
-        title: 'Vodun Cosmology',
-        description: 'Philosophy of nature deities and ancestor reverence in southern Benin.',
-        icon: 'self_improvement',
-        color: 'secondary'
-      }
-    ],
-    experiences: [
-      {
-        id: 'sacred-grove-walk',
-        title: 'Sacred Forest Immersion',
-        price: 'From $80',
-        duration: '2 Hours',
-        description: 'Guided quiet walk through Kpassè forest with respectful rituals explanation.'
-      }
-    ],
-    reviews: [
-      {
-        id: 'rev-baba-1',
-        author: 'Clara M.',
-        date: 'November 2023',
-        comment: 'Baba Ousmane shared profound cultural wisdom without ever making it feel like a lecture.',
-        rating: 5
-      }
-    ]
-  },
-  {
-    id: 'dr-amma-mensah',
-    name: 'Dr. Amma Mensah',
-    role: 'Academic Historian',
-    badgeTitle: 'Verified Historian',
-    rating: 5.0,
-    reviewsCount: 76,
-    location: 'Abomey, Benin',
-    experienceYears: 12,
-    languages: ['EN', 'FR'],
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBMM0e80K49DPXSLqrL2rDE40HcQFVW9DLqwA9dzSl45jrW-EoxU-lkKjYqfGD24jrlrnfF71VpBF15d2sSf3-45P3fWinWe82jbxXRMUT_Ws7Ui51tsx96kWBWgX5SGAqv4ZbHR1hcaZQmZSE5TEx-Zv5ee_qkfyrHmlNuIkmgYxTGxRi2IR490LQKkezfma5GFZXUpQG7YFp8WRV_7NYfgLm8bzLh0MrwJFNr1odquQTy2MMcSVRH',
-    quote: '"Architecture is frozen memory; every earthen wall tells what our ancestors valued."',
-    expertise: [
-      {
-        title: 'Abomey Palaces',
-        description: 'Royal metallurgy, earthen architecture, and bas-relief decoding.',
-        icon: 'account_balance',
+        title: 'Écotourisme Lacustre & Pêche Acadja',
+        description: 'Navigation douce entre les maisons sur pilotis, les canaux bordés de jacinthes d’eau et les viviers.',
+        icon: 'sailing',
         color: 'primary'
       }
     ],
     experiences: [
       {
-        id: 'abomey-deep-dive',
-        title: 'Abomey Royal Deep Dive',
-        price: 'From $110',
-        duration: '4 Hours',
-        description: 'In-depth architectural analysis and archival chronicles.'
+        id: 'pirogue-lacustre-ganvie',
+        title: 'Navigation Fluviale & Marché Flottant de Ganvié',
+        price: '20 000 FCFA (~30 €)',
+        duration: '2h30',
+        description: 'Traversée du lac Nokoué en pirogue, arrêt chez les artisans constructeurs de maisons en bambou et dégustation d’eau de coco.',
+        image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=600'
       }
     ],
     reviews: [
       {
-        id: 'rev-amma-1',
-        author: 'David R.',
-        date: 'December 2023',
-        comment: 'Dr. Mensah’s depth of knowledge is breathtaking. Outstanding experience.',
+        id: 'rev-bas-1',
+        author: 'Élodie G.',
+        date: 'Janvier 2025',
+        comment: 'Basile connaît chaque famille de Ganvié. La visite est très humaine et pleine de respect.',
         rating: 5
       }
     ]
   },
   {
-    id: 'atelier-d-applique',
-    name: "Atelier d'Appliqué",
-    role: 'Master Weavers & Artisans',
-    badgeTitle: 'Verified Artisan Collective',
-    rating: 4.8,
-    reviewsCount: 52,
-    location: 'Porto-Novo, Benin',
-    experienceYears: 40,
-    languages: ['FR', 'YOR'],
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCIS1gGfc8odjCAg7i0iwem83uy8_QCaXm5IiiTbG1-72N00xaMFrSZNm-AjWZeVCboxAUC3Wl0X6Lnth0PQfDdu_f-B4opjHyf8LQkyIvEA3H_92IE6PSJDxxmmm-LM-46fdNaLHyB7450o5xh9Kp6n3eRHdiY4TmUc_it2RRUgJ64JWitEaAqBFFiqHWiWbMSphckC4tqC_5GtBMhzTpFofDhtcEGeQvSb4XXHjdWdx4bxs23HvUD',
-    isCollective: true,
-    membersCount: 15,
-    quote: '"Each thread honors the kingdom symbols passed down from generation to generation."',
+    id: 'maman-solange',
+    name: 'Maman Solange Dossou',
+    role: 'Maîtresse Teinturière à l’Indigo & Tisseuse Kanvô',
+    badgeTitle: 'Trésor Humain Vivant de Porto-Novo',
+    rating: 4.97,
+    reviewsCount: 76,
+    location: 'Porto-Novo, Ouémé, Bénin',
+    experienceYears: 32,
+    languages: ['Français', 'Goun', 'Yoruba'],
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+    heroImage: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=800',
+    quote: '"Le bleu de l’indigo végétal renferme la patience et la protection des mères."',
+    bio: 'Héritière d’un savoir-faire de six générations à Porto-Novo, Solange préserve les cuves de fermentation naturelle de feuilles d’indigo et les métiers à tisser traditionnels à pédales.',
     expertise: [
       {
-        title: 'Traditional Appliqué',
-        description: 'Hand-cut fabric assembly and ancient royal insignia embroidery.',
+        title: 'Teinture Végétale à l’Indigo',
+        description: 'Préparation des bains de teinture aux feuilles broyées et motifs en réserve à la cire et ligatures.',
         icon: 'palette',
-        color: 'secondary'
+        color: 'tertiary'
       }
     ],
     experiences: [
       {
-        id: 'hands-on-applique',
-        title: 'Hands-on Appliqué Workshop',
-        price: 'From $65',
-        duration: '3 Hours',
-        description: 'Create your own personalized Fon symbol textile panel under master supervision.'
+        id: 'atelier-indigo-porto',
+        title: 'Atelier de Création Textile & Teinture Indigo',
+        price: '18 000 FCFA (~28 €)',
+        duration: '2h00',
+        description: 'Créez votre propre écharpe ou pagne en coton biologique teint selon les techniques ancestrales des cours de Porto-Novo.',
+        image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=600'
       }
     ],
     reviews: [
       {
-        id: 'rev-artisan-1',
-        author: 'Helene T.',
-        date: 'January 2024',
-        comment: 'Incredible patience and mastery from the weavers. Loved bringing home my own craft piece.',
+        id: 'rev-sol-1',
+        author: 'Claire D.',
+        date: 'Décembre 2024',
+        comment: 'Un moment de pure magie artisanale. On repart avec une pièce unique et une leçon de vie.',
+        rating: 5
+      }
+    ]
+  },
+  {
+    id: 'nathalie-sossa',
+    name: 'Nathalie Sossa',
+    role: 'Historienne de l’Art & Médiatrice Contemporaine',
+    badgeTitle: 'Médiatrice Culturelle Fondation Zinsou',
+    rating: 4.95,
+    reviewsCount: 64,
+    location: 'Cotonou, Littoral, Bénin',
+    experienceYears: 11,
+    languages: ['Français', 'Anglais', 'Fon'],
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
+    heroImage: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&q=80&w=800',
+    quote: '"Le Bénin est le laboratoire mondial du renouveau de l’art africain."',
+    bio: 'Diplômée en muséologie, Nathalie guide les visiteurs à travers les expositions internationales de la Fondation Zinsou et les galeries contemporaines de Cotonou.',
+    expertise: [
+      {
+        title: 'Art Contemporain et Restitution des Trésors Royaux',
+        description: 'Parcours critique liant les 26 œuvres restituées par la France aux œuvres d’artistes vivants.',
+        icon: 'brush',
+        color: 'primary'
+      }
+    ],
+    experiences: [
+      {
+        id: 'safari-galeries-cotonou',
+        title: 'Parcours Art & Galeries de Cotonou',
+        price: '22 000 FCFA (~34 €)',
+        duration: '3h00',
+        description: 'Visite guidée des expositions de la Fondation Zinsou, de l’Esplanade de l’Amazone et des ateliers d’artistes émergents.',
+        image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&q=80&w=600'
+      }
+    ],
+    reviews: [
+      {
+        id: 'rev-nat-1',
+        author: 'Thomas V.',
+        date: 'Février 2025',
+        comment: 'Des explications brillantes qui donnent un regard neuf sur la créativité béninoise !',
         rating: 5
       }
     ]

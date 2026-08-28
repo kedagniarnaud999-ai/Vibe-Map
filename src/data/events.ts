@@ -2,51 +2,63 @@ import { CulturalEvent } from '../types';
 
 export const EVENTS_DATA: CulturalEvent[] = [
   {
-    id: 'ouidah-vodun-festival',
-    title: 'Ouidah Vaudou Festival 2025',
+    id: 'vodun-days-ouidah',
+    title: 'Vodun Days (Fête Nationale des Arts & Traditions Vodun)',
     type: 'Festival',
-    date: 'January 10, 2025',
-    location: 'Ouidah Coastal Arenas',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuADLH3V8r4Pr7RNbdnXWAemOmUYN3c5ha6Jt1EASwRkMCGaxQPMDEdv-ycXYfCeHd--MzioYQhoJ5lGg1o8_f9aKapuW87fzBkyDL4fDNBeReiUhzPo2eA2RRkSyzsKswcapVVZ9G4y-NcBoTkt-R2L44OPUM8hO4aWk-gKjtryX7paw5_hNmJ_qbFaF6NiWgJgvsjSi_fvJ424ly4bSXnKoE-A4ZC20iMrzphthY1lb8ckGcvKGHvY',
+    date: '9 & 10 Janvier (Annuel)',
+    location: 'Plage de Djègbadji & Cité Historique, Ouidah',
+    image: 'https://images.unsplash.com/photo-1533158307587-828f0a76ef46?auto=format&fit=crop&q=80&w=800',
     isFeatured: true,
     isHappeningThisWeek: true,
-    accessType: 'Open to Public',
-    description: 'The world-famous annual gathering of Vodun dignitaries, Zangbeto night guardians, and Egungun masked dancers along the beaches of Ouidah.'
+    accessType: 'Accès Public & Gratuit',
+    description: 'Le plus grand rassemblement culturel et spirituel du Bénin réunissant dignitaires Vodun, couvents sacrés, gardiens de nuit Zangbéto et danses spectaculaires des masques Egungun face à l’océan Atlantique.'
   },
   {
-    id: 'kano-indigo-dyeing',
-    title: 'Natural Indigo Dyeing Masterclass',
-    type: 'Workshop',
-    date: 'Saturday, 10:00 AM',
-    location: 'Porto-Novo Heritage Quarters',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAiNxmxarVAl0v9KPYhqZd5Nkcp_1-cZIsvqUqwfkLgEfbg9eqbckJErS9Z_f8hntw6kmlna4ns95wtymb8EPtvnNNwlgI99Vaqekd6Cae4cG72IrKrlYOtKT6wGBsga6HLoek0mjH3hEEFcXhNxfkyrdrf9sfEhZKa_NNiMkM-Z4bAE2CVA1uDa7-7-H7TKcbxlpnR3Mf6G8GmkdnMIzZaRM3nRfKAkmDqfyxWp7UPP03-xhOy24UE',
+    id: 'fete-de-la-gaani',
+    title: 'Fête Impériale de la Gaani',
+    type: 'Ceremony',
+    date: 'Mois Lunaire de Gaani (Nikki)',
+    location: 'Palais Impérial du Roi de Nikki, Borgou, Bénin',
+    image: 'https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&q=80&w=800',
+    isFeatured: true,
+    isHappeningThisWeek: false,
+    accessType: 'Accès Public & Noblesse Baatonu',
+    description: 'Grande fête équestre et identitaire du peuple Baatonu et des cavaliers du Nord-Bénin. Défilé majestueux des princes à cheval, trompes royales Kakaki et hommage au Sinaboko (Empereur de Nikki).'
+  },
+  {
+    id: 'fete-du-nonvitcha-grand-popo',
+    title: 'Fête Centenaire du Nonvitcha',
+    type: 'Festival',
+    date: 'Week-end de la Pentecôte',
+    location: 'Grand-Popo, Mono, Bénin',
+    image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800',
+    isFeatured: false,
+    isHappeningThisWeek: false,
+    accessType: 'Accès Ouvert à Tous',
+    description: 'Fondée en 1923, la plus ancienne fête d’union et de solidarité d’Afrique de l’Ouest réunissant les peuples Xwla et Xwéla sur les rives du fleuve Mono et de l’océan.'
+  },
+  {
+    id: 'ceremonie-egungun-ouidah',
+    title: 'Sortie Rituelle des Masques Revenants Egungun',
+    type: 'Ceremony',
+    date: 'Chaque Dimanche après-midi',
+    location: 'Quartier Zomaï & Cours Royales, Ouidah',
+    image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&q=80&w=800',
     isFeatured: false,
     isHappeningThisWeek: true,
-    accessType: 'Ticketed',
-    description: 'Learn the ancient fermentation pits technique used to create deep lapis indigo on organic cotton.'
+    accessType: 'Sur Invitation & Respect du Protocole',
+    description: 'Apparition des esprits ancêtres incarnés dans de somptueux costumes de tissus brodés et pailletés, dansant au rythme des tambours Bata sous la conduite des Alagba.'
   },
   {
-    id: 'naming-ceremony',
-    title: 'Traditional Naming Ceremony',
-    type: 'Ceremony',
-    date: 'Sunday, 8:00 AM',
-    location: 'Abomey Royal Courtyard',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAY6LkOsqTxvJVcB7xR1ENLHRJI-WWH0a14xXdm2oqLhUrAMw0ir0qVWGo1iz881AYYEz-eOVotTlVO5msUVh6V0hvaAgHUmpEtgU79BwlJVqJMWVVx2WiQc4LF7WyqlE2EApCT3ZhfdlXBNRL-zHbxr19j9CGyOOUJMzCNq0SANOSOGmaIzmJkLqLWA2o3fj5iMAPfMplkfzftkL9-dOgfsySnmb1hF2Q55mP6ZqvAESmDB4Zsr5KQ',
+    id: 'atelier-teinture-indigo',
+    title: 'Atelier Maître Teinturier & Tissage Kanvô',
+    type: 'Workshop',
+    date: 'Mercredi & Samedi, 10h00',
+    location: 'Quartier Historique d’Adjina, Porto-Novo',
+    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=800',
     isFeatured: false,
-    isHappeningThisWeek: false,
-    accessType: 'Invitation Only',
-    description: 'An intimate cultural ceremony introducing a newborn to ancestral lineage with honey, water, and kola nut blessings.'
-  },
-  {
-    id: 'gnonnas-pedro-tribute',
-    title: 'Salsa & Agbadja Orchestral Tribute',
-    type: 'Concert',
-    date: 'Next Friday, 8:00 PM',
-    location: 'Cotonou Cultural Centre',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8ExmseZgnuR1MI7ru4RLuHXb-WCg_D5FImPSaMpToTRwI2e5ZLtcTxLzbaVy1z2fRnC-qXv6YS3o5jGX9zYt8v7__nXGKWUpTVcphAK4dEHf2Bl21m-e1CCvCH4NgdJ0A29Ko3t0cSH4AWbeu3Cma4p2Im9QKIOogVDbkQ_NXRGwdC3crl6ZqUkegkZq7Ag1StsavGdX9ZfPcydphsR54zt-ornuzgYfxsr8HtVCqfSjuEwU-yCBu',
-    isFeatured: false,
-    isHappeningThisWeek: false,
-    accessType: 'Ticketed',
-    description: 'Live brass and traditional percussion celebrating the legacy of Beninese music icons and Afro-Cuban rhythms.'
+    isHappeningThisWeek: true,
+    accessType: 'Sur Réservation (18 000 FCFA)',
+    description: 'Initiation pratique à la fermentation de l’indigo végétal dans des cuves ancestrales et création de motifs géométriques béninois sur étoffe de coton.'
   }
 ];

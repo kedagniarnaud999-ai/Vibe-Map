@@ -2,56 +2,56 @@ import { Place } from '../types';
 
 export const PLACES_DATA: Place[] = [
   {
-    id: 'temple-of-pythons',
-    name: 'Temple of Pythons',
-    location: 'Ouidah, Benin',
+    id: 'temple-des-pythons',
+    name: 'Temple des Pythons',
+    location: 'Ouidah, Atlantique, Bénin',
     category: 'Spiritual',
     distanceKm: 1.2,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAYRkhFIC1UIMj-wtR3I2XflFdCO4hl5uPhcPGbvRkTjpiupKomSdzy3oo91TkhEp5znDF7GUsnzhwI1Tb3NaXMkqsJpLYV7I4ht9-mR8hdPlIbBKMe2JQ8mEUNWM_VqEKLJZn28-7BRg28B58wrYmEjfM2yLwgCOdEzi83Z1eBW09qhceR6NiPLnTaZigYp1YysTL60qKBmJsfMLygRB5nMeKXu2BgAdXiqv4xsLXwyTumG8egnF91',
-    description: 'A revered site in Vodun culture where royal pythons are housed and venerated. Visitors are invited to learn about the harmony between humans and nature.',
-    deepHistory: 'According to legend, during a tribal war in the 18th century, King Kpassè fled and sought refuge in a forest where pythons protected him from his enemies. To honor this divine protection, the sanctuary was established opposite the basilica in Ouidah. Today, dozens of royal pythons (Python regius) roam freely within its courtyard, symbolizing an unbroken covenant between the spiritual realm and the community.',
-    badges: ['Spiritual Site', 'Verified Guide Available'],
+    image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800',
+    description: 'Sanctuaire tutélaire de la divinité Dangbé où les pythons royaux circulent en totale liberté dans la cour sacrée.',
+    deepHistory: 'Érigé au XVIIIe siècle face à la basilique de l’Immaculée Conception de Ouidah, le Temple des Pythons commémore la protection divine accordée au roi Kpassè lors des guerres régionales. Le python royal (Python regius), symbole d’abondance, de sagesse et de fertilité, n’est jamais chassé : il est nourri et honoré par la communauté des initiés.',
+    badges: ['Haut-Lieu Vodun', 'Guides Traditionnels Certifiés', 'Monuments Historiques'],
     etiquette: [
       {
-        title: 'Ask Before Photographing',
-        description: 'Do not photograph the priests or specific inner shrines without explicit permission.',
+        title: 'Demander la permission avant de photographier',
+        description: 'Ne photographiez pas l’intérieur du sanctuaire secret sans l’accord express du prêtre gardien.',
         icon: 'no_photography'
       },
       {
-        title: 'Remove Footwear',
-        description: 'Certain inner sanctums and prayer thresholds require bare feet as a sign of respect.',
+        title: 'Retirer chaussures et lunettes sombres',
+        description: 'Le seuil des espaces de prière requiert le respect pieds nus et le regard découvert.',
         icon: 'footprint'
       }
     ],
     audioGuide: {
-      title: 'The Covenant of Dangbé',
-      narrator: 'Narrated by Koffi A., Local Historian & Priest',
-      duration: '6:45',
-      durationSeconds: 405
+      title: 'L’Alliance de Dangbé et du Roi Kpassè',
+      narrator: 'Dah Agbodjan, Dignitaire et Gardien de Ouidah',
+      duration: '5:40',
+      durationSeconds: 340
     },
     visualGuides: [
       {
-        title: 'Royal Pythons',
-        description: 'Harmless to humans, they move freely and are handled with quiet reverence.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBE6cpdDYkzNWKI43r2xmCVVA9bu2V__QAs3-mOZIF4B-AId1elW_xvCHlTtP9Cb07TMz_RK3DjAu-mXCN2kaBppYdTna4Mu-saZKx89-j8mL789JOgh1ukQju1cQMhlKMHk3IeF_f0Enq0gebTtYjJluLjK6f0YBbTB-98zRdUIuWAFD-MURjynGvW_pP2lzmg5lT0oH0ddfXVekqWjFfyecxTLu8dhZ4vOzbJnGC2BFGbqO773h4K'
+        title: 'Pythons Royaux Sacrés',
+        description: 'Inoffensifs pour l’homme, ils sont manipulés avec douceur et bénédiction par les visiteurs consentants.',
+        image: 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&q=80&w=800'
       },
       {
-        title: 'Sacred Tree',
-        description: 'A focal point for ancestral prayers with white fabric tied around its ancient roots.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCnYRndaLqMu84mdd-goyc3TOlxstwDPOReEJNhHKrVdSOD2m5i2y3-ApjbcPaSc5LPpL431Aa7LDEmBL-HY6zXb043mmQT3CUYqoecPwTiZIiF4BAvj6XXgIMy4TsNvyEsGXz3e4YmAIlkQwyWBshZCltfdEeVsk9U2D1-3X0dZymL82y_7i9i2aC8vOTC0aYrjxsWO6GaPtCOiazN53lXCi1f02sAachliP1NuE1Uy5Zs63PXyzv0'
+        title: 'Autel Sacré des Libations',
+        description: 'Point central où se pratiquent les rituels d’apaisement avec huile de palme et eau de source.',
+        image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800'
       }
     ],
-    verifiedGuideIds: ['koffi-ahou', 'ama-t'],
+    verifiedGuideIds: ['koffi-agbodjan', 'dah-houessou'],
     vocabulary: [
       {
-        term: 'Vodun',
-        phonetic: '/voʊˈduːn/',
-        meaning: 'Often misunderstood, it translates simply to "spirit" or "force of nature" in the Fon language.'
+        term: 'Dangbé',
+        phonetic: '/dan-gbeh/',
+        meaning: 'Le serpent python sacré, symbole de continuité vitale et d’harmonie cosmique.'
       },
       {
-        term: 'Dangbé',
-        phonetic: '/dæŋˈbeɪ/',
-        meaning: 'The sacred royal python, revered as a symbol of peace, wisdom, and agricultural fertility.'
+        term: 'Kou do agbé',
+        phonetic: '/kou doh ah-gbeh/',
+        meaning: 'Salutation sacrée de respect : Que la vie et la paix soient avec vous.'
       }
     ],
     coordinates: {
@@ -62,46 +62,46 @@ export const PLACES_DATA: Place[] = [
     }
   },
   {
-    id: 'sacred-forest-kpasse',
-    name: 'Sacred Forest of Kpassè',
-    location: 'Ouidah, Benin',
+    id: 'foret-sacree-kpasse',
+    name: 'Forêt Sacrée de Kpassè Zoun',
+    location: 'Ouidah Centre, Bénin',
     category: 'Nature',
     distanceKm: 0.8,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDz4pW-TC6UFl1352t-ea2ghynI5zIfjELHu2-mfQpqHyH7L4IBLdZshkH4j42Ti4sSEvHqqUFRLpRT8IDEQl1HMbzuKgZ-9VhezF7KrHKd8r2MXJR44VzKwiQKWVKWa3Otm_j6eHiTzUxPn5AXLIwNmqdTmsVWe2yCfS4oCbBjheA4E6RTe8ccMbNbjg0aQtRcsCT70YHWPpgakopDs7RPOVM17-E6NudZj1Iqp1fyM5tHHiGtiZA_',
-    description: 'Wander through ancient groves where history and spirituality intertwine. Discover the hidden sculptures and sacred Iroko tree of Ouidah founding king.',
-    deepHistory: 'The sacred grove preserves the spot where King Kpassè, the founder of Ouidah in the 14th century, is said to have mysteriously vanished and metamorphosed into a giant Iroko tree to avoid capture. The forest is protected by traditional initiates and houses expressive wooden and cement statues representing Vodun divinities.',
-    badges: ['Vodun Heritage', 'Verified Sanctuary'],
+    image: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=800',
+    description: 'Bocage sacré pluriséculaire abritant l’Iroko mystique où le roi fondateur Kpassè se serait métamorphosé.',
+    deepHistory: 'Au XIVe siècle, pour échapper aux envahisseurs, le roi fondateur de Ouidah Kpassè disparut dans cette forêt et se changea en Iroko géant. La forêt conserve des arbres géants centenaires, un couvent d’initiés et de majestueuses sculptures contemporaines en ciment et bois taillé représentant les divinités Panthéon Vodun (Lègba, Héviosso, Sakpata, Mami Wata).',
+    badges: ['Patrimoine Naturel & Spirituel', 'Sanctuaire Écologique'],
     etiquette: [
       {
-        title: 'Lower Your Voice',
-        description: 'Keep discussions at a whisper; locals believe the ancient trees listen to human speech.',
+        title: 'Parler à voix basse',
+        description: 'Les arbres ancestraux et les esprits gardiens écoutent : la quiétude est de rigueur.',
         icon: 'volume_mute'
       },
       {
-        title: 'Walk Only on Cleared Paths',
-        description: 'Do not step off paths into sacred undergrowth marked by raffia leaves.',
+        title: 'Ne pas quitter les sentiers balisés',
+        description: 'Les sous-bois marqués d’étoffes blanches et de feuilles de raphia sont strictement réservés aux rites.',
         icon: 'forest'
       }
     ],
     audioGuide: {
-      title: 'Echoes of King Kpassè',
-      narrator: 'Narrated by Baba Ousmane',
-      duration: '4:20',
-      durationSeconds: 260
+      title: 'L’Iroko et la métamorphose royale',
+      narrator: 'Baba Ousmane, Médiateur en Forêt Sacrée',
+      duration: '4:15',
+      durationSeconds: 255
     },
     visualGuides: [
       {
-        title: 'The Ancestral Iroko',
-        description: 'Over 400 years old, honored with regular libations and white cotton cloths.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCnYRndaLqMu84mdd-goyc3TOlxstwDPOReEJNhHKrVdSOD2m5i2y3-ApjbcPaSc5LPpL431Aa7LDEmBL-HY6zXb043mmQT3CUYqoecPwTiZIiF4BAvj6XXgIMy4TsNvyEsGXz3e4YmAIlkQwyWBshZCltfdEeVsk9U2D1-3X0dZymL82y_7i9i2aC8vOTC0aYrjxsWO6GaPtCOiazN53lXCi1f02sAachliP1NuE1Uy5Zs63PXyzv0'
+        title: 'L’Iroko Fondateur',
+        description: 'Arbre protecteur de plus de 400 ans enveloppé de pagnes immaculés.',
+        image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=800'
       }
     ],
-    verifiedGuideIds: ['baba-ousmane'],
+    verifiedGuideIds: ['koffi-agbodjan'],
     vocabulary: [
       {
         term: 'Lokotin',
-        phonetic: '/loʊ-koʊ-tiːn/',
-        meaning: 'The sacred Iroko tree, home to spiritual guardians and ancestral energies.'
+        phonetic: '/lo-ko-tine/',
+        meaning: 'L’arbre Iroko (Chlorophora excelsa), réceptacle de la force vitale des ancêtres.'
       }
     ],
     coordinates: {
@@ -112,74 +112,46 @@ export const PLACES_DATA: Place[] = [
     }
   },
   {
-    id: 'fondation-zinsou',
-    name: 'Fondation Zinsou',
-    location: 'Cotonou & Ouidah, Benin',
-    category: 'Arts',
-    distanceKm: 35,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD5cTSQic_-7o3mcQmJm0bXCEKebsK1gOapG2gt8G-OQLLhg1NldQjqIpZVvI1Ocdx557G5l1eFrOiKlzaXJuIZBQME1g39qvNAvXKpBiKWjFtwevzojXtXdiNYKNTz_8-WEoPPscaavpAK9iLaxI1N6j4l5kXwNDHuBy6XWo3QURH67i77PAF9_Ls8xmVUZmnVgEvvDeICUlT5FMWX7yfpVBC-MOYy9IelHTQYGORLXg0rnfwm6w_a',
-    description: 'A pioneering museum and cultural foundation showcasing modern African contemporary art, photography, and community arts education.',
-    deepHistory: 'Created in 2005, Fondation Zinsou is the first private structure in Benin dedicated to contemporary African art. Free for all visitors, it bridges ancestral iconography with avant-garde sculpture, textiles, and photography.',
-    badges: ['Contemporary Art', 'Free Entry'],
-    etiquette: [
-      {
-        title: 'Photography Encouraged',
-        description: 'Non-flash photography of exhibitions is welcomed to share African artistic innovation.',
-        icon: 'photo_camera'
-      }
-    ],
-    visualGuides: [
-      {
-        title: 'Textile Assemblages',
-        description: 'Vibrant tapestries fusing Fon appliqués with reclaimed contemporary denim and wax prints.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD5cTSQic_-7o3mcQmJm0bXCEKebsK1gOapG2gt8G-OQLLhg1NldQjqIpZVvI1Ocdx557G5l1eFrOiKlzaXJuIZBQME1g39qvNAvXKpBiKWjFtwevzojXtXdiNYKNTz_8-WEoPPscaavpAK9iLaxI1N6j4l5kXwNDHuBy6XWo3QURH67i77PAF9_Ls8xmVUZmnVgEvvDeICUlT5FMWX7yfpVBC-MOYy9IelHTQYGORLXg0rnfwm6w_a'
-      }
-    ],
-    verifiedGuideIds: ['dr-amma-mensah'],
-    vocabulary: [
-      {
-        term: 'Aladagbe',
-        phonetic: '/a-la-dag-be/',
-        meaning: 'Creativity and craftsmanship executed with intentional beauty.'
-      }
-    ],
-    coordinates: {
-      x: 75,
-      y: 65,
-      lat: 6.3677,
-      lng: 2.4333
-    }
-  },
-  {
-    id: 'door-of-no-return',
-    name: 'The Door of No Return',
-    location: 'Ouidah Beach, Benin',
+    id: 'porte-du-non-retour',
+    name: 'La Porte du Non-Retour & Route des Esclaves',
+    location: 'Plage de Djègbadji, Ouidah, Bénin',
     category: 'Historical',
     distanceKm: 4.5,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDOfLg3vlYntAGVqNGYBAYMgUIunATduBVj2RxkmeM4bD--V6of3HCwNRoZnNNMDfUTO0246rnyH-ejASqtnPf6MalcGQyDJ4Vggb1mr64i8gcR9MsgOe98BvYYXMD3kZZmI9T3lV5y0fwqz9-iHB5Y91PCeGn9TzY2tbvbWHK7kpel_eQpS-JH-3Jf0wQC7Iwa2UNPmA6QK30emQnVa2nGXVu7VmzUt6Xjw4FC7aiWYK3OWGLuLyjE',
-    description: 'The monumental memorial archway on the Atlantic beach commemorating millions of enslaved Africans who were shipped across the ocean.',
-    deepHistory: 'Erected in 1995 under UNESCO auspices, this imposing arch designed by Beninese architect Yves Ahouen-Gnimon and artist Fortuné Bandeira stands at the terminus of the 4-kilometer Slave Route from the Portuguese fort to the coastline.',
-    badges: ['UNESCO Memory of the World', 'Historical Memorial'],
+    image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=800',
+    description: 'Monument mémoriel national marquant l’embarquement des captifs africains vers les Amériques et les Caraïbes.',
+    deepHistory: 'Conçu en 1995 dans le cadre du projet UNESCO "La Route de l’Esclave", ce haut monument de bronze et de béton de l’architecte Yves Ahouen-Gnimon clôture le parcours initiatique et douloureux de 4 km débutant au Fort Portugais São João Baptista de Ajudá, passant par l’Arbre de l’Oubli, la Case Zomaï et le Mémorial de Zoungbodji.',
+    badges: ['Mémoire Mondiale UNESCO', 'Lieu de Pèlerinage International'],
     etiquette: [
       {
-        title: 'Maintain Reverence',
-        description: 'Treat the monument with dignity as a place of historical reflection and mourning.',
+        title: 'Recueillement et dignité',
+        description: 'Ce site est un mémorial solennel à la mémoire de millions d’ancêtres déportés.',
         icon: 'info'
       }
     ],
+    audioGuide: {
+      title: 'Le Chant des Déportés de l’Atlantique',
+      narrator: 'Dr. Sylvain Kpanlingan, Historien',
+      duration: '7:30',
+      durationSeconds: 450
+    },
     visualGuides: [
       {
-        title: 'Bronze Bas-Reliefs',
-        description: 'Intricate bronze panels depicting bound captives and ancestors looking back toward mother Africa.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDOfLg3vlYntAGVqNGYBAYMgUIunATduBVj2RxkmeM4bD--V6of3HCwNRoZnNNMDfUTO0246rnyH-ejASqtnPf6MalcGQyDJ4Vggb1mr64i8gcR9MsgOe98BvYYXMD3kZZmI9T3lV5y0fwqz9-iHB5Y91PCeGn9TzY2tbvbWHK7kpel_eQpS-JH-3Jf0wQC7Iwa2UNPmA6QK30emQnVa2nGXVu7VmzUt6Xjw4FC7aiWYK3OWGLuLyjE'
+        title: 'Frises en Bas-Relief de Bronze',
+        description: 'Fresques de Fortuné Bandeira représentant les cohortes enchaînées marchant vers l’Océan.',
+        image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&q=80&w=800'
       }
     ],
-    verifiedGuideIds: ['jean-marc-t', 'koffi-ahou'],
+    verifiedGuideIds: ['koffi-agbodjan', 'dr-sylvain-kpanlingan'],
     vocabulary: [
       {
+        term: 'Zomaï',
+        phonetic: '/zoh-mah-yee/',
+        meaning: 'Là où la lumière ne pénètre point : les cases d’obscurité où étaient parqués les captifs.'
+      },
+      {
         term: 'Agonve',
-        phonetic: '/a-gon-veh/',
-        meaning: 'The Tree of Forgetfulness, around which male and female captives were forced to walk.'
+        phonetic: '/ah-gon-veh/',
+        meaning: 'L’Arbre de l’Oubli autour duquel les déportés devaient tourner pour effacer leurs souvenirs.'
       }
     ],
     coordinates: {
@@ -190,35 +162,46 @@ export const PLACES_DATA: Place[] = [
     }
   },
   {
-    id: 'royal-palaces-abomey',
-    name: 'Royal Palaces of Abomey',
-    location: 'Abomey, Zou, Benin',
+    id: 'palais-royaux-abomey',
+    name: 'Palais Royaux d’Abomey (UNESCO)',
+    location: 'Abomey, Zou, Bénin',
     category: 'Historical',
     distanceKm: 110,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAY6LkOsqTxvJVcB7xR1ENLHRJI-WWH0a14xXdm2oqLhUrAMw0ir0qVWGo1iz881AYYEz-eOVotTlVO5msUVh6V0hvaAgHUmpEtgU79BwlJVqJMWVVx2WiQc4LF7WyqlE2EApCT3ZhfdlXBNRL-zHbxr19j9CGyOOUJMzCNq0SANOSOGmaIzmJkLqLWA2o3fj5iMAPfMplkfzftkL9-dOgfsySnmb1hF2Q55mP6ZqvAESmDB4Zsr5KQ',
-    description: 'The fortified seat of the 12 kings of the Dahomey Kingdom, featuring earthen bas-reliefs, throne rooms, and royal tombs.',
-    deepHistory: 'From 1625 to 1900, 12 successive kings ruled Dahomey from Abomey. Each king built a new palace adjacent to his predecessor. UNESCO recognized the complex in 1985.',
-    badges: ['UNESCO World Heritage', 'Royal Legacy'],
+    image: 'https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&q=80&w=800',
+    description: 'Enceinte impériale fortifiée des 12 souverains du puissant Royaume du Dahomey avec trônes en crânes et bas-reliefs royaux.',
+    deepHistory: 'Classé au Patrimoine Mondial de l’UNESCO depuis 1985, le site s’étend sur 44 hectares et témoigne du génie architectural, militaire et diplomatique du Dahomey de 1625 à 1900 (des rois Houégbadja, Agadja, Tegbessou, Ghézo, Glèlè au roi résistant Béhanzin). Les murs en pisé intègrent des bas-reliefs polychromes uniques illustrant proverbes, victoires et armoiries.',
+    badges: ['Patrimoine Mondial UNESCO', 'Cité des Amazones Agojié'],
     etiquette: [
       {
-        title: 'Respect Royal Thresholds',
-        description: 'Never step onto royal dais platforms or touch ancestral bas-reliefs.',
+        title: 'Respect absolu des cours royales et sépulcres',
+        description: 'Interdiction formelle de s’asseoir sur les estrades royales ou de toucher les parois historiques.',
         icon: 'account_balance'
       }
     ],
+    audioGuide: {
+      title: 'L’Épopée du Roi Béhanzin et des Amazones Agojié',
+      narrator: 'Pr. Sylvain Kpanlingan, Descendant des Griots Royaux',
+      duration: '9:15',
+      durationSeconds: 555
+    },
     visualGuides: [
       {
-        title: 'Polychrome Bas-Reliefs',
-        description: 'Clay wall carvings illustrating the king’s symbols, proverbs, and military victories.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAY6LkOsqTxvJVcB7xR1ENLHRJI-WWH0a14xXdm2oqLhUrAMw0ir0qVWGo1iz881AYYEz-eOVotTlVO5msUVh6V0hvaAgHUmpEtgU79BwlJVqJMWVVx2WiQc4LF7WyqlE2EApCT3ZhfdlXBNRL-zHbxr19j9CGyOOUJMzCNq0SANOSOGmaIzmJkLqLWA2o3fj5iMAPfMplkfzftkL9-dOgfsySnmb1hF2Q55mP6ZqvAESmDB4Zsr5KQ'
+        title: 'Bas-Reliefs Royaux en Argile',
+        description: 'Sculptures murales originales figurant la jarre percée du roi Ghézo et le requin de Béhanzin.',
+        image: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=800'
       }
     ],
-    verifiedGuideIds: ['dr-amma-mensah', 'jean-marc-t'],
+    verifiedGuideIds: ['dr-sylvain-kpanlingan'],
     vocabulary: [
       {
-        term: 'Agojie',
-        phonetic: '/a-go-ji-eh/',
-        meaning: 'The fearsome female warriors (the Dahomey Amazons) who guarded the king.'
+        term: 'Agojié',
+        phonetic: '/ah-goh-jee-eh/',
+        meaning: 'Le régiment d’élite des guerrières femmes (Amazones du Dahomey) dévouées au Roi.'
+      },
+      {
+        term: 'Nondichao',
+        phonetic: '/non-dee-chah-oh/',
+        meaning: 'La jarre percée du roi Ghézo : si chaque fils bouche un trou de son doigt, l’eau restera dans la jarre.'
       }
     ],
     coordinates: {
@@ -229,35 +212,46 @@ export const PLACES_DATA: Place[] = [
     }
   },
   {
-    id: 'ganvie-stilt-village',
-    name: 'Ganvié Stilt Village',
-    location: 'Lake Nokoué, Benin',
+    id: 'cite-lacustre-ganvie',
+    name: 'Cité Lacustre de Ganvié',
+    location: 'Lac Nokoué, Sô-Ava, Atlantique, Bénin',
     category: 'Nature',
     distanceKm: 28,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDzRqeFjT8ELmDt0ohsVLUUaG7IJB2-CpifHtPsLnxLCZphm1-iGsk7rA5HbJCSE7WAk8X6yrbd1Ypzr0nigcL8EZ8EErry3-1VhHb-EDbe7VtyyDvyknlvDWpIa7r4SSW5Lmdmgzir2aLY7G8J16jT86Cz2NE8B-nyPzpbB_8VPCYHClW2AK89tpOamyFSwyvsy1gsP4y6rWJ5qz5bNsFJo8cnfnTgjU1oS_Izr0_A34kxJ_IegTIy',
-    description: 'Often dubbed the "Venice of Africa", Ganvié is a 400-year-old lake settlement entirely built on wooden stilts above Lake Nokoué.',
-    deepHistory: 'Established in the 17th century by the Tofinu people seeking refuge from slave raiders whose religious beliefs forbade entering open water.',
-    badges: ['Living Heritage', 'Lake Community'],
+    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800',
+    description: 'La plus grande cité sur pilotis d’Afrique, vieille de 400 ans, abritant 40 000 habitants sur les eaux du lac Nokoué.',
+    deepHistory: 'Fondée au XVIIe siècle par le peuple Tofinu pour échapper aux razzias esclavagistes (les croyances religieuses des ravisseurs leur interdisant d’attaquer sur l’eau), Ganvié signifie "Nous avons trouvé le salut". Toute la vie s’y déroule sur l’eau : marché flottant, maisons en bambou sur pilotis d’acacia, école et pirogues familiales.',
+    badges: ['Venise de l’Afrique', 'Site Culturel Vivant'],
     etiquette: [
       {
-        title: 'Ask Before Photographing Residents',
-        description: 'Life takes place openly on the water; kindly greet people before taking portraits.',
+        title: 'Demander l’autorisation aux vendeuses du marché flottant',
+        description: 'Saluez les habitantes avant toute prise de vue et privilégiez les échanges bienveillants.',
         icon: 'photo_camera'
       }
     ],
+    audioGuide: {
+      title: 'Le Chant des Piroguiers du Lac Nokoué',
+      narrator: 'Capitaine Basile Toviho, Barquier de Ganvié',
+      duration: '5:10',
+      durationSeconds: 310
+    },
     visualGuides: [
       {
-        title: 'Floating Market',
-        description: 'Women trading fresh fish, cassava, and fruits directly from dugout canoes.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDzRqeFjT8ELmDt0ohsVLUUaG7IJB2-CpifHtPsLnxLCZphm1-iGsk7rA5HbJCSE7WAk8X6yrbd1Ypzr0nigcL8EZ8EErry3-1VhHb-EDbe7VtyyDvyknlvDWpIa7r4SSW5Lmdmgzir2aLY7G8J16jT86Cz2NE8B-nyPzpbB_8VPCYHClW2AK89tpOamyFSwyvsy1gsP4y6rWJ5qz5bNsFJo8cnfnTgjU1oS_Izr0_A34kxJ_IegTIy'
+        title: 'Marché Flottant Matinal',
+        description: 'Les femmes vendent poissons pêchés dans les Acadjas, maïs et ignames directement de pirogue à pirogue.',
+        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=800'
       }
     ],
-    verifiedGuideIds: ['baba-ousmane'],
+    verifiedGuideIds: ['basile-toviho'],
     vocabulary: [
       {
-        term: 'Ganvié',
-        phonetic: '/gan-vi-ay/',
-        meaning: 'Literally "we survived" in the Tofin dialect.'
+        term: 'Gan-vié',
+        phonetic: '/gahn-vee-eh/',
+        meaning: 'Traduction littérale Tofinu : "La collectivité est sauvée / Nous avons survécu".'
+      },
+      {
+        term: 'Acadja',
+        phonetic: '/ah-cah-jah/',
+        meaning: 'Parc à poissons écologique fait de branchages immergés créant un biotope naturel riche.'
       }
     ],
     coordinates: {
@@ -265,6 +259,236 @@ export const PLACES_DATA: Place[] = [
       y: 58,
       lat: 6.4667,
       lng: 2.4167
+    }
+  },
+  {
+    id: 'mosquee-porto-novo',
+    name: 'Grande Mosquée Afro-Brésilienne & Musée Honmè',
+    location: 'Porto-Novo (Hogbonou), Ouémé, Bénin',
+    category: 'Historical',
+    distanceKm: 32,
+    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=800',
+    description: 'Chef-d’œuvre d’architecture baroque luso-brésilienne érigé par les Agudas (anciens esclaves affranchis revenus du Brésil).',
+    deepHistory: 'Construite entre 1912 et 1925, la Grande Mosquée de Porto-Novo est inspirée des cathédrales baroques de Salvador de Bahia, symbole de la réappropriation architecturale des Agudas. À quelques minutes se trouve le Palais Honmè, résidence historique du Roi Toffa Ier ayant signé le traité avec la France.',
+    badges: ['Architecture Afro-Brésilienne', 'Capitale Historique'],
+    etiquette: [
+      {
+        title: 'Tenue décente requise',
+        description: 'Épaules et jambes couvertes pour la visite des abords et cours historiques de Porto-Novo.',
+        icon: 'info'
+      }
+    ],
+    audioGuide: {
+      title: 'L’Héritage des Agudas et le Palais du Roi Toffa',
+      narrator: 'Maman Solange Dossou, Maîtresse Teinturière',
+      duration: '6:00',
+      durationSeconds: 360
+    },
+    visualGuides: [
+      {
+        title: 'Façade Polyptique Baroque',
+        description: 'Corniches moulurées peintes aux couleurs ocres et pistaches avec arcs en plein cintre.',
+        image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=800'
+      }
+    ],
+    verifiedGuideIds: ['maman-solange'],
+    vocabulary: [
+      {
+        term: 'Aguda',
+        phonetic: '/ah-goo-dah/',
+        meaning: 'Descendants des Afro-Brésiliens réinstallés au Golfe de Guinée au XIXe siècle.'
+      },
+      {
+        term: 'Hogbonou',
+        phonetic: '/hog-boh-noo/',
+        meaning: 'Nom traditionnel et authentique en langue Goun de la ville de Porto-Novo.'
+      }
+    ],
+    coordinates: {
+      x: 82,
+      y: 56,
+      lat: 6.4969,
+      lng: 2.6289
+    }
+  },
+  {
+    id: 'fondation-zinsou',
+    name: 'Fondation Zinsou d’Art Contemporain',
+    location: 'Cotonou & Ouidah, Bénin',
+    category: 'Arts',
+    distanceKm: 35,
+    image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&q=80&w=800',
+    description: 'Pôle muséal majeur d’Afrique de l’Ouest gratuit pour tous, valorisant artistes plasticiens et photographes du continent.',
+    deepHistory: 'Fondée en 2005 par Marie-Cécile Zinsou, cette institution rayonne à Cotonou et dans la sublime villa coloniale de Ouidah. Elle a accueilli plus de 6 millions de visiteurs et fait dialoguer les créations contemporaines avec les trésors royaux restitués.',
+    badges: ['Entrée 100% Gratuite', 'Art Contemporain Africain'],
+    etiquette: [
+      {
+        title: 'Photographies sans flash bienvenues',
+        description: 'Le partage et la diffusion des œuvres d’artistes béninois et africains sont activement encouragés.',
+        icon: 'photo_camera'
+      }
+    ],
+    audioGuide: {
+      title: 'Renaissance Plastique et Trésors Royaux',
+      narrator: 'Nathalie Sossa, Conservatrice adjointe',
+      duration: '4:45',
+      durationSeconds: 285
+    },
+    visualGuides: [
+      {
+        title: 'Tapisseries & Kanvô Contemporain',
+        description: 'Œuvres monumentales mêlant tissage royal traditionnel Kanvô et toiles textiles contemporaines.',
+        image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&q=80&w=800'
+      }
+    ],
+    verifiedGuideIds: ['nathalie-sossa'],
+    vocabulary: [
+      {
+        term: 'Kanvô',
+        phonetic: '/kan-voh/',
+        meaning: 'Tissu traditionnel béninois tissé à la main, autrefois réservé à la parure des rois et dignitaires.'
+      }
+    ],
+    coordinates: {
+      x: 75,
+      y: 65,
+      lat: 6.3677,
+      lng: 2.4333
+    }
+  },
+  {
+    id: 'place-amazone-cotonou',
+    name: 'Esplanade de l’Amazone & Monument Bio Guéra',
+    location: 'Boulevard de la Marina, Cotonou, Bénin',
+    category: 'Historical',
+    distanceKm: 34,
+    image: 'https://images.unsplash.com/photo-1533158307587-828f0a76ef46?auto=format&fit=crop&q=80&w=800',
+    description: 'Statue monumentale en bronze de 30 mètres rendant hommage à la bravoure légendaire des guerrières Agojié.',
+    deepHistory: 'Inaugurée en 2022 face à l’Océan Atlantique et au Palais de la Présidence de la République, cette statue majestueuse réalisée en bronze célèbre le courage patriotique des femmes guerrières du Dahomey et l’héroïsme de la nation béninoise.',
+    badges: ['Symbole National', 'Vue Océane'],
+    etiquette: [
+      {
+        title: 'Espace public de fierté républicaine',
+        description: 'Accès libre jour et nuit, idéal au coucher du soleil pour les promenades citoyennes.',
+        icon: 'info'
+      }
+    ],
+    audioGuide: {
+      title: 'L’Hymne aux Combattantes de la Liberté',
+      narrator: 'Dah Agbodjan, Historien',
+      duration: '3:50',
+      durationSeconds: 230
+    },
+    visualGuides: [
+      {
+        title: 'Statue Géante en Bronze',
+        description: 'La guerrière représentée tenant sa lance avec fierté et détermination face au large.',
+        image: 'https://images.unsplash.com/photo-1533158307587-828f0a76ef46?auto=format&fit=crop&q=80&w=800'
+      }
+    ],
+    verifiedGuideIds: ['nathalie-sossa', 'koffi-agbodjan'],
+    vocabulary: [
+      {
+        term: 'Agojié',
+        phonetic: '/ah-goh-jee-eh/',
+        meaning: 'Les soldates du régiment féminin royal, surnommées Minon ("Nos Mères") par le peuple.'
+      }
+    ],
+    coordinates: {
+      x: 76,
+      y: 66,
+      lat: 6.3572,
+      lng: 2.4278
+    }
+  },
+  {
+    id: 'sanctuaire-dassa-arigbo',
+    name: 'Sanctuaire Marial d’Arigbo & Les 41 Collines',
+    location: 'Dassa-Zoumè, Collines, Bénin',
+    category: 'Spiritual',
+    distanceKm: 180,
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800',
+    description: 'Haut lieu de pèlerinage catholique niché au creux d’une grotte granitique sacrée au cœur des 41 collines de Dassa.',
+    deepHistory: 'Depuis 1954, cette grotte naturelle au pied des monts granitiques est le plus grand sanctuaire de pèlerinage marial d’Afrique subsaharienne. Le site réalise un syncrétisme pacifique avec les divinités protectrices locales des collines d’Idatcha.',
+    badges: ['Pèlerinage International', 'Paysage Géologique Remarquable'],
+    etiquette: [
+      {
+        title: 'Silence et recueillement dans la grotte',
+        description: 'Prière continue des pèlerins : préservez la sérénité des lieux.',
+        icon: 'volume_mute'
+      }
+    ],
+    audioGuide: {
+      title: 'Mystères des 41 Collines et Grotte d’Arigbo',
+      narrator: 'Père Jean-Baptiste, Recteur du Sanctuaire',
+      duration: '5:15',
+      durationSeconds: 315
+    },
+    visualGuides: [
+      {
+        title: 'Grotte Mariale Naturelle',
+        description: 'Cavité rocheuse millénaire abritant la statue de la Vierge sous les dômes de granit.',
+        image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800'
+      }
+    ],
+    verifiedGuideIds: ['dr-sylvain-kpanlingan'],
+    vocabulary: [
+      {
+        term: 'Idatcha',
+        phonetic: '/ee-dah-chah/',
+        meaning: 'Peuple autochtone des collines de Dassa réputé pour sa tolérance religieuse.'
+      }
+    ],
+    coordinates: {
+      x: 45,
+      y: 30,
+      lat: 7.7500,
+      lng: 2.1833
+    }
+  },
+  {
+    id: 'koutammakou-tata-somba',
+    name: 'Pays Batammariba & Châteaux Tata Somba (UNESCO)',
+    location: 'Boukoumbé & Natitingou, Atacora, Bénin',
+    category: 'Historical',
+    distanceKm: 520,
+    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=800',
+    description: 'Châteaux-forts miniatures en terre à deux étages, chefs-d’œuvre d’architecture défensive et cosmique.',
+    deepHistory: 'Inscrit au Patrimoine Mondial de l’UNESCO, le pays Batammariba ("ceux qui sont les vrais bâtisseurs de la terre") abrite les Tata Somba : forteresses d’argile où le bétail dort au rez-de-chaussée, la famille habite au premier et les greniers sacrés couronnent la terrasse sous les étoiles.',
+    badges: ['Patrimoine Mondial UNESCO', 'Architecture Vivante'],
+    etiquette: [
+      {
+        title: 'Demander la bénédiction du chef de famille avant d’entrer',
+        description: 'La porte d’entrée du Tata est toujours orientée vers l’ouest et protégée par des autels tutélaires.',
+        icon: 'account_balance'
+      }
+    ],
+    audioGuide: {
+      title: 'Cosmologie et Bâtisseurs de Tata Somba',
+      narrator: 'N’Dah Kouagou, Maître Bâtisseur Batammariba',
+      duration: '8:20',
+      durationSeconds: 500
+    },
+    visualGuides: [
+      {
+        title: 'Greniers Coniques Sacrés',
+        description: 'Tourelles de séchage coiffées de paille tressée protégeant le sorgho et le mil.',
+        image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=800'
+      }
+    ],
+    verifiedGuideIds: ['dr-sylvain-kpanlingan'],
+    vocabulary: [
+      {
+        term: 'Takyienta',
+        phonetic: '/tah-kee-yen-tah/',
+        meaning: 'Le nom authentique en langue Ditammari désignant la maison-forteresse à étage Tata.'
+      }
+    ],
+    coordinates: {
+      x: 20,
+      y: 12,
+      lat: 10.1742,
+      lng: 1.3789
     }
   }
 ];

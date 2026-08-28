@@ -118,3 +118,49 @@ export async function createRSVP(data: {
     throw new Error('Database RSVP creation failed', { cause: error });
   }
 }
+
+// Places in Database
+export async function getAllPlaces() {
+  try {
+    return await db.select().from(places);
+  } catch (error) {
+    console.error('Database query getAllPlaces failed:', error);
+    return [];
+  }
+}
+
+export async function upsertPlace(data: {
+  id: string;
+  name: string;
+  location: string;
+  category: string;
+  description?: string;
+  deepHistory?: string;
+  image?: string;
+  lat?: string;
+  lng?: string;
+}) {
+  try {
+    const result = await db.insert(places)
+      .values(data)
+      .onConflictDoUpdate({
+        target: places.id,
+        set: {
+          name: data.name,
+          location: data.location,
+          category: data.category,
+          description: data.description,
+          deepHistory: data.deepHistory,
+          image: data.image,
+          lat: data.lat,
+          lng: data.lng,
+        }
+      })
+      .returning();
+    return result[0];
+  } catch (error) {
+    console.error('Database upsertPlace failed:', error);
+    throw new Error('Database place save failed', { cause: error });
+  }
+}
+
