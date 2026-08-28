@@ -31,7 +31,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app, databaseId);
 
 /**
- * Sync user profile to Firestore
+ * Sync user profile to Firestore & Cloud SQL
  */
 export async function syncUserProfileToFirestore(user: UserProfile): Promise<boolean> {
   try {
@@ -40,6 +40,25 @@ export async function syncUserProfileToFirestore(user: UserProfile): Promise<boo
       ...user,
       updatedAt: new Date().toISOString()
     }, { merge: true });
+
+    // Dual-sync to Cloud SQL
+    try {
+      await fetch('/api/db/users/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: user.id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          vibeTag: user.vibeTag,
+          travelStyle: user.travelStyle
+        })
+      });
+    } catch (e) {
+      console.warn('Cloud SQL user background sync note:', e);
+    }
+
     return true;
   } catch (error) {
     console.warn('Firestore user sync warning (using local fallback):', error);
@@ -48,7 +67,7 @@ export async function syncUserProfileToFirestore(user: UserProfile): Promise<boo
 }
 
 /**
- * Load user profile from Firestore
+ * Load user profile from Firestore or Cloud SQL
  */
 export async function loadUserProfileFromFirestore(userId: string): Promise<UserProfile | null> {
   try {
@@ -104,6 +123,18 @@ export async function createBookingInFirestore(booking: Omit<BookingRecord, 'id'
       createdAt: new Date().toISOString(),
       timestamp: serverTimestamp()
     });
+
+    // Dual-sync to Cloud SQL
+    try {
+      await fetch('/api/db/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booking)
+      });
+    } catch (e) {
+      console.warn('Cloud SQL booking background sync note:', e);
+    }
+
     return docRef.id;
   } catch (error) {
     console.warn('Firestore booking error:', error);
@@ -131,7 +162,7 @@ export async function getUserBookingsFromFirestore(userEmail: string): Promise<B
 }
 
 /**
- * Save Event RSVP in Firestore
+ * Save Event RSVP in Firestore & Cloud SQL
  */
 export async function saveEventRSVPToFirestore(eventId: string, eventTitle: string, userEmail: string): Promise<boolean> {
   try {
@@ -143,6 +174,18 @@ export async function saveEventRSVPToFirestore(eventId: string, eventTitle: stri
       createdAt: new Date().toISOString(),
       timestamp: serverTimestamp()
     });
+
+    // Dual-sync to Cloud SQL
+    try {
+      await fetch('/api/db/rsvps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, eventTitle, userEmail })
+      });
+    } catch (e) {
+      console.warn('Cloud SQL RSVP sync note:', e);
+    }
+
     return true;
   } catch (error) {
     console.warn('Firestore RSVP error:', error);
@@ -151,7 +194,7 @@ export async function saveEventRSVPToFirestore(eventId: string, eventTitle: stri
 }
 
 /**
- * Save Itinerary in Firestore
+ * Save Itinerary in Firestore & Cloud SQL
  */
 export async function saveItineraryToFirestore(
   title: string,
@@ -171,6 +214,24 @@ export async function saveItineraryToFirestore(
       createdAt: new Date().toISOString(),
       timestamp: serverTimestamp()
     });
+
+    // Dual-sync to Cloud SQL
+    try {
+      await fetch('/api/db/itineraries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          duration,
+          interests,
+          stops,
+          userEmail
+        })
+      });
+    } catch (e) {
+      console.warn('Cloud SQL itinerary sync note:', e);
+    }
+
     return docRef.id;
   } catch (error) {
     console.warn('Firestore save itinerary error:', error);

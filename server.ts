@@ -3,6 +3,15 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import {
+  getOrCreateUser,
+  getUserProfile,
+  createBooking,
+  getBookingsByUser,
+  createSavedItinerary,
+  getSavedItinerariesByUser,
+  createRSVP
+} from "./src/db/queries.ts";
 
 dotenv.config();
 
@@ -23,7 +32,89 @@ async function startServer() {
 
   // API Health Check
   app.get("/api/health", (_req, res) => {
-    res.json({ status: "ok", service: "La Vibe Map Cultural API", timestamp: new Date().toISOString() });
+    res.json({
+      status: "ok",
+      service: "La Vibe Map Cultural & Cloud SQL API",
+      cloudSqlRegion: "europe-west1",
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Cloud SQL Database APIs
+  app.post("/api/db/users/sync", async (req, res) => {
+    try {
+      const { uid, email, name, avatar, vibeTag, travelStyle } = req.body;
+      if (!uid || !email) {
+        return res.status(400).json({ error: "uid and email required" });
+      }
+      const user = await getOrCreateUser(uid, email, name, avatar, vibeTag, travelStyle);
+      res.json(user);
+    } catch (error: any) {
+      console.error("Cloud SQL user sync error:", error);
+      res.status(500).json({ error: "Failed to sync user to Cloud SQL" });
+    }
+  });
+
+  app.get("/api/db/users/:uid", async (req, res) => {
+    try {
+      const user = await getUserProfile(req.params.uid);
+      res.json(user || {});
+    } catch (error: any) {
+      console.error("Cloud SQL user fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch user from Cloud SQL" });
+    }
+  });
+
+  app.post("/api/db/bookings", async (req, res) => {
+    try {
+      const booking = await createBooking(req.body);
+      res.json(booking);
+    } catch (error: any) {
+      console.error("Cloud SQL booking error:", error);
+      res.status(500).json({ error: "Failed to save booking to Cloud SQL" });
+    }
+  });
+
+  app.get("/api/db/bookings", async (req, res) => {
+    try {
+      const email = String(req.query.email || 'kedagniarnaud999@gmail.com');
+      const bookingsList = await getBookingsByUser(email);
+      res.json(bookingsList);
+    } catch (error: any) {
+      console.error("Cloud SQL fetch bookings error:", error);
+      res.status(500).json({ error: "Failed to fetch bookings from Cloud SQL" });
+    }
+  });
+
+  app.post("/api/db/itineraries", async (req, res) => {
+    try {
+      const itinerary = await createSavedItinerary(req.body);
+      res.json(itinerary);
+    } catch (error: any) {
+      console.error("Cloud SQL itinerary error:", error);
+      res.status(500).json({ error: "Failed to save itinerary to Cloud SQL" });
+    }
+  });
+
+  app.get("/api/db/itineraries", async (req, res) => {
+    try {
+      const email = String(req.query.email || 'kedagniarnaud999@gmail.com');
+      const list = await getSavedItinerariesByUser(email);
+      res.json(list);
+    } catch (error: any) {
+      console.error("Cloud SQL fetch itineraries error:", error);
+      res.status(500).json({ error: "Failed to fetch itineraries from Cloud SQL" });
+    }
+  });
+
+  app.post("/api/db/rsvps", async (req, res) => {
+    try {
+      const rsvp = await createRSVP(req.body);
+      res.json(rsvp);
+    } catch (error: any) {
+      console.error("Cloud SQL rsvp error:", error);
+      res.status(500).json({ error: "Failed to save RSVP to Cloud SQL" });
+    }
   });
 
   // AI Cultural Companion Chat API
@@ -36,7 +127,6 @@ async function startServer() {
 
       const ai = getAI();
       if (!ai) {
-        // Fallback response if key is missing
         return res.json({
           reply: `Akwaba ! Concernant votre question sur "${message}" : Au Bénin, les traditions vivantes (Vodun, Royauté d'Abomey, Rites Gèlèdé) reposent sur le profond respect des aînés et des sanctuaires. N'hésitez pas à demander la permission aux gardiens avant toute photo.`,
           fonPhrase: {
@@ -205,7 +295,7 @@ Format de sortie en JSON strict:
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Cultural API & App server running on http://0.0.0.0:${PORT}`);
+    console.log(`Cultural API & Cloud SQL server running on http://0.0.0.0:${PORT}`);
   });
 }
 
