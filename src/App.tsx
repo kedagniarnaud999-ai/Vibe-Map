@@ -8,7 +8,6 @@ import { EVENTS_DATA } from './data/events';
 import { INITIAL_USER } from './data/user';
 import { 
   syncUserProfileToFirestore, 
-  loadUserProfileFromFirestore,
   getPlacesFromFirestore,
   onAuthStateChange
 } from './lib/firebase';
@@ -46,7 +45,7 @@ export default function App() {
   
   const [user, setUser] = useState<UserProfile>({
     ...INITIAL_USER,
-    role: 'admin' // Default to admin for full capability inspection
+    role: 'traveler'
   });
   
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(true);
@@ -70,9 +69,16 @@ export default function App() {
         setUser((prev) => ({
           ...prev,
           ...authUser,
-          role: authUser.email === 'kedagniarnaud999@gmail.com' ? 'admin' : (authUser.role || prev.role || 'traveler')
+          role: authUser.email === 'kedagniarnaud999@gmail.com' ? 'admin' : (authUser.role || 'traveler')
         }));
+        return;
       }
+
+      setUser((prev) => ({
+        ...INITIAL_USER,
+        language: prev.language,
+        role: 'traveler'
+      }));
     });
 
     // Load dynamic and verified places from Firestore & Cloud SQL
