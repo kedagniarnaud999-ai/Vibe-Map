@@ -2,18 +2,22 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Place, Category } from '../types';
 import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers } from 'lucide-react';
+import { UserCoordinates } from '../lib/geo';
 
 interface LeafletMapViewProps {
   places: Place[];
   selectedPlace: Place | null;
+  userPosition: UserCoordinates | null;
   onSelectPlace: (place: Place) => void;
   onOpenPlaceDetail: (place: Place) => void;
   layerType: 'street' | 'satellite' | 'terrain' | 'voyager';
+  onPanToUser?: () => void;
 }
 
 export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
   places,
   selectedPlace,
+  userPosition,
   onSelectPlace,
   onOpenPlaceDetail,
   layerType
@@ -22,6 +26,8 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersRef = useRef<{ [id: string]: L.Marker }>({});
+  const userMarkerRef = useRef<L.Marker | null>(null);
+  const userCircleRef = useRef<L.Circle | null>(null);
 
   // Helper for pin styling
   const getCategoryColor = (category: Category) => {
@@ -65,15 +71,38 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
     });
   };
 
+  const createUserLocationIcon = () => {
+    const html = `
+      <div class="relative flex items-center justify-center">
+        <div class="absolute -inset-3 rounded-full bg-blue-500/30 animate-ping"></div>
+        <div class="w-7 h-7 rounded-full bg-blue-600 border-2 border-white shadow-xl flex items-center justify-center text-white ring-4 ring-blue-500/20">
+          <div class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></div>
+        </div>
+      </div>
+    `;
+
+    return L.divIcon({
+      className: 'user-location-marker',
+      html,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14],
+    });
+  };
+
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
       // Center of Benin historical southern coastal & royal corridor
+      const initialLat = userPosition ? userPosition.lat : 6.45;
+      const initialLng = userPosition ? userPosition.lng : 2.25;
+      const initialZoom = userPosition ? 12 : 9;
+
       const map = L.map(mapContainerRef.current, {
-        center: [6.45, 2.25],
-        zoom: 9,
+        center: [initialLat, initialLng],
+        zoom: initialZoom,
         zoomControl: false,
         attributionControl: false,
       });
@@ -122,6 +151,56 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
     tileLayerRef.current = newLayer;
   }, [layerType]);
 
+  // Update User Location Marker & Accuracy Halo
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+    if (userCircleRef.current) {
+      userCircleRef.current.remove();
+      userCircleRef.current = null;
+    }
+
+    if (userPosition && userPosition.lat && userPosition.lng) {
+      const userIcon = createUserLocationIcon();
+      const marker = L.marker([userPosition.lat, userPosition.lng], { 
+        icon: userIcon,
+        zIndexOffset: 1000 
+      }).addTo(map);
+
+      const userPopup = document.createElement('div');
+      userPopup.className = 'p-1 font-sans text-center text-[#2c2926]';
+      userPopup.innerHTML = `
+        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mb-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+          Vous êtes ici
+        </div>
+        <p class="text-[10px] text-[#6b665e]">
+          Précision GPS: ~${Math.round(userPosition.accuracy || 20)}m
+        </p>
+      `;
+      marker.bindPopup(userPopup);
+      userMarkerRef.current = marker;
+
+      // Draw accuracy radius circle if accuracy is known
+      if (userPosition.accuracy && userPosition.accuracy > 10) {
+        const circle = L.circle([userPosition.lat, userPosition.lng], {
+          radius: Math.min(userPosition.accuracy, 2000),
+          color: '#3b82f6',
+          fillColor: '#3b82f6',
+          fillOpacity: 0.1,
+          weight: 1.5,
+          dashArray: '4, 4'
+        }).addTo(map);
+        userCircleRef.current = circle;
+      }
+    }
+  }, [userPosition]);
+
   // Update Markers
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -156,6 +235,11 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
           <span class="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">
             ${place.category}
           </span>
+          ${(place as any).calculatedDistanceKm !== undefined ? `
+            <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-blue-600/90 text-white text-[9px] font-bold shadow">
+              📍 ${(place as any).calculatedDistanceKm} km
+            </span>
+          ` : ''}
         </div>
         <h4 class="font-bold text-xs text-[#2c2926] leading-snug">${place.name}</h4>
         <p class="text-[11px] text-[#6b665e] line-clamp-2 mt-0.5">${place.description}</p>

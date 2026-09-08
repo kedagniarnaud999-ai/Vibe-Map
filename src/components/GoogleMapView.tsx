@@ -8,17 +8,22 @@ import {
   useMap 
 } from '@vis.gl/react-google-maps';
 import { Place, Category } from '../types';
-import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers, AlertCircle } from 'lucide-react';
+import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers, AlertCircle, MapPin } from 'lucide-react';
+import { UserCoordinates } from '../lib/geo';
 
 interface GoogleMapViewProps {
   places: Place[];
   selectedPlace: Place | null;
+  userPosition: UserCoordinates | null;
   onSelectPlace: (place: Place) => void;
   onOpenPlaceDetail: (place: Place) => void;
 }
 
 // Sub-component to handle programmatically controlling camera pan
-const MapController: React.FC<{ selectedPlace: Place | null }> = ({ selectedPlace }) => {
+const MapController: React.FC<{ 
+  selectedPlace: Place | null; 
+  userPosition: UserCoordinates | null;
+}> = ({ selectedPlace, userPosition }) => {
   const map = useMap();
 
   useEffect(() => {
@@ -37,10 +42,12 @@ const MapController: React.FC<{ selectedPlace: Place | null }> = ({ selectedPlac
 export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
   places,
   selectedPlace,
+  userPosition,
   onSelectPlace,
   onOpenPlaceDetail
 }) => {
   const [activeMarkerPlace, setActiveMarkerPlace] = useState<Place | null>(selectedPlace);
+  const [showUserLocationInfo, setShowUserLocationInfo] = useState<boolean>(false);
   const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'terrain' | 'hybrid'>('roadmap');
   const [hasError, setHasError] = useState(false);
 
@@ -49,8 +56,11 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
     ((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string) || 
     'AIzaSyC7Sjhb4l7AyU69Pi6Nmyf5odSZcIDFfFg';
 
-  // Default center around Ouidah / Cotonou / Abomey historical axis in Benin
-  const defaultCenter = { 
+  // Default center around user or Ouidah / Cotonou / Abomey historical axis in Benin
+  const defaultCenter = userPosition ? {
+    lat: userPosition.lat,
+    lng: userPosition.lng
+  } : { 
     lat: selectedPlace?.coordinates?.lat || 6.3622, 
     lng: selectedPlace?.coordinates?.lng || 2.0864 
   };
@@ -99,7 +109,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
       >
         <Map
           defaultCenter={defaultCenter}
-          defaultZoom={11}
+          defaultZoom={userPosition ? 12 : 11}
           mapId="DEMO_MAP_ID"
           mapTypeId={mapType}
           gestureHandling="greedy"
@@ -107,7 +117,42 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
           className="w-full h-full"
           internalUsageAttributionIds={["gmp_mcp_codeassist_v1_aistudio"]}
         >
-          <MapController selectedPlace={selectedPlace} />
+          <MapController selectedPlace={selectedPlace} userPosition={userPosition} />
+
+          {/* User Location Marker */}
+          {userPosition && (
+            <AdvancedMarker
+              position={{ lat: userPosition.lat, lng: userPosition.lng }}
+              title="Votre position actuelle"
+              zIndex={999}
+              onClick={() => setShowUserLocationInfo(true)}
+            >
+              <div className="relative flex items-center justify-center cursor-pointer">
+                <div className="absolute -inset-3 rounded-full bg-blue-500/30 animate-ping"></div>
+                <div className="w-7 h-7 rounded-full bg-blue-600 border-2 border-white shadow-xl flex items-center justify-center text-white ring-4 ring-blue-500/20">
+                  <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></div>
+                </div>
+              </div>
+            </AdvancedMarker>
+          )}
+
+          {/* User Location Info Window */}
+          {showUserLocationInfo && userPosition && (
+            <InfoWindow
+              position={{ lat: userPosition.lat, lng: userPosition.lng }}
+              onCloseClick={() => setShowUserLocationInfo(false)}
+            >
+              <div className="p-1 font-sans text-center text-[#2c2926]">
+                <div className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mb-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  Vous êtes ici
+                </div>
+                <p className="text-[10px] text-[#6b665e]">
+                  Précision GPS: ~{Math.round(userPosition.accuracy || 20)}m
+                </p>
+              </div>
+            </InfoWindow>
+          )}
 
           {/* Place Markers */}
           {places.map((place) => {
@@ -158,6 +203,11 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
                   <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-black/70 text-white text-[10px] font-bold">
                     {activeMarkerPlace.category}
                   </span>
+                  {(activeMarkerPlace as any).calculatedDistanceKm !== undefined && (
+                    <span className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded bg-blue-600 text-white text-[10px] font-bold shadow">
+                      📍 {(activeMarkerPlace as any).calculatedDistanceKm} km de vous
+                    </span>
+                  )}
                 </div>
 
                 <h4 className="font-serif font-bold text-sm text-[#2c2926] leading-tight">

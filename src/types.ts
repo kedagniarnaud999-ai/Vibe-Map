@@ -195,6 +195,22 @@ export interface UserPreferences {
 
 export type UserProfile = UserPreferences;
 
+export interface GuideApplication {
+  id?: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  region: string;
+  experienceYears: number;
+  languages: string[];
+  specialties: string[];
+  bio: string;
+  idDocumentUrl?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+}
+
 export interface ItineraryStop {
   id: string;
   time: string;

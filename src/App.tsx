@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ScreenId, Place, Story, Actor, UserPreferences, AppLanguage, UserProfile } from './types';
+import { ScreenId, Place, Story, Actor, UserPreferences, AppLanguage, UserProfile, UserRole } from './types';
 import { PLACES_DATA } from './data/places';
 import { STORIES_DATA } from './data/stories';
 import { ACTORS_DATA } from './data/actors';
@@ -48,6 +48,7 @@ export default function App() {
     role: 'traveler'
   });
   
+  const [authTargetRole, setAuthTargetRole] = useState<UserRole>('traveler');
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(true);
 
   // Initialize onboarding, Firebase Auth & Firestore DB
@@ -343,6 +344,7 @@ export default function App() {
             {currentScreen === 'auth' && (
               <AuthScreen
                 currentLang={currentLang}
+                initialRole={authTargetRole}
                 onAuthSuccess={(authenticatedUser) => {
                   setUser(authenticatedUser);
                   navigateTo(authenticatedUser.role === 'admin' ? 'admin' : authenticatedUser.role === 'guide' ? 'guide-portal' : 'home');
@@ -448,11 +450,17 @@ export default function App() {
             {currentScreen === 'admin' && (
               <AdminScreen
                 currentLang={currentLang}
+                userRole={user.role}
                 places={places}
                 actors={actors}
                 events={EVENTS_DATA}
                 onPlaceAddedOrUpdated={handlePlaceAddedOrUpdated}
                 onPlaceDeleted={handlePlaceDeleted}
+                onOpenAuth={(role) => {
+                  setAuthTargetRole(role || 'admin');
+                  navigateTo('auth');
+                }}
+                onBackToPublic={() => navigateTo('home')}
               />
             )}
 
@@ -461,6 +469,11 @@ export default function App() {
                 user={user}
                 currentLang={currentLang}
                 actors={actors}
+                onOpenAuth={(role) => {
+                  setAuthTargetRole(role || 'guide');
+                  navigateTo('auth');
+                }}
+                onBackToPublic={() => navigateTo('home')}
               />
             )}
 
@@ -470,7 +483,10 @@ export default function App() {
                 currentLang={currentLang}
                 onLanguageChange={handleLanguageChange}
                 onUpdateUser={handleUpdateUser}
-                onOpenAuth={() => navigateTo('auth')}
+                onOpenAuth={(role) => {
+                  setAuthTargetRole(role || 'traveler');
+                  navigateTo('auth');
+                }}
                 onNavigate={navigateTo}
               />
             )}

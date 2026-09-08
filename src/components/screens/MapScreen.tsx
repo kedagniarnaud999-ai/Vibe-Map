@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, 
   MapPin, 
@@ -14,11 +14,20 @@ import {
   Map as MapIcon,
   Globe,
   Mountain,
-  Satellite
+  Satellite,
+  LocateFixed,
+  Loader2,
+  ListFilter,
+  CheckCircle2,
+  AlertTriangle,
+  ChevronUp,
+  ChevronDown,
+  X
 } from 'lucide-react';
 import { Place, Category } from '../../types';
 import { LeafletMapView } from '../LeafletMapView';
 import { GoogleMapView } from '../GoogleMapView';
+import { calculateDistanceKm, formatDistance, getProximityBadge, UserCoordinates } from '../../lib/geo';
 
 interface MapScreenProps {
   places: Place[];
@@ -37,17 +46,119 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [layerType, setLayerType] = useState<'voyager' | 'satellite' | 'terrain' | 'street'>('voyager');
   const [viewEngine, setViewEngine] = useState<'interactive-map' | 'google-maps' | 'heritage-canvas'>('interactive-map');
+  
+  // Geolocation states
+  const [userPosition, setUserPosition] = useState<UserCoordinates | null>(null);
+  const [geoStatus, setGeoStatus] = useState<'idle' | 'locating' | 'granted' | 'denied' | 'error'>('idle');
+  const [geoErrorMsg, setGeoErrorMsg] = useState<string | null>(null);
+  const [sortByProximity, setSortByProximity] = useState<boolean>(false);
+  const [maxDistanceFilter, setMaxDistanceFilter] = useState<number | null>(null); // e.g. 30km
+  const [showNearbyDrawer, setShowNearbyDrawer] = useState<boolean>(false);
+
+  // Request browser Geolocation API
+  const handleLocateUser = (showNotification = true) => {
+    if (!navigator.geolocation) {
+      setGeoStatus('error');
+      setGeoErrorMsg("La géolocalisation n'est pas supportée par votre navigateur.");
+      return;
+    }
+
+    setGeoStatus('locating');
+    setGeoErrorMsg(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords: UserCoordinates = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          heading: pos.coords.heading,
+          speed: pos.coords.speed,
+          timestamp: pos.timestamp
+        };
+        setUserPosition(coords);
+        setGeoStatus('granted');
+        setSortByProximity(true);
+      },
+      (err) => {
+        console.warn("Geolocation error:", err);
+        if (err.code === err.PERMISSION_DENIED) {
+          setGeoStatus('denied');
+          setGeoErrorMsg("Autorisation de localisation refusée.");
+        } else {
+          setGeoStatus('error');
+          setGeoErrorMsg("Impossible de récupérer votre position actuelle.");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000
+      }
+    );
+  };
+
+  // Attempt initial location request on load
+  useEffect(() => {
+    handleLocateUser(false);
+  }, []);
+
+  // Preset location setter (useful for travelers wanting to explore specific regions or testing)
+  const handleSetPresetLocation = (lat: number, lng: number, name: string) => {
+    setUserPosition({
+      lat,
+      lng,
+      accuracy: 15,
+      timestamp: Date.now()
+    });
+    setGeoStatus('granted');
+    setSortByProximity(true);
+    setGeoErrorMsg(null);
+  };
 
   const categories = ['All', 'Spiritual', 'Historical', 'Nature', 'Arts'];
 
-  const filteredPlaces = places.filter((p) => {
-    const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
-    const matchesSearch =
-      searchQuery === '' ||
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesSearch;
-  });
+  // Enrich places with calculated distance to user's real GPS position
+  const enrichedPlaces = useMemo(() => {
+    return places.map((place) => {
+      let calculatedDistanceKm: number | undefined = undefined;
+      if (userPosition && place.coordinates?.lat && place.coordinates?.lng) {
+        calculatedDistanceKm = calculateDistanceKm(
+          userPosition.lat,
+          userPosition.lng,
+          place.coordinates.lat,
+          place.coordinates.lng
+        );
+      }
+      return {
+        ...place,
+        calculatedDistanceKm: calculatedDistanceKm ?? place.distanceKm
+      };
+    });
+  }, [places, userPosition]);
+
+  // Filter and Sort places
+  const filteredPlaces = useMemo(() => {
+    let result = enrichedPlaces.filter((p) => {
+      const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
+      const matchesSearch =
+        searchQuery === '' ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.location.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesDistance = 
+        maxDistanceFilter === null || 
+        (p.calculatedDistanceKm !== undefined && p.calculatedDistanceKm <= maxDistanceFilter);
+
+      return matchesCat && matchesSearch && matchesDistance;
+    });
+
+    if (sortByProximity && userPosition) {
+      result.sort((a, b) => (a.calculatedDistanceKm || 9999) - (b.calculatedDistanceKm || 9999));
+    }
+
+    return result;
+  }, [enrichedPlaces, selectedCategory, searchQuery, maxDistanceFilter, sortByProximity, userPosition]);
 
   const activePlace = selectedPlace || filteredPlaces[0] || places[0];
 
@@ -69,7 +180,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   return (
     <div className="relative h-[calc(100vh-120px)] w-full overflow-hidden bg-[#e8e2d5] flex flex-col">
       {/* Floating Top Filter & Search Controls */}
-      <div className="absolute top-4 left-4 right-4 z-20 space-y-2 max-w-lg mx-auto pointer-events-auto">
+      <div className="absolute top-3 left-3 right-3 z-20 space-y-2 max-w-lg mx-auto pointer-events-auto">
         <div className="flex items-center gap-2">
           <div className="relative flex-1 shadow-md rounded-2xl">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c867c]" />
@@ -78,7 +189,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher Ouidah, Abomey, Ganvié, Porto-Novo..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white/95 backdrop-blur-md text-[#2c2926] placeholder-[#8c867c] text-xs sm:text-sm rounded-2xl border border-[#e8e2d5] focus:border-[#c14e2f] focus:outline-none transition-all shadow-sm"
+              className="w-full pl-10 pr-4 py-2 bg-white/95 backdrop-blur-md text-[#2c2926] placeholder-[#8c867c] text-xs sm:text-sm rounded-2xl border border-[#e8e2d5] focus:border-[#c14e2f] focus:outline-none transition-all shadow-sm"
             />
           </div>
 
@@ -117,22 +228,68 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             </button>
 
             <button
-              onClick={() => setViewEngine('heritage-canvas')}
+              onClick={() => setViewEngine('google-maps')}
               className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all ${
-                viewEngine === 'heritage-canvas'
+                viewEngine === 'google-maps'
                   ? 'bg-[#c14e2f] text-white shadow-sm'
                   : 'text-[#6b665e] hover:text-[#2c2926]'
               }`}
-              title="Carte Illustrée du Dahomey"
+              title="Google Maps"
             >
-              <MapIcon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Illustrée</span>
+              <Compass className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Google</span>
             </button>
           </div>
         </div>
 
-        {/* Category horizontal scroll pills */}
+        {/* Category & Proximity Quick Filter Row */}
         <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5">
+          {/* Nearby Sites Filter Pill */}
+          <button
+            onClick={() => {
+              if (!userPosition) {
+                handleLocateUser(true);
+              } else {
+                setSortByProximity(!sortByProximity);
+              }
+            }}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm backdrop-blur-md flex items-center gap-1.5 transition-all ${
+              sortByProximity && userPosition
+                ? 'bg-blue-600 text-white ring-2 ring-blue-400/40 shadow-blue-500/20'
+                : 'bg-white/95 text-blue-700 hover:bg-blue-50 border border-blue-200'
+            }`}
+          >
+            {geoStatus === 'locating' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-500" />
+            ) : (
+              <LocateFixed className="w-3.5 h-3.5" />
+            )}
+            <span>
+              {userPosition 
+                ? (sortByProximity ? '🎯 Plus proches d’abord' : 'Trier par proximité')
+                : 'Me localiser'
+              }
+            </span>
+          </button>
+
+          {/* Distance Radius Filter (when located) */}
+          {userPosition && (
+            <button
+              onClick={() => {
+                if (maxDistanceFilter === null) setMaxDistanceFilter(25);
+                else if (maxDistanceFilter === 25) setMaxDistanceFilter(50);
+                else setMaxDistanceFilter(null);
+              }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shadow-sm backdrop-blur-md transition-all ${
+                maxDistanceFilter !== null
+                  ? 'bg-amber-600 text-white font-semibold'
+                  : 'bg-white/90 text-[#6b665e] hover:bg-white'
+              }`}
+            >
+              {maxDistanceFilter ? `Rayon < ${maxDistanceFilter} km` : 'Tous les rayons'}
+            </button>
+          )}
+
           {categories.map((cat) => {
             const label = cat === 'All' ? 'Tous les sites' :
                           cat === 'Spiritual' ? '🕊️ Spirituel & Vodun' :
@@ -153,6 +310,56 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             );
           })}
         </div>
+
+        {/* Location Status Message & Simulator helper if user is denied or testing */}
+        {geoErrorMsg && (
+          <div className="bg-amber-50/95 border border-amber-200 text-amber-800 text-[11px] px-3 py-2 rounded-xl flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+              <span>{geoErrorMsg}</span>
+            </div>
+            <button 
+              onClick={() => handleSetPresetLocation(6.3622, 2.0864, 'Ouidah')}
+              className="underline font-semibold ml-2 text-amber-900"
+            >
+              Simuler Ouidah
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Floating Geolocation & Nearby Sites Action Bar (Right side) */}
+      <div className="absolute right-4 top-36 z-20 flex flex-col gap-2 pointer-events-auto">
+        {/* Locate Me Floating Action Button */}
+        <button
+          onClick={() => handleLocateUser(true)}
+          disabled={geoStatus === 'locating'}
+          className={`w-10 h-10 rounded-2xl shadow-lg flex items-center justify-center transition-all ${
+            userPosition
+              ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95 ring-4 ring-blue-500/20'
+              : 'bg-white text-[#2c2926] hover:bg-[#f5f1e8] active:scale-95 border border-[#e8e2d5]'
+          }`}
+          title={userPosition ? "Vous êtes localisé" : "Me géolocaliser"}
+        >
+          {geoStatus === 'locating' ? (
+            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+          ) : (
+            <LocateFixed className={`w-5 h-5 ${userPosition ? 'text-white' : 'text-[#c14e2f]'}`} />
+          )}
+        </button>
+
+        {/* Nearby Sites List Quick Drawer Toggle */}
+        <button
+          onClick={() => setShowNearbyDrawer(!showNearbyDrawer)}
+          className={`w-10 h-10 rounded-2xl shadow-lg flex items-center justify-center transition-all ${
+            showNearbyDrawer 
+              ? 'bg-[#c14e2f] text-white'
+              : 'bg-white text-[#2c2926] hover:bg-[#f5f1e8] border border-[#e8e2d5]'
+          }`}
+          title="Liste des sites à proximité"
+        >
+          <ListFilter className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Main Map Rendering Area */}
@@ -161,6 +368,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <LeafletMapView
             places={filteredPlaces}
             selectedPlace={activePlace}
+            userPosition={userPosition}
             onSelectPlace={onSelectPlace}
             onOpenPlaceDetail={onOpenPlaceDetail}
             layerType={layerType}
@@ -169,6 +377,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <GoogleMapView
             places={filteredPlaces}
             selectedPlace={activePlace}
+            userPosition={userPosition}
             onSelectPlace={onSelectPlace}
             onOpenPlaceDetail={onOpenPlaceDetail}
           />
@@ -217,8 +426,118 @@ export const MapScreen: React.FC<MapScreenProps> = ({
         )}
       </div>
 
+      {/* Nearby Sites Quick Drawer (Overlay) */}
+      {showNearbyDrawer && (
+        <div className="absolute top-28 bottom-32 left-4 right-4 max-w-md mx-auto z-30 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-[#e8e2d5] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="p-3.5 border-b border-[#f0ece1] flex items-center justify-between bg-[#fbf9f4]">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <LocateFixed className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-serif font-bold text-sm text-[#2c2926]">
+                  Sites culturels à proximité
+                </h3>
+                <p className="text-[11px] text-[#8c867c]">
+                  {filteredPlaces.length} sanctuaires & monuments découverts
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowNearbyDrawer(false)}
+              className="p-1.5 rounded-lg text-[#8c867c] hover:text-[#2c2926] hover:bg-[#efece2]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Quick preset selector for instant exploration */}
+          <div className="px-3.5 py-2 bg-[#f5f1e8]/60 border-b border-[#e8e2d5] flex items-center gap-1.5 overflow-x-auto hide-scrollbar">
+            <span className="text-[10px] font-semibold text-[#8c867c] uppercase tracking-wider flex-shrink-0">
+              Explorer depuis :
+            </span>
+            <button
+              onClick={() => handleSetPresetLocation(6.3622, 2.0864, 'Ouidah')}
+              className="px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[#2c2926] border border-[#e8e2d5] hover:border-[#c14e2f] flex-shrink-0 shadow-2xs"
+            >
+              📍 Ouidah
+            </button>
+            <button
+              onClick={() => handleSetPresetLocation(6.3676, 2.4252, 'Cotonou')}
+              className="px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[#2c2926] border border-[#e8e2d5] hover:border-[#c14e2f] flex-shrink-0 shadow-2xs"
+            >
+              📍 Cotonou
+            </button>
+            <button
+              onClick={() => handleSetPresetLocation(7.1828, 1.9912, 'Abomey')}
+              className="px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[#2c2926] border border-[#e8e2d5] hover:border-[#c14e2f] flex-shrink-0 shadow-2xs"
+            >
+              📍 Abomey
+            </button>
+            <button
+              onClick={() => handleSetPresetLocation(6.4969, 2.6289, 'Porto-Novo')}
+              className="px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-[#2c2926] border border-[#e8e2d5] hover:border-[#c14e2f] flex-shrink-0 shadow-2xs"
+            >
+              📍 Porto-Novo
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {filteredPlaces.map((place) => {
+              const badge = getProximityBadge(place.calculatedDistanceKm || place.distanceKm);
+              return (
+                <div
+                  key={place.id}
+                  onClick={() => {
+                    onSelectPlace(place);
+                    setShowNearbyDrawer(false);
+                  }}
+                  className="p-2.5 rounded-xl border border-[#e8e2d5] bg-white hover:border-[#c14e2f] hover:shadow-sm cursor-pointer flex items-center justify-between transition-all"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={place.image}
+                      alt={place.name}
+                      referrerPolicy="no-referrer"
+                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-[#e8e2d5]"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-bold text-xs text-[#2c2926] truncate">
+                          {place.name}
+                        </h4>
+                      </div>
+                      <p className="text-[11px] text-[#8c867c] truncate">
+                        {place.location}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                        <span className="text-[10px] text-[#6b665e]">
+                          {place.category}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <span className="font-bold text-xs text-blue-600 block">
+                      {formatDistance(place.calculatedDistanceKm || place.distanceKm)}
+                    </span>
+                    <span className="text-[10px] text-[#8c867c]">
+                      de vous
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Selected Place Bottom Sheet Card */}
-      {activePlace && (
+      {activePlace && !showNearbyDrawer && (
         <div className="absolute bottom-4 left-4 right-4 z-20 max-w-lg mx-auto pointer-events-auto">
           <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-[#e8e2d5] transition-all">
             <div className="flex gap-3.5">
@@ -236,13 +555,16 @@ export const MapScreen: React.FC<MapScreenProps> = ({
 
               <div className="flex-1 min-w-0 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-1">
                     <h4 className="font-serif font-bold text-sm sm:text-base text-[#2c2926] truncate">
                       {activePlace.name}
                     </h4>
-                    <span className="text-[11px] font-medium text-[#8c867c] flex-shrink-0">
-                      {activePlace.distanceKm} km
-                    </span>
+                    <div className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 border border-blue-100">
+                      <MapPin className="w-3 h-3 text-blue-600" />
+                      <span>
+                        {formatDistance(activePlace.calculatedDistanceKm || activePlace.distanceKm)}
+                      </span>
+                    </div>
                   </div>
                   <p className="text-xs text-[#6b665e] line-clamp-2 mt-0.5 font-sans">
                     {activePlace.description}

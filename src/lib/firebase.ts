@@ -25,7 +25,7 @@ import {
   orderBy,
   onSnapshot
 } from 'firebase/firestore';
-import { UserProfile, ItineraryStop, Place, Actor, UserRole } from '../types';
+import { UserProfile, ItineraryStop, Place, Actor, UserRole, GuideApplication } from '../types';
 
 // Configuration from firebase-applet-config.json
 const firebaseConfig = {
@@ -51,15 +51,36 @@ export async function loginWithGoogle(): Promise<{ user: UserProfile | null; err
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const fbUser = result.user;
+    
+    // Check if user profile already exists in Firestore
+    const existing = await loadUserProfileFromFirestore(fbUser.uid);
+    if (existing) {
+      const resolvedRole: UserRole = (fbUser.email === 'kedagniarnaud999@gmail.com')
+        ? 'admin'
+        : (existing.role || 'traveler');
+      
+      const updatedProfile: UserProfile = {
+        ...existing,
+        id: fbUser.uid,
+        name: existing.name || fbUser.displayName || 'Explorateur Culturel',
+        email: fbUser.email || existing.email,
+        avatar: fbUser.photoURL || existing.avatar,
+        role: resolvedRole
+      };
+      await syncUserProfileToFirestore(updatedProfile);
+      return { user: updatedProfile };
+    }
+
+    const isAdminUser = fbUser.email === 'kedagniarnaud999@gmail.com';
     const profile: UserProfile = {
       id: fbUser.uid,
       name: fbUser.displayName || 'Explorateur Culturel',
       email: fbUser.email || 'voyageur@patrimoine.bj',
       avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      vibeTag: 'Explorateur Passionné',
+      vibeTag: isAdminUser ? 'Conservateur en Chef' : 'Explorateur Passionné',
       travelStyle: 'Cultural Deep-Dive',
       language: 'fr',
-      role: (fbUser.email?.includes('admin') || fbUser.email === 'kedagniarnaud999@gmail.com') ? 'admin' : 'traveler',
+      role: isAdminUser ? 'admin' : 'traveler',
       notificationsEnabled: true,
       interests: ['Spiritual', 'Historical', 'Arts'],
       savedPlaces: [],
@@ -505,5 +526,66 @@ export async function saveItineraryToFirestore(
   } catch (error) {
     console.warn('Firestore save itinerary error:', error);
     return null;
+  }
+}
+
+/**
+ * Guide Accreditation Applications
+ */
+export async function submitGuideApplication(application: Omit<GuideApplication, 'id' | 'status' | 'submittedAt'>): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    const colRef = collection(db, 'guide_applications');
+    const docRef = await addDoc(colRef, {
+      ...application,
+      status: 'pending',
+      submittedAt: new Date().toISOString(),
+      timestamp: serverTimestamp()
+    });
+
+    return { success: true, id: docRef.id };
+  } catch (error: any) {
+    console.warn('Submit guide application error:', error);
+    return { success: false, error: error?.message || 'Erreur lors de la soumission de la demande' };
+  }
+}
+
+export async function getAllGuideApplicationsForAdmin(): Promise<GuideApplication[]> {
+  try {
+    const colRef = collection(db, 'guide_applications');
+    const snap = await getDocs(query(colRef, orderBy('submittedAt', 'desc')));
+    return snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<GuideApplication, 'id'>)
+    }));
+  } catch (e) {
+    console.warn('Error fetching guide applications:', e);
+    return [];
+  }
+}
+
+export async function updateGuideApplicationStatus(
+  applicationId: string, 
+  userId: string, 
+  status: 'approved' | 'rejected'
+): Promise<boolean> {
+  try {
+    const appRef = doc(db, 'guide_applications', applicationId);
+    await updateDoc(appRef, {
+      status,
+      reviewedAt: new Date().toISOString()
+    });
+
+    if (status === 'approved' && userId) {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        role: 'guide',
+        'guideProfile.certified': true
+      });
+    }
+
+    return true;
+  } catch (e) {
+    console.warn('Error updating guide application status:', e);
+    return false;
   }
 }
