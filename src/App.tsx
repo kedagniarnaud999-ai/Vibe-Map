@@ -63,13 +63,14 @@ export default function App() {
       setCurrentLang(savedLang);
     }
 
-    // Listen to Firebase Auth state
+    // Listen to Firebase Auth state - Role assignment based on explicit user.profile.role
     const unsubscribeAuth = onAuthStateChange((authUser) => {
       if (authUser) {
         setUser((prev) => ({
           ...prev,
           ...authUser,
-          role: authUser.email === 'kedagniarnaud999@gmail.com' ? 'admin' : (authUser.role || 'traveler')
+          // Use the role from the authenticated user profile, not just email matching
+          role: authUser.role || 'traveler'
         }));
         return;
       }

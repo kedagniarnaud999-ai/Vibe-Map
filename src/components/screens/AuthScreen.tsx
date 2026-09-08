@@ -40,13 +40,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Quick Demo Logins
+  // Quick Demo Logins - Rempli les champs mais nécessite validation manuelle
   const handleQuickDemo = (demoRole: UserRole) => {
     if (demoRole === 'admin') {
       setEmail('kedagniarnaud999@gmail.com');
       setFullName('Conservateur en Chef (Admin)');
       setRole('admin');
       setPassword('admin2026!');
+      // Note: L'utilisateur doit cliquer sur "Se connecter" pour valider
     } else if (demoRole === 'guide') {
       setEmail('guide.dossou@patrimoine.bj');
       setFullName('Dossou Houndégnon (Guide Ouidah)');

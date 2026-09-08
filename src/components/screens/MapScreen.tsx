@@ -38,14 +38,17 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   const [layerType, setLayerType] = useState<'voyager' | 'satellite' | 'terrain' | 'street'>('voyager');
   const [viewEngine, setViewEngine] = useState<'interactive-map' | 'google-maps' | 'heritage-canvas'>('interactive-map');
 
-  const categories = ['All', 'Spiritual', 'Historical', 'Nature', 'Arts'];
+  // Dynamic categories based on actual places data
+  const availableCategories = Array.from(new Set(places.map(p => p.category)));
+  const categories = ['All', ...availableCategories];
 
   const filteredPlaces = places.filter((p) => {
     const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
     const matchesSearch =
       searchQuery === '' ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.location.toLowerCase().includes(searchQuery.toLowerCase());
+      p.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCat && matchesSearch;
   });
 
@@ -131,24 +134,29 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           </div>
         </div>
 
-        {/* Category horizontal scroll pills */}
+        {/* Category horizontal scroll pills - Dynamic labels */}
         <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5">
           {categories.map((cat) => {
-            const label = cat === 'All' ? 'Tous les sites' :
-                          cat === 'Spiritual' ? '🕊️ Spirituel & Vodun' :
-                          cat === 'Historical' ? '🏛️ Histoire & Royaumes' :
-                          cat === 'Nature' ? '🌿 Nature & Lacs' : '🎨 Arts & Métiers';
+            // Dynamic emoji and label based on category
+            const getLabel = (c: string) => {
+              if (c === 'All') return '🗺️ Tous les sites';
+              if (c === 'Spiritual') return '🕊️ Spirituel & Vodun';
+              if (c === 'Historical') return '🏛️ Histoire & Royaumes';
+              if (c === 'Nature') return '🌿 Nature & Lacs';
+              if (c === 'Arts') return '🎨 Arts & Métiers';
+              return `📍 ${c}`;
+            };
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shadow-sm backdrop-blur-md transition-all ${
                   selectedCategory === cat
-                    ? 'bg-[#c14e2f] text-white font-semibold'
-                    : 'bg-white/90 text-[#6b665e] hover:bg-white'
+                    ? 'bg-[#c14e2f] text-white font-semibold ring-2 ring-[#c14e2f]/30'
+                    : 'bg-white/90 text-[#6b665e] hover:bg-white hover:scale-105'
                 }`}
               >
-                {label}
+                {getLabel(cat)}
               </button>
             );
           })}
