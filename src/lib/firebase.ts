@@ -51,6 +51,7 @@ export async function loginWithGoogle(): Promise<{ user: UserProfile | null; err
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const fbUser = result.user;
+    // Default role is traveler - admin must be explicitly set in Firestore profile
     const profile: UserProfile = {
       id: fbUser.uid,
       name: fbUser.displayName || 'Explorateur Culturel',
@@ -59,7 +60,7 @@ export async function loginWithGoogle(): Promise<{ user: UserProfile | null; err
       vibeTag: 'Explorateur Passionné',
       travelStyle: 'Cultural Deep-Dive',
       language: 'fr',
-      role: (fbUser.email?.includes('admin') || fbUser.email === 'kedagniarnaud999@gmail.com') ? 'admin' : 'traveler',
+      role: 'traveler', // Never auto-assign admin based on email
       notificationsEnabled: true,
       interests: ['Spiritual', 'Historical', 'Arts'],
       savedPlaces: [],
@@ -84,6 +85,7 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ use
     const res = await signInWithEmailAndPassword(auth, email, pass);
     const existing = await loadUserProfileFromFirestore(res.user.uid);
     if (existing) return { user: existing };
+    // Default role is traveler - admin role must be explicitly set in Firestore profile
     const newProfile: UserProfile = {
       id: res.user.uid,
       name: email.split('@')[0] || 'Voyageur',
@@ -92,7 +94,7 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ use
       vibeTag: 'Explorateur du Bénin',
       travelStyle: 'Cultural Deep-Dive',
       language: 'fr',
-      role: (email.includes('admin') || email === 'kedagniarnaud999@gmail.com') ? 'admin' : 'traveler',
+      role: 'traveler', // Never auto-assign admin based on email alone
       notificationsEnabled: true,
       interests: ['Spiritual', 'Historical'],
       savedPlaces: [],
@@ -122,7 +124,7 @@ export async function registerWithEmail(email: string, pass: string, name: strin
       vibeTag: role === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Voyageur Curieux',
       travelStyle: 'Cultural Deep-Dive',
       language: 'fr',
-      role: (email === 'kedagniarnaud999@gmail.com' || email.includes('admin')) ? 'admin' : role,
+      role: role, // Use the role selected during registration
       guideProfile: role === 'guide' ? {
         certified: true,
         pricing: '20 000 FCFA (~30 €)',
@@ -161,6 +163,7 @@ export function onAuthStateChange(callback: (user: UserProfile | null) => void) 
       if (profile) {
         callback(profile);
       } else {
+        // Default role is traveler - admin must be set explicitly in Firestore
         callback({
           id: fbUser.uid,
           name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Voyageur',
@@ -169,7 +172,7 @@ export function onAuthStateChange(callback: (user: UserProfile | null) => void) 
           vibeTag: 'Explorateur Passionné',
           travelStyle: 'Cultural Deep-Dive',
           language: 'fr',
-          role: (fbUser.email === 'kedagniarnaud999@gmail.com' || fbUser.email?.includes('admin')) ? 'admin' : 'traveler',
+          role: 'traveler', // Never auto-assign admin based on email
           notificationsEnabled: true,
           interests: ['Spiritual', 'Historical'],
           savedPlaces: [],
