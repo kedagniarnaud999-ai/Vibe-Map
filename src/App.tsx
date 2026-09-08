@@ -9,7 +9,10 @@ import { INITIAL_USER } from './data/user';
 import { 
   syncUserProfileToFirestore, 
   getPlacesFromFirestore,
-  onAuthStateChange
+  onAuthStateChange,
+  getActiveSessionRole,
+  setActiveSessionRole,
+  isAuthorizedAdmin
 } from './lib/firebase';
 import { TRANSLATIONS } from './lib/i18n';
 
@@ -59,26 +62,38 @@ export default function App() {
       setCurrentScreen('onboarding');
     }
 
+    // Default language is French
     const savedLang = localStorage.getItem('lavibemap_language') as AppLanguage;
     if (savedLang) {
       setCurrentLang(savedLang);
+    } else {
+      setCurrentLang('fr');
+      localStorage.setItem('lavibemap_language', 'fr');
     }
 
-    // Listen to Firebase Auth state
+    // Listen to Firebase Auth state and respect active persistent role
     const unsubscribeAuth = onAuthStateChange((authUser) => {
+      const activeRole = getActiveSessionRole();
       if (authUser) {
+        // Enforce role separation: only grant admin if explicit admin session AND email authorized
+        const verifiedRole: UserRole = 
+          (activeRole === 'admin' && isAuthorizedAdmin(authUser.email))
+            ? 'admin'
+            : (activeRole === 'guide' ? 'guide' : 'traveler');
+
         setUser((prev) => ({
           ...prev,
           ...authUser,
-          role: authUser.email === 'kedagniarnaud999@gmail.com' ? 'admin' : (authUser.role || 'traveler')
+          role: verifiedRole,
+          language: prev.language || 'fr'
         }));
         return;
       }
 
       setUser((prev) => ({
         ...INITIAL_USER,
-        language: prev.language,
-        role: 'traveler'
+        language: prev.language || 'fr',
+        role: activeRole || 'traveler'
       }));
     });
 
@@ -128,7 +143,43 @@ export default function App() {
     handleUpdateUser({ language: lang });
   };
 
+  // Switch role with persistent session storage
+  const handleRoleChange = (newRole: UserRole) => {
+    setActiveSessionRole(newRole);
+    setUser((prev) => ({ ...prev, role: newRole }));
+    if (newRole === 'admin') {
+      navigateTo('admin');
+    } else if (newRole === 'guide') {
+      navigateTo('guide-portal');
+    } else {
+      navigateTo('home');
+    }
+  };
+
   const navigateTo = (screen: ScreenId) => {
+    // Enforce exclusive role access
+    if (screen === 'admin' && user.role !== 'admin') {
+      if (isAuthorizedAdmin(user.email)) {
+        // Authorized administrator can switch into admin session
+        setActiveSessionRole('admin');
+        setUser((prev) => ({ ...prev, role: 'admin' }));
+      } else {
+        setAuthTargetRole('admin');
+        setScreenHistory((prev) => [...prev, 'auth']);
+        setCurrentScreen('auth');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+
+    if (screen === 'guide-portal' && user.role !== 'guide' && user.role !== 'admin') {
+      setAuthTargetRole('guide');
+      setScreenHistory((prev) => [...prev, 'auth']);
+      setCurrentScreen('auth');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setScreenHistory((prev) => [...prev, screen]);
     setCurrentScreen(screen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -323,6 +374,7 @@ export default function App() {
           currentLang={currentLang}
           onLanguageChange={handleLanguageChange}
           user={user}
+          onRoleChange={handleRoleChange}
         />
       )}
 
@@ -347,7 +399,14 @@ export default function App() {
                 initialRole={authTargetRole}
                 onAuthSuccess={(authenticatedUser) => {
                   setUser(authenticatedUser);
-                  navigateTo(authenticatedUser.role === 'admin' ? 'admin' : authenticatedUser.role === 'guide' ? 'guide-portal' : 'home');
+                  setActiveSessionRole(authenticatedUser.role);
+                  if (authenticatedUser.role === 'admin') {
+                    navigateTo('admin');
+                  } else if (authenticatedUser.role === 'guide') {
+                    navigateTo('guide-portal');
+                  } else {
+                    navigateTo('home');
+                  }
                 }}
                 onCancel={() => navigateTo('home')}
               />

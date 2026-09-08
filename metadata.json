@@ -1,6 +1,6 @@
 {
-  "name": "La Vibe Map - Cultural Tourism Benin",
-  "description": "Digital cultural tourism platform for independent travelers discovering Benin: interactive map, digital library, curated itineraries, verified actors, and cultural AI companion.",
+  "name": "La Vibe Map - Tourisme Culturel au Bénin",
+  "description": "Plateforme numérique de tourisme culturel pour découvrir le Bénin : carte interactive des sanctuaires Vodun et palais royaux, audioguides, itinéraires et médiateurs certifiés.",
   "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -17,6 +17,7 @@ interface GoogleMapViewProps {
   userPosition: UserCoordinates | null;
   onSelectPlace: (place: Place) => void;
   onOpenPlaceDetail: (place: Place) => void;
+  onSwitchToInteractiveMap?: () => void;
 }
 
 // Sub-component to handle programmatically controlling camera pan
@@ -44,17 +45,38 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
   selectedPlace,
   userPosition,
   onSelectPlace,
-  onOpenPlaceDetail
+  onOpenPlaceDetail,
+  onSwitchToInteractiveMap
 }) => {
   const [activeMarkerPlace, setActiveMarkerPlace] = useState<Place | null>(selectedPlace);
   const [showUserLocationInfo, setShowUserLocationInfo] = useState<boolean>(false);
   const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'terrain' | 'hybrid'>('roadmap');
   const [hasError, setHasError] = useState(false);
 
-  // Injected Google Maps Platform API Key
-  const apiKey = 
-    ((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string) || 
-    'AIzaSyC7Sjhb4l7AyU69Pi6Nmyf5odSZcIDFfFg';
+  // Injected Google Maps Platform API Key from env
+  const rawApiKey = ((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim();
+  const isKeyConfigured = Boolean(
+    rawApiKey && 
+    rawApiKey !== '' && 
+    !rawApiKey.includes('MY_') && 
+    rawApiKey !== 'AIzaSyC7Sjhb4l7AyU69Pi6Nmyf5odSZcIDFfFg' &&
+    rawApiKey.length > 15
+  );
+
+  // Catch any auth failure globally from Google Maps script
+  useEffect(() => {
+    const originalAuthFailure = (window as any).gm_authFailure;
+    (window as any).gm_authFailure = () => {
+      console.warn("Google Maps JavaScript API authentication failure intercepted.");
+      setHasError(true);
+      if (typeof originalAuthFailure === 'function') {
+        originalAuthFailure();
+      }
+    };
+    return () => {
+      (window as any).gm_authFailure = originalAuthFailure;
+    };
+  }, []);
 
   // Default center around user or Ouidah / Cotonou / Abomey historical axis in Benin
   const defaultCenter = userPosition ? {
@@ -80,20 +102,39 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
     }
   };
 
-  if (hasError) {
+  if (!isKeyConfigured || hasError) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-[#f5f1e8] p-6 text-center">
-        <AlertCircle className="w-12 h-12 text-[#c14e2f] mb-3" />
-        <h3 className="font-serif font-bold text-lg text-[#2c2926]">Affichage Google Maps Optimisé</h3>
-        <p className="text-xs text-[#6b665e] max-w-sm mt-1">
-          Basculez sur la Carte Interactive Haute Définition ou Satellite pour explorer les sites sans interruption.
+        <div className="w-14 h-14 rounded-2xl bg-[#c14e2f]/10 flex items-center justify-center mb-4 text-[#c14e2f]">
+          <MapPin className="w-7 h-7" />
+        </div>
+        <h3 className="font-serif font-bold text-lg text-[#2c2926]">
+          Couche Google Maps Platform
+        </h3>
+        <p className="text-xs text-[#6b665e] max-w-md mt-1.5 leading-relaxed">
+          Pour activer le calque officiel Google Maps avec Street View, définissez une clé valide dans la variable <code className="bg-white px-1.5 py-0.5 rounded text-[#c14e2f] font-mono">VITE_GOOGLE_MAPS_API_KEY</code>.
         </p>
-        <button
-          onClick={() => setHasError(false)}
-          className="mt-4 px-4 py-2 bg-[#c14e2f] text-white text-xs font-semibold rounded-xl"
-        >
-          Réessayer le chargement
-        </button>
+        <p className="text-xs text-[#5a5a40] max-w-md mt-1.5 font-medium">
+          La Carte Interactive Haute Définition (Leaflet / OpenStreetMap & Satellite) fonctionne immédiatement sans aucune clé requise.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
+          {onSwitchToInteractiveMap && (
+            <button
+              onClick={onSwitchToInteractiveMap}
+              className="px-4 py-2 bg-[#c14e2f] text-white text-xs font-semibold rounded-xl hover:bg-[#a83f23] transition-all shadow-sm"
+            >
+              Afficher la Carte Interactive (Plan / Satellite)
+            </button>
+          )}
+          {isKeyConfigured && (
+            <button
+              onClick={() => setHasError(false)}
+              className="px-3.5 py-2 bg-white text-[#2c2926] border border-[#e8e2d5] text-xs font-semibold rounded-xl hover:bg-[#efece2] transition-all"
+            >
+              Réessayer la connexion Google Maps
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -101,7 +142,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
   return (
     <div className="relative w-full h-full">
       <APIProvider 
-        apiKey={apiKey} 
+        apiKey={rawApiKey!} 
         language="fr" 
         region="BJ"
         onLoad={() => setHasError(false)}

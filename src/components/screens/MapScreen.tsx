@@ -116,7 +116,51 @@ export const MapScreen: React.FC<MapScreenProps> = ({
     setGeoErrorMsg(null);
   };
 
-  const categories = ['All', 'Spiritual', 'Historical', 'Nature', 'Arts'];
+  // Dynamically extract unique categories and place counts directly from Firestore collection
+  const dynamicCategories = useMemo(() => {
+    const map = new Map<string, number>();
+    places.forEach((p) => {
+      const cat = p.category?.trim() || 'Patrimoine';
+      map.set(cat, (map.get(cat) || 0) + 1);
+    });
+
+    const getCatVisual = (cat: string) => {
+      const lower = cat.toLowerCase();
+      if (lower.includes('spirit') || lower.includes('vodun') || lower.includes('sanctuaire')) {
+        return { label: 'Spirituel & Sanctuaires', icon: '🕊️' };
+      }
+      if (lower.includes('histor') || lower.includes('palais') || lower.includes('royaume') || lower.includes('monument')) {
+        return { label: 'Histoire & Royaumes', icon: '🏛️' };
+      }
+      if (lower.includes('nature') || lower.includes('lac') || lower.includes('forêt') || lower.includes('parc')) {
+        return { label: 'Nature & Écotourisme', icon: '🌿' };
+      }
+      if (lower.includes('art') || lower.includes('métier') || lower.includes('artisan')) {
+        return { label: 'Arts & Artisanat', icon: '🎨' };
+      }
+      if (lower.includes('food') || lower.includes('gastro') || lower.includes('culinaire')) {
+        return { label: 'Gastronomie & Terroir', icon: '🍲' };
+      }
+      return { label: cat, icon: '📍' };
+    };
+
+    const dynamicItems = Array.from(map.entries()).map(([cat, count]) => {
+      const visual = getCatVisual(cat);
+      return {
+        id: cat,
+        label: visual.label,
+        icon: visual.icon,
+        count
+      };
+    });
+
+    dynamicItems.sort((a, b) => b.count - a.count);
+
+    return [
+      { id: 'All', label: 'Tous les sites', icon: '✨', count: places.length },
+      ...dynamicItems
+    ];
+  }, [places]);
 
   // Enrich places with calculated distance to user's real GPS position
   const enrichedPlaces = useMemo(() => {
@@ -140,7 +184,9 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   // Filter and Sort places
   const filteredPlaces = useMemo(() => {
     let result = enrichedPlaces.filter((p) => {
-      const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
+      const matchesCat = 
+        selectedCategory === 'All' || 
+        p.category?.toLowerCase() === selectedCategory.toLowerCase();
       const matchesSearch =
         searchQuery === '' ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -290,22 +336,25 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             </button>
           )}
 
-          {categories.map((cat) => {
-            const label = cat === 'All' ? 'Tous les sites' :
-                          cat === 'Spiritual' ? '🕊️ Spirituel & Vodun' :
-                          cat === 'Historical' ? '🏛️ Histoire & Royaumes' :
-                          cat === 'Nature' ? '🌿 Nature & Lacs' : '🎨 Arts & Métiers';
+          {dynamicCategories.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
             return (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shadow-sm backdrop-blur-md transition-all ${
-                  selectedCategory === cat
-                    ? 'bg-[#c14e2f] text-white font-semibold'
-                    : 'bg-white/90 text-[#6b665e] hover:bg-white'
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shadow-sm backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-[#c14e2f] text-white font-semibold ring-2 ring-[#c14e2f]/30'
+                    : 'bg-white/90 text-[#6b665e] hover:bg-white hover:text-[#2c2926]'
                 }`}
               >
-                {label}
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  isSelected ? 'bg-white/25 text-white' : 'bg-[#f0ece1] text-[#8c867c]'
+                }`}>
+                  {cat.count}
+                </span>
               </button>
             );
           })}
@@ -380,6 +429,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             userPosition={userPosition}
             onSelectPlace={onSelectPlace}
             onOpenPlaceDetail={onOpenPlaceDetail}
+            onSwitchToInteractiveMap={() => {
+              setViewEngine('interactive-map');
+              setLayerType('voyager');
+            }}
           />
         ) : (
           /* Heritage Stylized Canvas */

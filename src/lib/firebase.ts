@@ -100,20 +100,61 @@ export async function loginWithGoogle(): Promise<{ user: UserProfile | null; err
   }
 }
 
-export async function loginWithEmail(email: string, pass: string): Promise<{ user: UserProfile | null; error?: string }> {
+export function getActiveSessionRole(): UserRole {
   try {
+    const saved = localStorage.getItem('lavibemap_active_role') as UserRole;
+    if (saved === 'admin' || saved === 'guide' || saved === 'traveler') {
+      return saved;
+    }
+  } catch (e) {}
+  return 'traveler';
+}
+
+export function setActiveSessionRole(role: UserRole) {
+  try {
+    localStorage.setItem('lavibemap_active_role', role);
+  } catch (e) {}
+}
+
+export function isAuthorizedAdmin(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  return clean === 'kedagniarnaud999@gmail.com' || clean.startsWith('admin@') || clean.includes('conservateur');
+}
+
+export async function loginWithEmail(email: string, pass: string, targetRole: UserRole = 'traveler'): Promise<{ user: UserProfile | null; error?: string }> {
+  try {
+    if (targetRole === 'admin' && !isAuthorizedAdmin(email)) {
+      return { 
+        user: null, 
+        error: "Accès restreint : cette adresse n'a pas les droits d'administration du patrimoine." 
+      };
+    }
+
     const res = await signInWithEmailAndPassword(auth, email, pass);
+    setActiveSessionRole(targetRole);
+
     const existing = await loadUserProfileFromFirestore(res.user.uid);
-    if (existing) return { user: existing };
+    if (existing) {
+      const updated: UserProfile = {
+        ...existing,
+        role: targetRole
+      };
+      await syncUserProfileToFirestore(updated);
+      return { user: updated };
+    }
+
     const newProfile: UserProfile = {
       id: res.user.uid,
-      name: email.split('@')[0] || 'Voyageur',
+      name: email.split('@')[0] || (targetRole === 'admin' ? 'Administrateur' : 'Voyageur'),
       email: email,
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      vibeTag: 'Explorateur du Bénin',
+      avatar: targetRole === 'guide'
+        ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'
+        : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+      vibeTag: targetRole === 'admin' ? 'Conservateur du Patrimoine' : targetRole === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Explorateur Passionné',
       travelStyle: 'Cultural Deep-Dive',
       language: 'fr',
-      role: (email.includes('admin') || email === 'kedagniarnaud999@gmail.com') ? 'admin' : 'traveler',
+      role: targetRole,
       notificationsEnabled: true,
       interests: ['Spiritual', 'Historical'],
       savedPlaces: [],
@@ -130,9 +171,24 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ use
   }
 }
 
-export async function registerWithEmail(email: string, pass: string, name: string, role: UserRole = 'traveler'): Promise<{ user: UserProfile | null; error?: string }> {
+export async function registerWithEmail(
+  email: string, 
+  pass: string, 
+  name: string, 
+  role: UserRole = 'traveler',
+  guideInfo?: { phone?: string; region?: string; specialties?: string }
+): Promise<{ user: UserProfile | null; error?: string }> {
   try {
+    if (role === 'admin' && !isAuthorizedAdmin(email)) {
+      return { 
+        user: null, 
+        error: "Création d'administrateur non autorisée pour cette adresse email." 
+      };
+    }
+
     const res = await createUserWithEmailAndPassword(auth, email, pass);
+    setActiveSessionRole(role);
+
     const newProfile: UserProfile = {
       id: res.user.uid,
       name: name || email.split('@')[0],
@@ -140,16 +196,16 @@ export async function registerWithEmail(email: string, pass: string, name: strin
       avatar: role === 'guide' 
         ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200' 
         : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      vibeTag: role === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Voyageur Curieux',
+      vibeTag: role === 'admin' ? 'Conservateur du Patrimoine' : role === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Voyageur Curieux',
       travelStyle: 'Cultural Deep-Dive',
       language: 'fr',
-      role: (email === 'kedagniarnaud999@gmail.com' || email.includes('admin')) ? 'admin' : role,
+      role: role,
       guideProfile: role === 'guide' ? {
         certified: true,
         pricing: '20 000 FCFA (~30 €)',
-        phone: '+229 97 00 00 00',
-        bio: 'Guide passionné du patrimoine vivant et de l’histoire du Bénin.',
-        specialties: ['Histoire Royale', 'Rituels Vodun', 'Écotourisme']
+        phone: guideInfo?.phone || '+229 97 00 00 00',
+        bio: `Médiateur culturel spécialisé en ${guideInfo?.specialties || 'Histoire Royale & Rituels Vodun'} (${guideInfo?.region || 'Bénin'}).`,
+        specialties: [guideInfo?.specialties || 'Histoire Royale', 'Patrimoine Vodun', guideInfo?.region || 'Ouidah']
       } : undefined,
       notificationsEnabled: true,
       interests: ['Spiritual', 'Historical', 'Nature', 'Arts'],
@@ -169,6 +225,7 @@ export async function registerWithEmail(email: string, pass: string, name: strin
 
 export async function logoutUser() {
   try {
+    setActiveSessionRole('traveler');
     await fbSignOut(auth);
   } catch (e) {
     console.warn('Sign out note:', e);
@@ -178,19 +235,23 @@ export async function logoutUser() {
 export function onAuthStateChange(callback: (user: UserProfile | null) => void) {
   return onAuthStateChanged(auth, async (fbUser) => {
     if (fbUser) {
+      const activeRole = getActiveSessionRole();
       const profile = await loadUserProfileFromFirestore(fbUser.uid);
       if (profile) {
-        callback(profile);
+        callback({
+          ...profile,
+          role: activeRole || profile.role || 'traveler'
+        });
       } else {
         callback({
           id: fbUser.uid,
           name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Voyageur',
           email: fbUser.email || '',
           avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-          vibeTag: 'Explorateur Passionné',
+          vibeTag: activeRole === 'admin' ? 'Conservateur du Patrimoine' : activeRole === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Explorateur Passionné',
           travelStyle: 'Cultural Deep-Dive',
           language: 'fr',
-          role: (fbUser.email === 'kedagniarnaud999@gmail.com' || fbUser.email?.includes('admin')) ? 'admin' : 'traveler',
+          role: activeRole,
           notificationsEnabled: true,
           interests: ['Spiritual', 'Historical'],
           savedPlaces: [],

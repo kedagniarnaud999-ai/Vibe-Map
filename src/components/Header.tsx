@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Sparkles, Bell, Compass, ArrowLeft, Globe, Shield, User, LogIn, ChevronDown } from 'lucide-react';
-import { ScreenId, AppLanguage, UserProfile } from '../types';
+import { Sparkles, Bell, Compass, ArrowLeft, Globe, Shield, User, LogIn, ChevronDown, Repeat } from 'lucide-react';
+import { ScreenId, AppLanguage, UserProfile, UserRole } from '../types';
 import { TRANSLATIONS } from '../lib/i18n';
+import { isAuthorizedAdmin } from '../lib/firebase';
 
 interface HeaderProps {
   currentScreen: ScreenId;
@@ -13,6 +14,7 @@ interface HeaderProps {
   currentLang: AppLanguage;
   onLanguageChange: (lang: AppLanguage) => void;
   user: UserProfile;
+  onRoleChange?: (role: UserRole) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,7 +26,8 @@ export const Header: React.FC<HeaderProps> = ({
   showBack,
   currentLang,
   onLanguageChange,
-  user
+  user,
+  onRoleChange
 }) => {
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -136,36 +139,65 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Role Portal Shortcuts */}
-          {user.role === 'admin' && (
+          {/* Role Portal Shortcuts & Switchers */}
+          {user.role === 'admin' ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onNavigate('admin')}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  currentScreen === 'admin'
+                    ? 'bg-amber-400 text-black shadow-xs'
+                    : 'bg-[#2c2926] text-amber-400 border border-amber-400/30 hover:bg-[#3d3833]'
+                }`}
+                title="Espace Administrateur"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Admin</span>
+              </button>
+              {onRoleChange && (
+                <button
+                  onClick={() => onRoleChange('traveler')}
+                  className="p-1 text-[#8c867c] hover:text-[#2c2926] rounded-md transition-all cursor-pointer"
+                  title="Passer en vue Voyageur"
+                >
+                  <Repeat className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          ) : user.role === 'guide' ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onNavigate('guide-portal')}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  currentScreen === 'guide-portal'
+                    ? 'bg-[#5a5a40] text-white shadow-xs'
+                    : 'bg-[#efece2] text-[#5a5a40] border border-[#d6cfbe] hover:bg-[#e4dfd2]'
+                }`}
+                title="Espace Guide Agréé"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Guide</span>
+              </button>
+              {onRoleChange && (
+                <button
+                  onClick={() => onRoleChange('traveler')}
+                  className="p-1 text-[#8c867c] hover:text-[#2c2926] rounded-md transition-all cursor-pointer"
+                  title="Passer en vue Voyageur"
+                >
+                  <Repeat className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          ) : isAuthorizedAdmin(user.email) ? (
             <button
-              onClick={() => onNavigate('admin')}
-              className={`px-2.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                currentScreen === 'admin'
-                  ? 'bg-[#2c2926] text-white'
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}
-              title="Espace Administrateur"
+              onClick={() => onRoleChange ? onRoleChange('admin') : onNavigate('admin')}
+              className="px-2 py-1 rounded-full text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-300/60 hover:bg-amber-100 flex items-center gap-1 transition-all cursor-pointer"
+              title="Accès Administrateur Détecté"
             >
-              <Shield className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Admin</span>
+              <Shield className="w-3 h-3 text-amber-600" />
+              <span>Accès Admin</span>
             </button>
-          )}
-
-          {user.role === 'guide' && (
-            <button
-              onClick={() => onNavigate('guide-portal')}
-              className={`px-2.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                currentScreen === 'guide-portal'
-                  ? 'bg-[#5a5a40] text-white'
-                  : 'bg-[#efece2] text-[#5a5a40] border border-[#d6cfbe]'
-              }`}
-              title="Espace Médiateur / Guide"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Guide</span>
-            </button>
-          )}
+          ) : null}
 
           {/* User Profile / Login Avatar */}
           <button
