@@ -1,9 +1,104 @@
 rules_version = '2';
+
+// Access is denied by default: only the matches below grant permission.
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read and write for authenticated and app users to operate seamlessly
-    match /{document=**} {
-      allow read, write: if true;
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function tokenEmail() {
+      return signedIn() ? request.auth.token.get('email', '') : '';
+    }
+
+    // Custom claims are the only source of authority; a role stored in a Firestore profile is ignored here.
+    function claimRole() {
+      return signedIn() ? request.auth.token.get('role', 'traveler') : 'anonymous';
+    }
+
+    function isAdmin() {
+      return claimRole() == 'admin';
+    }
+
+    // Roles, certification and identity are written by the Admin SDK, never by a client.
+    function ownerProfileUpdate() {
+      return request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly([
+            'name', 'avatar', 'vibeTag', 'travelStyle', 'language',
+            'notificationsEnabled', 'interests', 'savedPlaces', 'completedStops',
+            'placesCount', 'storiesCount', 'connectionsCount', 'updatedAt'
+          ]);
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == 'traveler'
+        && request.resource.data.get('guideProfile', {}).get('certified', false) == false;
+
+      allow update: if signedIn() && (isAdmin() || ownerProfileUpdate());
+      allow delete: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow create: if signedIn()
+        && request.resource.data.travelerUid == request.auth.uid
+        && request.resource.data.travelerEmail == tokenEmail()
+        && ['pending', 'confirmed'].includes(request.resource.data.status);
+
+      allow get, list: if signedIn()
+        && (isAdmin()
+          || resource.data.travelerUid == request.auth.uid
+          || resource.data.travelerEmail == tokenEmail());
+
+      allow update, delete: if isAdmin();
+    }
+
+    match /rsvps/{rsvpId} {
+      allow create: if signedIn()
+        && request.resource.data.userUid == request.auth.uid
+        && request.resource.data.userEmail == tokenEmail();
+
+      allow get, list: if signedIn()
+        && (isAdmin()
+          || resource.data.userUid == request.auth.uid
+          || resource.data.userEmail == tokenEmail());
+
+      allow update, delete: if isAdmin();
+    }
+
+    match /savedItineraries/{itineraryId} {
+      allow create: if signedIn()
+        && request.resource.data.userUid == request.auth.uid
+        && request.resource.data.userEmail == tokenEmail();
+
+      allow get, list: if signedIn()
+        && (isAdmin()
+          || resource.data.userUid == request.auth.uid
+          || resource.data.userEmail == tokenEmail());
+
+      allow update, delete: if isAdmin();
+    }
+
+    match /guide_applications/{applicationId} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.email == tokenEmail()
+        && request.resource.data.status == 'pending';
+
+      allow get, list: if signedIn() && (isAdmin() || resource.data.userId == request.auth.uid);
+
+      // Approval and rejection go through the authenticated admin API so the Firebase claim is updated too.
+      allow update, delete: if isAdmin();
+    }
+
+    match /places/{placeId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }
