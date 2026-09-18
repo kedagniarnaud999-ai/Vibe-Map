@@ -20,18 +20,18 @@ service cloud.firestore {
       return claimRole() == 'admin';
     }
 
-    // Roles, certification and identity are written by the Admin SDK, never by a client.
-    function ownerProfileUpdate() {
-      return request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly([
-            'name', 'avatar', 'vibeTag', 'travelStyle', 'language',
-            'notificationsEnabled', 'interests', 'savedPlaces', 'completedStops',
-            'placesCount', 'storiesCount', 'connectionsCount', 'updatedAt'
-          ]);
-    }
-
     match /users/{uid} {
+      // Roles, certification, badges and identity are written by the Admin SDK, never by a client.
+      function ownerProfileUpdate() {
+        return request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly([
+              'name', 'avatar', 'vibeTag', 'travelStyle', 'language',
+              'notificationsEnabled', 'interests', 'savedPlaces', 'completedStops',
+              'placesCount', 'storiesCount', 'connectionsCount', 'updatedAt'
+            ]);
+      }
+
       allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow list: if isAdmin();
 
