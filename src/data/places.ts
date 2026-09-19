@@ -41,7 +41,7 @@ export const PLACES_DATA: Place[] = [
         image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800'
       }
     ],
-    verifiedGuideIds: ['koffi-agbodjan', 'dah-houessou'],
+    verifiedGuideIds: ['koffi-agbodjan'],
     vocabulary: [
       {
         term: 'Dangbé',
@@ -489,6 +489,226 @@ export const PLACES_DATA: Place[] = [
       y: 12,
       lat: 10.1742,
       lng: 1.3789
+    }
+  },
+  {
+    id: 'pendjari-mare-sacree',
+    name: 'Parc National de la Pendjari & Mare Sacrée',
+    location: 'Matéri & Touga, Atacora, Bénin',
+    category: 'Nature',
+    distanceKm: 650,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Parc_national_de_la_Pendjari-Hippopotames_%C3%A0_la_Mare_Sacr%C3%A9e_%283%29.jpg/1280px-Parc_national_de_la_Pendjari-Hippopotames_%C3%A0_la_Mare_Sacr%C3%A9e_%283%29.jpg',
+    description: 'Savane inondable où les hippopotames de la Mare Sacrée cohabitent avec les éléphants et les buffles de la vallée.',
+    deepHistory: 'Créé en 1961, le parc protège près de deux mille kilomètres carrés de mosaïque soudano-sahélienne et forme, avec l’Arly et le W, l’un des plus vastes complexes protégés d’Afrique de l’Ouest. Les villages riverains gardent les « zanga », boisés sacrés où la chasse est interdite depuis les serments des chefs de terre.',
+    badges: ['Réserve de Biosphère', 'Complexe W-Arly-Pendjari', 'Observer Sans Approcher'],
+    etiquette: [
+      {
+        title: 'Ne jamais sortir du véhicule sans l’écogarde',
+        description: 'Les pistes ne sont pas balisées hors saison sèche et la faune circule librement.',
+        icon: 'directions_car'
+      },
+      {
+        title: 'Aucun feu ni plastique laissé',
+        description: 'La savane brûle vite en saison sèche : emportez vos déchets jusqu’à Matéri.',
+        icon: 'local_fire_department'
+      }
+    ],
+    audioGuide: {
+      title: 'Les Hippopotames de la Mare Sacrée',
+      narrator: 'Écogarde du Parc National de la Pendjari',
+      duration: '6:10',
+      durationSeconds: 370
+    },
+    visualGuides: [
+      {
+        title: 'Troupeaux de la Mare Sacrée',
+        description: 'Les troupeaux se déplacent entre les mares permanentes au rythme de la décrue.',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Parc_national_de_la_Pendjari-Hippopotames_%C3%A0_la_Mare_Sacr%C3%A9e_%284%29.jpg/1280px-Parc_national_de_la_Pendjari-Hippopotames_%C3%A0_la_Mare_Sacr%C3%A9e_%284%29.jpg'
+      }
+    ],
+    verifiedGuideIds: [],
+    vocabulary: [
+      {
+        term: 'Zanga',
+        phonetic: '/dzan-ga/',
+        meaning: 'Boisé sacré mis en défens par serment : la chasse et la coupe y sont interdites.'
+      },
+      {
+        term: 'Tounga',
+        phonetic: '/toun-ga/',
+        meaning: 'Mare permanente de la vallée, point d’eau qui concentre la faune en saison sèche.'
+      }
+    ],
+    coordinates: {
+      x: 22,
+      y: 6,
+      lat: 10.4500,
+      lng: 1.7200
+    }
+  },
+  {
+    id: 'ketou-gelede',
+    name: 'Kétou, Berceau du Gèlèdé',
+    location: 'Kétou, Plateau, Bénin',
+    category: 'Historical',
+    distanceKm: 120,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/G%C3%A8l%C3%A8d%C3%A9_masked_dancer%2C_K%C3%A9tou%2C_Benin.jpg/1280px-G%C3%A8l%C3%A8d%C3%A9_masked_dancer%2C_K%C3%A9tou%2C_Benin.jpg',
+    description: 'Capitale de l’ancien royaume Kétu, où les masques Gèlèdé viennent danser les défunts et apaiser les mères.',
+    deepHistory: 'Kétou se veut plus ancienne que le Dahomey et garde la mémoire de la dynastie Ajassé. Le Gèlèdé, masque de raphia et de tissu peint dansé par les sociétés féminines Gunukpégan et Guenehounsa, est inscrit au patrimoine culturel immatériel de l’humanité pour le Bénin : il honore les ancêtres et répare les torts faits aux femmes.',
+    badges: ['Patrimoine Immatériel UNESCO', 'Ville Historique', 'Masques Vivants'],
+    etiquette: [
+      {
+        title: 'Ne pas photographier le masque de face sans accord',
+        description: 'Le Gèlèdé est un esprit en danse : la demande se fait auprès du chef de la société.',
+        icon: 'no_photography'
+      },
+      {
+        title: 'Rester dans le cercle des spectateurs',
+        description: 'L’espace de danse est délimité ; le franchir interrompt le rituel.',
+        icon: 'groups'
+      }
+    ],
+    audioGuide: {
+      title: 'Pourquoi les Masques Dansent pour les Mères',
+      narrator: 'Conservateur des traditions du royaume Kétu',
+      duration: '7:05',
+      durationSeconds: 425
+    },
+    visualGuides: [
+      {
+        title: 'Portrait d’un Chef de Kétou (1900)',
+        description: 'Coiffure et colliers de perles qui marquent l’autorité de la dynastie Ajassé.',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/8/8b/Chef_de_K%C3%A9tou_%281900%29.jpg'
+      }
+    ],
+    verifiedGuideIds: ['dr-sylvain-kpanlingan'],
+    vocabulary: [
+      {
+        term: 'Gèlèdé',
+        phonetic: '/ghe-leh-deh/',
+        meaning: 'Masque de raphia et d’étoffe peinte qui incarne l’ancêtre revenu danser parmi les siens.'
+      },
+      {
+        term: 'Kétu',
+        phonetic: '/keh-tou/',
+        meaning: 'Le royaume dont Kétou fut la capitale, parent des lignages yoruba de l’est.'
+      }
+    ],
+    coordinates: {
+      x: 80,
+      y: 40,
+      lat: 7.2600,
+      lng: 2.6200
+    }
+  },
+  {
+    id: 'dantokpa-marche-fetiche',
+    name: 'Marché Dantokpa & son Espace Fétiche',
+    location: 'Cotonou, Littoral, Bénin',
+    category: 'Spiritual',
+    distanceKm: 3,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vue_panoramique_march%C3%A9_Dantokpa_au_B%C3%A9nin1.jpg/1280px-Vue_panoramique_march%C3%A9_Dantokpa_au_B%C3%A9nin1.jpg',
+    description: 'Immense marché populaire de Cotonou où la pharmacopée vodun se vend au grand jour, entre féticheurs et marchandes.',
+    deepHistory: 'Détruit par deux incendies, reconstruit et agrandi sur les berges de la lagune, Dantokpa est l’un des plus grands marchés d’Afrique de l’Ouest. Son espace fétiche rassemble herboristes, marchands d’asen et de gris-gris, et préparateurs de « bokono » : là on consulte autant qu’on achète, et ce qui est préparé pour un client ne se marchande pas.',
+    badges: ['Marché Historique', 'Pharmacopée Vodun', 'Économie Informelle'],
+    etiquette: [
+      {
+        title: 'Demander avant toute photo d’un autel',
+        description: 'Photographier un fétiche en cours de préparation est une offense, pas un souvenir.',
+        icon: 'no_photography'
+      },
+      {
+        title: 'Ne pas toucher aux préparations',
+        description: 'Les produits de la pharmacopée sont manipulés par le vendeur seul.',
+        icon: 'back_hand'
+      }
+    ],
+    audioGuide: {
+      title: 'Ce que Vend le Marché Fétiche',
+      narrator: 'Maman du marché, Dantokpa',
+      duration: '5:25',
+      durationSeconds: 325
+    },
+    visualGuides: [
+      {
+        title: 'Passerelle des Marchandes',
+        description: 'Étalages de condiments et de tissus suspendus sur la passerelle du marché.',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/VENDEUSE_DE_CONDIMENTS_SUR_LA_PASSERELLE_MARCHE_DANTOKPA-COTONOU_BENIN.jpg/1280px-VENDEUSE_DE_CONDIMENTS_SUR_LA_PASSERELLE_MARCHE_DANTOKPA-COTONOU_BENIN.jpg'
+      }
+    ],
+    verifiedGuideIds: ['maman-solange'],
+    vocabulary: [
+      {
+        term: 'Bokono',
+        phonetic: '/bo-ko-no/',
+        meaning: 'Préparation rituelle et pharmacopée vendues dans l’espace fétiche du marché.'
+      },
+      {
+        term: 'Asen',
+        phonetic: '/ah-sen/',
+        meaning: 'Autel-mémoire de terre ou de métal érigé pour un défunt et entretenu par sa famille.'
+      }
+    ],
+    coordinates: {
+      x: 78,
+      y: 62,
+      lat: 6.3615,
+      lng: 2.4290
+    }
+  },
+  {
+    id: 'lac-aheme-gansu',
+    name: 'Lac Ahémé & Village Sur Pilotis de Gansu',
+    location: 'Comè & Avrankou, Mono, Bénin',
+    category: 'Nature',
+    distanceKm: 65,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/3/36/LE_LAC_AHEME_AU_BENIN_en_2018.jpg',
+    description: 'Lagune d’eau douce de quatre-vingts kilomètres carrés, bordée de villages de pêcheurs Tofinu et de la forêt sacrée d’Agamè.',
+    deepHistory: 'Le lac Ahémé vit au rythme des crues de la rivière Sô et de son chenal vers l’océan. Les Tofinu, longtemps réquisitionnés comme esclaves par leurs voisins, ont bâti leur sécurité sur l’eau : cases sur pilotis, greniers sur pieux et pirogues à perche. Les masques des sociétés Eglegan et Kokozia continuent d’y parcourir les rives.',
+    badges: ['Écotourisme Communautaire', 'Réserves de Pêche', 'Hippopotames'],
+    etiquette: [
+      {
+        title: 'Gilets et brassières fournis par la coopérative',
+        description: 'La navigation se fait avec les piroguiers agréés de Comè et de Djègbèkpodji.',
+        icon: 'sailing'
+      },
+      {
+        title: 'Pas de baignade près des zones de pêche',
+        description: 'Les filets et les nasses sont tendus sous l’eau, invisibles depuis la surface.',
+        icon: 'swim'
+      }
+    ],
+    audioGuide: {
+      title: 'Gens de l’Eau du Lac Ahémé',
+      narrator: 'Capitaine Basile Toviho, Piroguier Émérite',
+      duration: '6:40',
+      durationSeconds: 400
+    },
+    visualGuides: [
+      {
+        title: 'Pirogues au Rivage',
+        description: 'Les pirogues à perche sont amarrées devant les cases, prêtes pour la pêche du matin.',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Pirogues_gar%C3%A9es_en_bordure_du_Lac_Ah%C3%A9m%C3%A9..jpg/1280px-Pirogues_gar%C3%A9es_en_bordure_du_Lac_Ah%C3%A9m%C3%A9..jpg'
+      }
+    ],
+    verifiedGuideIds: ['basile-toviho'],
+    vocabulary: [
+      {
+        term: 'Kpamela',
+        phonetic: '/kpa-me-la/',
+        meaning: 'La pirogue creusée dans un tronc unique, moyen de transport des villages du lac.'
+      },
+      {
+        term: 'Ganvié',
+        phonetic: '/gan-vie/',
+        meaning: '« Nous sommes trouvés » en Tofinu : la mémoire d’un peuple refuge, comme sur l’Ahémé.'
+      }
+    ],
+    coordinates: {
+      x: 30,
+      y: 76,
+      lat: 6.6300,
+      lng: 1.9900
     }
   }
 ];
