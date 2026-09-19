@@ -8,24 +8,17 @@ import {
   Globe, 
   Sparkles, 
   CheckCircle2, 
-  Clock, 
-  Users, 
+  AlertCircle,
   MapPin, 
-  Compass, 
   Database,
   Calendar,
-  AlertTriangle,
   RefreshCw,
-  ExternalLink,
-  DollarSign,
   Shield,
   Lock,
   ArrowLeft,
   Award,
   Check,
   X,
-  Phone,
-  Mail,
   UserCheck
 } from 'lucide-react';
 import { Place, Category, Actor, CulturalEvent, AppLanguage, UserRole, GuideApplication } from '../../types';
@@ -34,9 +27,9 @@ import {
   deletePlaceFromFirestore, 
   getAllBookingsForAdmin, 
   getAllRSVPsForAdmin,
-  updateBookingStatus,
   getAllGuideApplicationsForAdmin,
-  updateGuideApplicationStatus,
+  decideGuideApplication,
+  apiFetch,
   BookingRecord 
 } from '../../lib/firebase';
 import { TRANSLATIONS } from '../../lib/i18n';
@@ -64,14 +57,15 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   onOpenAuth,
   onBackToPublic
 }) => {
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
   const [activeTab, setActiveTab] = useState<'scraper' | 'places' | 'guides' | 'bookings' | 'applications'>('scraper');
   const [searchSiteQuery, setSearchSiteQuery] = useState('');
   const [scrapeLoading, setScrapeLoading] = useState(false);
+  const [scrapeError, setScrapeError] = useState<string | null>(null);
   const [scrapedResult, setScrapedResult] = useState<any>(null);
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [rsvps, setRsvps] = useState<any[]>([]);
   const [guideApps, setGuideApps] = useState<GuideApplication[]>([]);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -93,7 +87,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     }
   }, [userRole]);
 
-  // If user is not admin, show secure Access Guard
+  // If the verified claim is not admin, nothing below is rendered
   if (userRole !== 'admin') {
     return (
       <div className="min-h-screen bg-[#1c1917] text-white flex items-center justify-center p-4 font-sans">
@@ -110,7 +104,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               Espace Administration du Patrimoine
             </h2>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Cet espace est strictement réservé aux conservateurs, administrateurs et gestionnaires de données patrimoniales de La Vibe Map.
+              Cet espace exige le rôle administrateur vérifié dans Firebase. Un compte sans ce rôle reste visiteur, quelle que soit son adresse email.
             </p>
           </div>
 
@@ -121,7 +115,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 className="w-full py-3 px-4 rounded-xl bg-amber-400 text-black font-bold text-xs hover:bg-amber-300 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
               >
                 <Shield className="w-4 h-4" />
-                <span>Connexion Conservateur (kedagniarnaud999@gmail.com)</span>
+                <span>Connexion Conservateur</span>
               </button>
             )}
 
@@ -140,29 +134,28 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     );
   }
 
-  // Web Scraper & Grounding Trigger
+  // Web Scraper & Grounding Trigger (server route requires the admin claim)
   const handleScrape = async (overrideName?: string) => {
     const query = (overrideName || searchSiteQuery).trim();
     if (!query) return;
     if (overrideName) setSearchSiteQuery(overrideName);
     setScrapeLoading(true);
+    setScrapeError(null);
     setScrapedResult(null);
 
     try {
-      const res = await fetch('/api/scrape/cultural-data', {
+      const json = await apiFetch<any>('/api/scrape/cultural-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteName: query })
+        body: { siteName: query }
       });
-      const json = await res.json();
       if (json.data) {
         setScrapedResult({
           ...json.data,
           selectedImage: json.data.realImages?.[0] || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800'
         });
       }
-    } catch (e) {
-      console.error('Scrape error:', e);
+    } catch (e: any) {
+      setScrapeError(e?.message || 'Le scraping est indisponible (accès refusé ou serveur d’administration indisponible).');
     } finally {
       setScrapeLoading(false);
     }
@@ -245,18 +238,19 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     }
   };
 
-  const handleApproveGuide = async (appId: string, userId: string) => {
-    const success = await updateGuideApplicationStatus(appId, userId, 'approved');
-    if (success) {
-      setGuideApps((prev) => prev.map((a) => a.id === appId ? { ...a, status: 'approved' } : a));
-      alert('Guide agréé avec succès ! Son rôle a été mis à jour.');
-    }
-  };
+  // The decision route writes the application and the Firebase role claim together.
+  const decide = async (appId: string, status: 'approved' | 'rejected') => {
+    setDecisionError(null);
+    const result = await decideGuideApplication(appId, status);
 
-  const handleRejectGuide = async (appId: string, userId: string) => {
-    const success = await updateGuideApplicationStatus(appId, userId, 'rejected');
-    if (success) {
-      setGuideApps((prev) => prev.map((a) => a.id === appId ? { ...a, status: 'rejected' } : a));
+    if (!result.success) {
+      setDecisionError(result.error || 'Décision impossible : vérifiez les droits administrateur et la disponibilité du serveur.');
+      return;
+    }
+
+    setGuideApps((prev) => prev.map((a) => (a.id === appId ? { ...a, status } : a)));
+    if (status === 'approved') {
+      alert('Guide agréé. Son rôle a été accordé et ses sessions précédentes ont été révoquées.');
     }
   };
 
@@ -306,7 +300,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full text-xs font-mono">
-                ● Base En Ligne
+                ● Rôle Vérifié
               </span>
               {onBackToPublic && (
                 <button
@@ -438,6 +432,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 )}
               </button>
             </div>
+
+            {scrapeError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{scrapeError}</span>
+              </div>
+            )}
 
             {/* Scraped Preview & Edit Card */}
             {scrapedResult && (
@@ -577,7 +578,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 <h3 className="font-serif font-bold text-lg text-[#2c2926]">
                   Catalogue des Sanctuaires et Sites ({places.length})
                 </h3>
-                <p className="text-xs text-[#6b665e]">
+                <p className="text-xs text-[#6b665e] flex items-center gap-1">
+                  <Database className="w-3 h-3" />
                   Synchronisé avec Firestore et Cloud SQL
                 </p>
               </div>
@@ -657,6 +659,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               </p>
             </div>
 
+            {decisionError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{decisionError}</span>
+              </div>
+            )}
+
             {guideApps.length === 0 ? (
               <div className="p-8 text-center bg-[#faf7f0] rounded-2xl border border-[#e8e2d5] text-xs text-[#6b665e]">
                 Aucune demande d'agrément en attente.
@@ -699,14 +708,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     {app.status === 'pending' && app.id && (
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
-                          onClick={() => handleApproveGuide(app.id!, app.userId)}
+                          onClick={() => decide(app.id!, 'approved')}
                           className="px-3 py-1.5 rounded-xl bg-[#2e5a44] text-white text-xs font-bold hover:bg-[#204030] flex items-center gap-1 shadow cursor-pointer"
                         >
                           <Check className="w-3.5 h-3.5" />
                           <span>Agréer Guide</span>
                         </button>
                         <button
-                          onClick={() => handleRejectGuide(app.id!, app.userId)}
+                          onClick={() => decide(app.id!, 'rejected')}
                           className="px-3 py-1.5 rounded-xl bg-red-100 text-red-700 text-xs font-bold hover:bg-red-200 flex items-center gap-1 cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />

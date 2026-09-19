@@ -21,7 +21,6 @@ import {
   registerWithEmail, 
   submitGuideApplication
 } from '../../lib/firebase';
-import { TRANSLATIONS } from '../../lib/i18n';
 
 interface AuthScreenProps {
   currentLang: AppLanguage;
@@ -37,17 +36,14 @@ const splitList = (value: string): string[] =>
     .filter(Boolean);
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({
-  currentLang,
   initialPortal = 'public',
   onAuthSuccess,
   onCancel
 }) => {
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
-
-  // View state: 'public' (Travelers and Guides) vs 'admin' (strictly dissociated dedicated portal)
+  // View state: 'public' (Travelers and Guide applicants) vs 'admin' (dissociated portal)
   const [portalMode, setPortalMode] = useState<'public' | 'admin'>(initialPortal);
 
-  // Intention in the public portal: a guide applicant signs in as a traveler until the claim is granted.
+  // Intention only: an applicant signs in as a traveler until the guide claim is granted.
   const [selectedRole, setSelectedRole] = useState<'traveler' | 'guide'>('traveler');
 
   const [isSignUp, setIsSignUp] = useState(false);
@@ -334,7 +330,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           </div>
         </div>
       ) : (
-        /* ==================== STANDARD PUBLIC PORTAL (VOYAGEURS & GUIDE CANDIDATS) ==================== */
+        /* ==================== STANDARD PUBLIC PORTAL (VOYAGEURS & CANDIDATS GUIDE) ==================== */
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-xl border border-[#e8e2d5]">
           <div className="text-center mb-5">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto shadow-md mb-2.5 transition-all ${
