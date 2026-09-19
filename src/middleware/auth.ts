@@ -1,9 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { DecodedIdToken } from 'firebase-admin/auth';
-import {
-  getAdminAuth,
-  isFirebaseAdminUnavailableError,
-} from '../lib/firebase-admin.ts';
+import { isVerificationUnavailable, verifyIdToken } from '../lib/id-token.ts';
 import type { UserRole } from '../types.ts';
 
 const USER_ROLES: readonly UserRole[] = ['traveler', 'guide', 'admin'];
@@ -54,10 +51,10 @@ export const requireAuth = async (
   }
 
   try {
-    req.user = await getAdminAuth().verifyIdToken(token, true);
+    req.user = await verifyIdToken(token);
     return next();
   } catch (error) {
-    if (isFirebaseAdminUnavailableError(error)) {
+    if (isVerificationUnavailable(error)) {
       return res.status(503).json({ error: 'Authentication service unavailable' });
     }
 
