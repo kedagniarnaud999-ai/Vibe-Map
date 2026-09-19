@@ -10,6 +10,7 @@ import {
 import { Place, Category } from '../types';
 import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers, AlertCircle, MapPin } from 'lucide-react';
 import { UserCoordinates } from '../lib/geo';
+import { googleMapsApiKey, hasGoogleMapsKey } from '../lib/map-provider-key';
 
 interface GoogleMapViewProps {
   places: Place[];
@@ -53,16 +54,6 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
   const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'terrain' | 'hybrid'>('roadmap');
   const [hasError, setHasError] = useState(false);
 
-  // Injected Google Maps Platform API Key from env
-  const rawApiKey = ((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim();
-  const isKeyConfigured = Boolean(
-    rawApiKey && 
-    rawApiKey !== '' && 
-    !rawApiKey.includes('MY_') && 
-    rawApiKey !== 'AIzaSyC7Sjhb4l7AyU69Pi6Nmyf5odSZcIDFfFg' &&
-    rawApiKey.length > 15
-  );
-
   // Catch any auth failure globally from Google Maps script
   useEffect(() => {
     const originalAuthFailure = (window as any).gm_authFailure;
@@ -102,7 +93,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
     }
   };
 
-  if (!isKeyConfigured || hasError) {
+  if (!hasGoogleMapsKey || hasError) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-[#f5f1e8] p-6 text-center">
         <div className="w-14 h-14 rounded-2xl bg-[#c14e2f]/10 flex items-center justify-center mb-4 text-[#c14e2f]">
@@ -126,7 +117,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
               Afficher la Carte Interactive (Plan / Satellite)
             </button>
           )}
-          {isKeyConfigured && (
+          {hasGoogleMapsKey && (
             <button
               onClick={() => setHasError(false)}
               className="px-3.5 py-2 bg-white text-[#2c2926] border border-[#e8e2d5] text-xs font-semibold rounded-xl hover:bg-[#efece2] transition-all"
@@ -142,7 +133,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
   return (
     <div className="relative w-full h-full">
       <APIProvider 
-        apiKey={rawApiKey!} 
+        apiKey={googleMapsApiKey} 
         language="fr" 
         region="BJ"
         onLoad={() => setHasError(false)}
@@ -156,7 +147,6 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
           gestureHandling="greedy"
           disableDefaultUI={false}
           className="w-full h-full"
-          internalUsageAttributionIds={["gmp_mcp_codeassist_v1_aistudio"]}
         >
           <MapController selectedPlace={selectedPlace} userPosition={userPosition} />
 

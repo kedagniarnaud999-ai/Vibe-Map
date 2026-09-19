@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { 
   Search, 
   MapPin, 
@@ -26,7 +26,12 @@ import {
 } from 'lucide-react';
 import { Place, Category } from '../../types';
 import { LeafletMapView } from '../LeafletMapView';
-import { GoogleMapView } from '../GoogleMapView';
+import { hasGoogleMapsKey } from '../../lib/map-provider-key';
+
+// Only reached when a Maps key exists, so the Maps library stays out of the default map chunk.
+const GoogleMapView = React.lazy(() =>
+  import('../GoogleMapView').then((m) => ({ default: m.GoogleMapView }))
+);
 import { calculateDistanceKm, formatDistance, getProximityBadge, UserCoordinates } from '../../lib/geo';
 
 interface MapScreenProps {
@@ -273,18 +278,20 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               <span className="hidden sm:inline">Satellite</span>
             </button>
 
-            <button
-              onClick={() => setViewEngine('google-maps')}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all ${
-                viewEngine === 'google-maps'
-                  ? 'bg-[#c14e2f] text-white shadow-sm'
-                  : 'text-[#6b665e] hover:text-[#2c2926]'
-              }`}
-              title="Google Maps"
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Google</span>
-            </button>
+            {hasGoogleMapsKey && (
+              <button
+                onClick={() => setViewEngine('google-maps')}
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all ${
+                  viewEngine === 'google-maps'
+                    ? 'bg-[#c14e2f] text-white shadow-sm'
+                    : 'text-[#6b665e] hover:text-[#2c2926]'
+                }`}
+                title="Google Maps"
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Google</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -423,17 +430,25 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             layerType={layerType}
           />
         ) : viewEngine === 'google-maps' ? (
-          <GoogleMapView
-            places={filteredPlaces}
-            selectedPlace={activePlace}
-            userPosition={userPosition}
-            onSelectPlace={onSelectPlace}
-            onOpenPlaceDetail={onOpenPlaceDetail}
-            onSwitchToInteractiveMap={() => {
-              setViewEngine('interactive-map');
-              setLayerType('voyager');
-            }}
-          />
+          <Suspense
+            fallback={
+              <div className="w-full h-full flex items-center justify-center bg-[#f5f1e8] text-xs text-[#8c867c]">
+                Chargement de la couche Google Maps…
+              </div>
+            }
+          >
+            <GoogleMapView
+              places={filteredPlaces}
+              selectedPlace={activePlace}
+              userPosition={userPosition}
+              onSelectPlace={onSelectPlace}
+              onOpenPlaceDetail={onOpenPlaceDetail}
+              onSwitchToInteractiveMap={() => {
+                setViewEngine('interactive-map');
+                setLayerType('voyager');
+              }}
+            />
+          </Suspense>
         ) : (
           /* Heritage Stylized Canvas */
           <div className="relative w-full h-full bg-[#eadecb] flex items-center justify-center overflow-hidden">
