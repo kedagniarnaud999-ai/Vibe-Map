@@ -24,6 +24,8 @@ interface Message {
   text: string;
   time: string;
   groundingSources?: { title: string; url: string }[];
+  // Set when the answer comes from the written cultural archive, not from the model.
+  fromArchive?: boolean;
   fonPhrase?: {
     fon: string;
     phonetic: string;
@@ -103,8 +105,8 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
     setInputQuery('');
     setIsLoading(true);
 
-    // Both routes sit behind requireAuth: apiFetch carries the verified ID token and throws
-    // without a session, which falls through to the local cultural archive below.
+    // Both routes sit behind requireAuth. Without a session apiFetch throws and the answer
+    // comes from the archive below, which is labelled so it does not read as a model reply.
     try {
       const data = useLiveWebSearch
         ? await apiFetch<any>('/api/gemini/search-grounding', {
@@ -161,7 +163,8 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
         text: reply,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         fonPhrase,
-        etiquetteTip
+        etiquetteTip,
+        fromArchive: true
       };
 
       setMessages((prev) => [...prev, aiMsg]);
@@ -231,6 +234,12 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
               }`}
             >
               <p className="whitespace-pre-line font-sans">{msg.text}</p>
+
+              {msg.fromArchive && (
+                <p className="text-[10px] text-[#8c867c] italic">
+                  Réponse du fonds culturel écrit — génération en ligne indisponible.
+                </p>
+              )}
 
               {/* Fon Phrase Box with Audio Pronunciation */}
               {msg.fonPhrase && (

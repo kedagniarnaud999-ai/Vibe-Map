@@ -31,9 +31,36 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
   onSelectStory
 }) => {
   const [activeTab, setActiveTab] = useState<'stamps' | 'stories' | 'badges'>('stamps');
-  const [shareSuccess, setShareSuccess] = useState(false);
+  const [shareNote, setShareNote] = useState<string | null>(null);
 
-  const handleSharePassport = () => {
+  const handleSharePassport = async () => {
+    const summary = `Mon passeport culturel La Vibe Map : ${user.savedPlaces.length} site${user.savedPlaces.length > 1 ? 's' : ''} sacré${user.savedPlaces.length > 1 ? 's' : ''} enregistré${user.savedPlaces.length > 1 ? 's' : ''}.`;
+    let shared = false;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'La Vibe Map', text: summary, url: window.location.href });
+        shared = true;
+      } catch (e) {
+        return;
+      }
+    } else if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(`${summary} ${window.location.href}`);
+        shared = true;
+      } catch (e) {
+        setShareNote('Copie impossible');
+        setTimeout(() => setShareNote(null), 2500);
+        return;
+      }
+    }
+
+    if (!shared) {
+      setShareNote('Partage indisponible');
+      setTimeout(() => setShareNote(null), 2500);
+      return;
+    }
+
     try {
       confetti({
         particleCount: 100,
@@ -42,8 +69,8 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       });
     } catch (e) {}
 
-    setShareSuccess(true);
-    setTimeout(() => setShareSuccess(false), 2500);
+    setShareNote(navigator.share ? 'Passeport partagé !' : 'Lien copié !');
+    setTimeout(() => setShareNote(null), 2500);
   };
 
   const savedPlacesList = places.filter((p) => user.savedPlaces.includes(p.id));
@@ -66,7 +93,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
         >
           <Share2 className="w-3.5 h-3.5" />
-          <span>{shareSuccess ? 'Passport Shared!' : 'Share Vibe'}</span>
+          <span>{shareNote ?? 'Partager mon passeport'}</span>
         </button>
       </div>
 
