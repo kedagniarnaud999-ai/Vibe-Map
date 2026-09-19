@@ -196,7 +196,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         icon: 'Shield'
       })),
       visualGuides: [],
-      verifiedGuideIds: ['1', '2'],
+      verifiedGuideIds: [],
       vocabulary: [],
       coordinates: {
         x: 50,
@@ -206,11 +206,16 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       }
     };
 
-    await savePlaceToFirestore(newPlace);
+    const saved = await savePlaceToFirestore(newPlace);
+    if (!saved) {
+      alert(`Échec de l'enregistrement de « ${newPlace.name} ». Un refus signifie que le compte connecté ne porte pas le rôle admin.`);
+      return;
+    }
+
     onPlaceAddedOrUpdated(newPlace);
-    alert(`Le site "${newPlace.name}" (${newPlace.category}) a été enregistré dans le catalogue !`);
     setScrapedResult(null);
     setSearchSiteQuery('');
+    alert(`Le site "${newPlace.name}" (${newPlace.category}) a été enregistré dans le catalogue !`);
   };
 
   const handleCreateOrUpdatePlace = async (e: React.FormEvent) => {
@@ -230,7 +235,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         { title: 'Demander avant de photographier', description: 'Accord du dignitaire requis', icon: 'Sparkles' }
       ],
       visualGuides: [],
-      verifiedGuideIds: ['1', '2'],
+      verifiedGuideIds: [],
       vocabulary: [],
       coordinates: {
         x: 50,
@@ -240,7 +245,12 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       }
     };
 
-    await savePlaceToFirestore(placeToSave);
+    const saved = await savePlaceToFirestore(placeToSave);
+    if (!saved) {
+      alert(`Échec de l'enregistrement de « ${placeToSave.name} ». Un refus signifie que le compte connecté ne porte pas le rôle admin.`);
+      return;
+    }
+
     onPlaceAddedOrUpdated(placeToSave);
     setShowAddModal(false);
     setEditingPlace(null);
@@ -249,10 +259,17 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   };
 
   const handleDeletePlace = async (id: string, name: string) => {
-    if (confirm(`Confirmez-vous la suppression définitive du site "${name}" ?`)) {
-      await deletePlaceFromFirestore(id);
-      onPlaceDeleted(id);
+    if (!confirm(`Confirmez-vous la suppression définitive du site "${name}" ?`)) {
+      return;
     }
+
+    const deleted = await deletePlaceFromFirestore(id);
+    if (!deleted) {
+      alert(`Suppression refusée pour « ${name} ». Vérifiez que le compte connecté porte le rôle admin.`);
+      return;
+    }
+
+    onPlaceDeleted(id);
   };
 
   // The decision route writes the application and the Firebase role claim together.

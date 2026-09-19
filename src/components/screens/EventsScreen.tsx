@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Calendar, MapPin, Sparkles, ShieldAlert, AlertCircle, Ticket } from 'lucide-react';
 import { CulturalEvent } from '../../types';
-import { saveEventRSVPToFirestore, getVerifiedUid } from '../../lib/firebase';
+import { saveEventRSVPToFirestore } from '../../lib/firebase';
 
 interface EventsScreenProps {
   events: CulturalEvent[];
+  requireSession: () => boolean;
 }
 
-export const EventsScreen: React.FC<EventsScreenProps> = ({ events }) => {
+export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSession }) => {
   const [selectedType, setSelectedType] = useState<string>('All');
+  const [rsvpPending, setRsvpPending] = useState<string | null>(null);
   const [rsvpSaved, setRsvpSaved] = useState<string | null>(null);
   const [rsvpError, setRsvpError] = useState<string | null>(null);
 
@@ -23,21 +25,31 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events }) => {
   // Ownership comes from the signed-in account, never from a value typed in this screen.
   const handleRSVP = async (id: string) => {
     const evt = events.find((e) => e.id === id);
-    if (!evt) return;
+    if (!evt || rsvpPending) {
+      return;
+    }
 
-    if (!getVerifiedUid()) {
+    if (!requireSession()) {
       setRsvpError('Connectez-vous pour enregistrer votre présence.');
       return;
     }
 
     setRsvpError(null);
-    setRsvpSaved(id);
+    setRsvpPending(id);
     const saved = await saveEventRSVPToFirestore(id, evt.title);
+    setRsvpPending(null);
+
     if (!saved) {
       setRsvpError("L'enregistrement a échoué. Vérifiez que votre session est toujours active.");
+      return;
     }
+
+    setRsvpSaved(id);
     setTimeout(() => setRsvpSaved(null), 2500);
   };
+
+  const rsvpLabel = (id: string) =>
+    rsvpPending === id ? 'Enregistrement…' : rsvpSaved === id ? 'Ajouté à l’agenda' : 'Confirmer ma présence';
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-4 pb-28 space-y-6">
@@ -120,10 +132,11 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events }) => {
               <div className="pt-2 flex items-center gap-3">
                 <button
                   onClick={() => handleRSVP(featured.id)}
-                  className="px-4 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all flex items-center gap-1.5"
+                  disabled={rsvpPending !== null}
+                  className="px-4 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-60"
                 >
                   <Ticket className="w-3.5 h-3.5" />
-                  <span>{rsvpSaved === featured.id ? 'Added to Calendar!' : 'RSVP & Etiquette Guide'}</span>
+                  <span>{rsvpLabel(featured.id)}</span>
                 </button>
               </div>
             </div>
@@ -182,9 +195,10 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events }) => {
 
                 <button
                   onClick={() => handleRSVP(evt.id)}
-                  className="px-3.5 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
+                  disabled={rsvpPending !== null}
+                  className="px-3.5 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all disabled:opacity-60"
                 >
-                  {rsvpSaved === evt.id ? 'Saved' : 'Attend'}
+                  {rsvpLabel(evt.id)}
                 </button>
               </div>
             </div>

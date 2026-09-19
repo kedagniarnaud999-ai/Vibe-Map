@@ -20,17 +20,18 @@ import {
   MapPin,
   Send,
   X,
-  Lock
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import { UserPreferences, UserRole, AppLanguage, ScreenId } from '../../types';
-import { syncUserProfileToFirestore, logoutUser, submitGuideApplication } from '../../lib/firebase';
+import { logoutUser, submitGuideApplication } from '../../lib/firebase';
 import { TRANSLATIONS } from '../../lib/i18n';
 
 interface UserProfileScreenProps {
   user: UserPreferences;
   currentLang: AppLanguage;
   onLanguageChange: (lang: AppLanguage) => void;
-  onUpdateUser?: (updated: Partial<UserPreferences>) => void;
+  onUpdateUser?: (updated: Partial<UserPreferences>) => Promise<boolean>;
   onOpenAuth: (targetRole?: UserRole) => void;
   onNavigate: (screen: ScreenId) => void;
 }
@@ -48,6 +49,15 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
   const [notifications, setNotifications] = useState(user.notificationsEnabled);
   const [saveToast, setSaveToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('Préférences enregistrées avec succès !');
+  const [toastTone, setToastTone] = useState<'ok' | 'error'>('ok');
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
+
+  const flash = (message: string, tone: 'ok' | 'error' = 'ok') => {
+    setToastMessage(message);
+    setToastTone(tone);
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 2800);
+  };
 
   // Guide accreditation modal
   const [showGuideModal, setShowGuideModal] = useState(false);
@@ -69,13 +79,17 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
       notificationsEnabled: notifications,
       language: currentLang
     };
-    if (onUpdateUser) {
-      onUpdateUser(updated);
-    }
-    await syncUserProfileToFirestore(updated);
-    setToastMessage('Préférences synchronisées avec Firestore !');
-    setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 2500);
+
+    setIsSavingPreferences(true);
+    const synced = onUpdateUser ? await onUpdateUser(updated) : false;
+    setIsSavingPreferences(false);
+
+    flash(
+      synced
+        ? 'Préférences synchronisées avec Firestore !'
+        : 'Enregistrement refusé : une session vérifiée est requise.',
+      synced ? 'ok' : 'error'
+    );
   };
 
   const handleLogout = async () => {
@@ -106,9 +120,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
         setTimeout(() => {
           setShowGuideModal(false);
           setAppliedSuccess(false);
-          setToastMessage('Demande d’agrément guide envoyée pour validation !');
-          setSaveToast(true);
-          setTimeout(() => setSaveToast(false), 3000);
+          flash('Demande d’agrément guide envoyée pour validation !');
         }, 1500);
       } else {
         setApplicationError(res.error || "Envoi impossible. Vérifiez que votre session est toujours active.");
@@ -127,8 +139,14 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
     <div className="max-w-3xl mx-auto px-4 py-4 pb-28 space-y-6 font-sans">
       {/* Toast Notification */}
       {saveToast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-[#2e5a44] text-white text-xs font-semibold rounded-full shadow-lg flex items-center gap-2 animate-in fade-in">
-          <Check className="w-4 h-4 text-green-300" />
+        <div className={`fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 ${
+          toastTone === 'ok' ? 'bg-[#2e5a44]' : 'bg-[#c14e2f]'
+        } text-white text-xs font-semibold rounded-full shadow-lg flex items-center gap-2 animate-in fade-in`}>
+          {toastTone === 'ok' ? (
+            <Check className="w-4 h-4 text-green-300" />
+          ) : (
+            <AlertTriangle className="w-4 h-4" />
+          )}
           <span>{toastMessage}</span>
         </div>
       )}
@@ -257,10 +275,16 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             </p>
           </div>
           <button
-            onClick={() => setShowGuideModal(true)}
+            onClick={() => {
+              if (!user.id) {
+                onOpenAuth('traveler');
+                return;
+              }
+              setShowGuideModal(true);
+            }}
             className="px-4 py-2.5 rounded-xl bg-[#5a5a40] text-white font-bold text-xs hover:bg-[#484833] transition-all flex-shrink-0 cursor-pointer shadow-sm"
           >
-            Postuler comme Guide Agréé
+            {user.id ? 'Postuler comme Guide Agréé' : 'Se connecter pour postuler'}
           </button>
         </div>
       )}
@@ -356,9 +380,10 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
         <div className="flex gap-2 pt-2">
           <button
             onClick={handleSavePreferences}
-            className="flex-1 py-3 rounded-xl bg-[#c14e2f] text-white font-bold text-xs shadow hover:bg-[#a83f23] active:scale-95 transition-all cursor-pointer"
+            disabled={isSavingPreferences}
+            className="flex-1 py-3 rounded-xl bg-[#c14e2f] text-white font-bold text-xs shadow hover:bg-[#a83f23] active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
           >
-            Enregistrer les Préférences
+            {isSavingPreferences ? 'Synchronisation…' : 'Enregistrer les Préférences'}
           </button>
           <button
             onClick={handleLogout}

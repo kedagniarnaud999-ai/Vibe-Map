@@ -11,17 +11,19 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Place, ItineraryStop } from '../../types';
-import { apiFetch, saveItineraryToFirestore, getVerifiedUid } from '../../lib/firebase';
+import { apiFetch, saveItineraryToFirestore } from '../../lib/firebase';
 
 interface ItineraryBuilderScreenProps {
   places: Place[];
   onSelectPlace: (place: Place) => void;
+  requireSession: () => boolean;
   onSaveItinerary?: () => void;
 }
 
 export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
   places,
   onSelectPlace,
+  requireSession,
   onSaveItinerary
 }) => {
   const [duration, setDuration] = useState<'2h' | 'half-day' | 'full-day' | '3-days'>('half-day');
@@ -31,6 +33,8 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedTimeline, setGeneratedTimeline] = useState<ItineraryStop[] | null>(null);
+  const [timelineSource, setTimelineSource] = useState<'ai' | 'curated' | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -52,11 +56,19 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
   };
 
   const handleGenerate = async () => {
-    setIsGenerating(true);
     setGeneratedTimeline(null);
+    setTimelineSource(null);
+    setSaveError(null);
+
+    if (!requireSession()) {
+      setGenerateError('Connectez-vous pour tisser votre itinéraire : la génération est réservée aux comptes vérifiés.');
+      return;
+    }
+
+    setGenerateError(null);
+    setIsGenerating(true);
 
     try {
-      // The route is authenticated; without a session the local sequence below is used.
       const data = await apiFetch<any>('/api/gemini/itinerary', {
         method: 'POST',
         body: {
@@ -82,14 +94,15 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
         }));
 
         setGeneratedTimeline(stops);
+        setTimelineSource('ai');
         setIsGenerating(false);
         return;
       }
     } catch (e) {
-      console.warn('Gemini itinerary API unavailable, using rich local fallback:', e);
+      console.warn('Gemini itinerary API unavailable, using curated sequence:', e);
     }
 
-    // Rich fallback
+    // Curated sequence: real sites, written offline. Labelled as such below the timeline.
     setTimeout(() => {
       setIsGenerating(false);
       const stops: ItineraryStop[] = [
@@ -146,24 +159,14 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
       ];
 
       setGeneratedTimeline(stops);
+      setTimelineSource('curated');
     }, 800);
   };
 
   const handleSaveToJournal = async () => {
-    try {
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.7 },
-        colors: ['#c14e2f', '#5a5a40', '#d9822b', '#7c766b']
-      });
-    } catch (e) {
-      // confetti is decorative only
-    }
-
     if (!generatedTimeline) return;
 
-    if (!getVerifiedUid()) {
+    if (!requireSession()) {
       setSaveError('Connectez-vous pour enregistrer votre itinéraire dans le Passeport Culturel.');
       return;
     }
@@ -179,6 +182,17 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
     if (!savedId) {
       setSaveError("Enregistrement impossible. Vérifiez que votre session est toujours active.");
       return;
+    }
+
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ['#c14e2f', '#5a5a40', '#d9822b', '#7c766b']
+      });
+    } catch (e) {
+      // confetti is decorative only
     }
 
     setSavedSuccess(true);
@@ -275,17 +289,29 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
         </button>
       </div>
 
+      {generateError && (
+        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{generateError}</span>
+        </div>
+      )}
+
       {/* Generated Timeline Result */}
       {generatedTimeline && (
         <div className="space-y-5 animate-fade-in">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#5a5a40]">
-                Curated Route
+                {timelineSource === 'ai' ? 'Itinéraire généré par l’IA' : 'Itinéraire de référence'}
               </span>
               <h3 className="font-serif font-bold text-xl text-[#2c2926]">
-                Your Cultural Sequence
+                Votre séquence culturelle
               </h3>
+              {timelineSource === 'curated' && (
+                <p className="text-[11px] text-[#8c867c] mt-1">
+                  La génération n’a pas répondu : cette séquence est notre parcours conseillé, pas une réponse du modèle.
+                </p>
+              )}
             </div>
 
             <button
@@ -293,7 +319,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
             >
               <Bookmark className="w-3.5 h-3.5" />
-              <span>{savedSuccess ? 'Saved to Journal!' : 'Save Itinerary'}</span>
+              <span>{savedSuccess ? 'Enregistré !' : 'Enregistrer'}</span>
             </button>
           </div>
 

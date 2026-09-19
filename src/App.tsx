@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { ComponentType, lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { ScreenId, Place, Story, Actor, AppLanguage, UserProfile } from './types';
 import { PLACES_DATA } from './data/places';
 import { STORIES_DATA } from './data/stories';
 import { ACTORS_DATA } from './data/actors';
 import { EVENTS_DATA } from './data/events';
 import { INITIAL_USER } from './data/user';
-import { 
-  syncUserProfileToFirestore, 
+import {
+  logoutUser,
+  restoreSession,
+  syncUserProfileToFirestore,
   getPlacesFromFirestore,
-  onAuthStateChange
+  onAuthStateChange,
+  SIGNED_OUT_SESSION,
+  VerifiedSession
 } from './lib/firebase';
 import { TRANSLATIONS } from './lib/i18n';
 
@@ -17,20 +22,32 @@ import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { OnboardingScreen } from './components/screens/OnboardingScreen';
 import { HomeScreen } from './components/screens/HomeScreen';
-import { MapScreen } from './components/screens/MapScreen';
 import { PlaceDetailScreen } from './components/screens/PlaceDetailScreen';
 import { LibraryScreen } from './components/screens/LibraryScreen';
 import { StoryDetailScreen } from './components/screens/StoryDetailScreen';
 import { ActorDirectoryScreen } from './components/screens/ActorDirectoryScreen';
 import { ActorProfileScreen } from './components/screens/ActorProfileScreen';
-import { ItineraryBuilderScreen } from './components/screens/ItineraryBuilderScreen';
-import { JournalScreen } from './components/screens/JournalScreen';
 import { EventsScreen } from './components/screens/EventsScreen';
-import { AssistantScreen } from './components/screens/AssistantScreen';
-import { UserProfileScreen } from './components/screens/UserProfileScreen';
-import { AuthScreen } from './components/screens/AuthScreen';
-import { AdminScreen } from './components/screens/AdminScreen';
-import { GuidePortalScreen } from './components/screens/GuidePortalScreen';
+
+/**
+ * Screens behind a click that most sessions never take are loaded on demand: the map drags
+ * Leaflet, the admin console and guide portal are role-gated, and the confetti screens share a
+ * chunk. Everything above is what a first paint genuinely needs.
+ */
+const lazyScreen = (load: () => Promise<Record<string, any>>, name: string) =>
+  lazy(() => load().then((mod) => ({ default: mod[name] as ComponentType<any> })));
+
+const MapScreen = lazyScreen(() => import('./components/screens/MapScreen'), 'MapScreen');
+const ItineraryBuilderScreen = lazyScreen(
+  () => import('./components/screens/ItineraryBuilderScreen'),
+  'ItineraryBuilderScreen'
+);
+const JournalScreen = lazyScreen(() => import('./components/screens/JournalScreen'), 'JournalScreen');
+const AssistantScreen = lazyScreen(() => import('./components/screens/AssistantScreen'), 'AssistantScreen');
+const UserProfileScreen = lazyScreen(() => import('./components/screens/UserProfileScreen'), 'UserProfileScreen');
+const AuthScreen = lazyScreen(() => import('./components/screens/AuthScreen'), 'AuthScreen');
+const AdminScreen = lazyScreen(() => import('./components/screens/AdminScreen'), 'AdminScreen');
+const GuidePortalScreen = lazyScreen(() => import('./components/screens/GuidePortalScreen'), 'GuidePortalScreen');
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
@@ -47,10 +64,20 @@ export default function App() {
     ...INITIAL_USER,
     role: 'traveler'
   });
-  
+  const [session, setSession] = useState<VerifiedSession>(SIGNED_OUT_SESSION);
+
   // Cosmetic only: which sign-in card AuthScreen opens on. Never a privilege.
   const [authPortal, setAuthPortal] = useState<'public' | 'admin'>('public');
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(true);
+
+  const applySession = (next: VerifiedSession) => {
+    setSession(next);
+    setUser((prev) =>
+      next.status === 'ready' && next.profile
+        ? { ...prev, ...next.profile, language: prev.language || 'fr' }
+        : { ...INITIAL_USER, language: prev.language || 'fr', role: 'traveler' }
+    );
+  };
 
   // Initialize onboarding, Firebase Auth & Firestore DB
   useEffect(() => {
@@ -69,23 +96,8 @@ export default function App() {
       localStorage.setItem('lavibemap_language', 'fr');
     }
 
-    // authUser.role is resolved from the Firebase ID token claims, not from storage.
-    const unsubscribeAuth = onAuthStateChange((authUser) => {
-      if (authUser) {
-        setUser((prev) => ({
-          ...prev,
-          ...authUser,
-          language: prev.language || 'fr'
-        }));
-        return;
-      }
-
-      setUser((prev) => ({
-        ...INITIAL_USER,
-        language: prev.language || 'fr',
-        role: 'traveler'
-      }));
-    });
+    // The session role is resolved from the Firebase ID token claims, never from storage.
+    const unsubscribeAuth = onAuthStateChange(applySession);
 
     // Load dynamic and verified places from Firestore & Cloud SQL
     getPlacesFromFirestore().then((dbPlaces) => {
@@ -122,6 +134,26 @@ export default function App() {
     setScreenHistory((prev) => [...prev, 'auth']);
     setCurrentScreen('auth');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // A write intent needs more than an auth token: it needs the profile document to be readable,
+  // otherwise the shell looks signed-out while the backend would still accept the caller's uid.
+  const requireVerifiedIntent = (): boolean => {
+    if (session.status === 'ready') {
+      return true;
+    }
+    if (session.status === 'signed-out') {
+      openAuth('public');
+    }
+    return false;
+  };
+
+  const retrySession = () => {
+    restoreSession().then(applySession).catch(console.warn);
+  };
+
+  const handleSignOut = () => {
+    logoutUser().then(() => navigateTo('home'));
   };
 
   const navigateTo = (screen: ScreenId) => {
@@ -175,28 +207,39 @@ export default function App() {
     navigateTo('actor-profile');
   };
 
-  const handleToggleSavePlace = (placeId: string) => {
-    setUser((prev) => {
-      const exists = prev.savedPlaces?.includes(placeId);
-      const updatedPlaces = exists
-        ? (prev.savedPlaces || []).filter((id) => id !== placeId)
-        : [...(prev.savedPlaces || []), placeId];
-      const updatedUser = {
-        ...prev,
-        savedPlaces: updatedPlaces,
-        placesCount: updatedPlaces.length
-      };
-      syncUserProfileToFirestore(updatedUser).catch(console.warn);
-      return updatedUser;
-    });
+  const handleToggleSavePlace = async (placeId: string): Promise<boolean> => {
+    if (!requireVerifiedIntent()) {
+      return false;
+    }
+
+    const exists = user.savedPlaces?.includes(placeId);
+    const updatedPlaces = exists
+      ? (user.savedPlaces || []).filter((id) => id !== placeId)
+      : [...(user.savedPlaces || []), placeId];
+    const updatedUser = {
+      ...user,
+      savedPlaces: updatedPlaces,
+      placesCount: updatedPlaces.length
+    };
+
+    const synced = await syncUserProfileToFirestore(updatedUser);
+    if (synced) {
+      setUser(updatedUser);
+    }
+    return synced;
   };
 
-  const handleUpdateUser = (updated: Partial<UserProfile>) => {
-    setUser((prev) => {
-      const updatedUser = { ...prev, ...updated };
-      syncUserProfileToFirestore(updatedUser).catch(console.warn);
-      return updatedUser;
-    });
+  const handleUpdateUser = async (updated: Partial<UserProfile>): Promise<boolean> => {
+    if (session.status !== 'ready') {
+      return false;
+    }
+
+    const updatedUser = { ...user, ...updated };
+    const synced = await syncUserProfileToFirestore(updatedUser);
+    if (synced) {
+      setUser(updatedUser);
+    }
+    return synced;
   };
 
   const handlePlaceAddedOrUpdated = (newPlace: Place) => {
@@ -229,7 +272,7 @@ export default function App() {
       case 'map':
         return {
           show: true,
-          title: t.navMap || 'Carte Interactive Google Maps',
+          title: t.navMap || 'Carte Vivante',
           subtitle: 'Sites et sanctuaires réels du Bénin',
           showBack: true
         };
@@ -333,8 +376,47 @@ export default function App() {
         />
       )}
 
+      {/* Signed in, but the profile document could not be read: writes stay blocked. */}
+      {session.status === 'profile-unavailable' && (
+        <div className="sticky top-0 z-40 bg-[#fbe9d8] border-b border-[#e0b98d] px-4 py-3">
+          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-[#c14e2f] flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-[#2c2926]">Profil non rattaché</p>
+              <p className="text-[12px] text-[#5a5a40]">
+                Connecté comme <span className="font-semibold">{session.email || session.uid}</span> :
+                l’identité Firebase est valide mais le profil est illisible. Les réservations, RSVP et
+                enregistrements restent bloqués jusqu’à la relecture du profil.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={retrySession}
+                className="px-3 py-1.5 rounded-full bg-[#c14e2f] text-white text-[12px] font-bold hover:bg-[#a83f24] transition-colors"
+              >
+                Réessayer
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="px-3 py-1.5 rounded-full border border-[#5a5a40]/30 text-[#5a5a40] text-[12px] font-semibold hover:bg-white/60 transition-colors"
+              >
+                Se déconnecter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Screen Render Container */}
       <main className="flex-1">
+        <Suspense
+          fallback={
+            <div className="min-h-[60vh] flex items-center justify-center gap-2 text-xs font-semibold text-[#8c867c]">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Chargement de l’espace…
+            </div>
+          }
+        >
         <AnimatePresence mode="wait">
           <motion.div
             key={currentScreen}
@@ -426,6 +508,7 @@ export default function App() {
               <ActorProfileScreen
                 actor={selectedActor}
                 onBack={handleBack}
+                requireSession={requireVerifiedIntent}
               />
             )}
 
@@ -433,11 +516,9 @@ export default function App() {
               <ItineraryBuilderScreen
                 places={places}
                 onSelectPlace={handleSelectPlace}
+                requireSession={requireVerifiedIntent}
                 onSaveItinerary={() => {
-                  setUser((prev) => ({
-                    ...prev,
-                    storiesCount: prev.storiesCount + 1
-                  }));
+                  handleUpdateUser({ storiesCount: user.storiesCount + 1 });
                 }}
               />
             )}
@@ -453,7 +534,7 @@ export default function App() {
             )}
 
             {currentScreen === 'events' && (
-              <EventsScreen events={EVENTS_DATA} />
+              <EventsScreen events={EVENTS_DATA} requireSession={requireVerifiedIntent} />
             )}
 
             {currentScreen === 'assistant' && (
@@ -496,6 +577,7 @@ export default function App() {
             )}
           </motion.div>
         </AnimatePresence>
+        </Suspense>
       </main>
 
       {/* Persistent Mobile-First Bottom Navigation */}
