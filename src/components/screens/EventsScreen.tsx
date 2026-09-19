@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Sparkles, Clock, ShieldAlert, CheckCircle2, Ticket } from 'lucide-react';
+import { Calendar, MapPin, Sparkles, ShieldAlert, AlertCircle, Ticket } from 'lucide-react';
 import { CulturalEvent } from '../../types';
-import { saveEventRSVPToFirestore } from '../../lib/firebase';
+import { saveEventRSVPToFirestore, getVerifiedUid } from '../../lib/firebase';
 
 interface EventsScreenProps {
   events: CulturalEvent[];
@@ -10,6 +10,7 @@ interface EventsScreenProps {
 export const EventsScreen: React.FC<EventsScreenProps> = ({ events }) => {
   const [selectedType, setSelectedType] = useState<string>('All');
   const [rsvpSaved, setRsvpSaved] = useState<string | null>(null);
+  const [rsvpError, setRsvpError] = useState<string | null>(null);
 
   const types = ['All', 'Festival', 'Workshop', 'Ceremony', 'Concert'];
 
@@ -19,11 +20,21 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events }) => {
 
   const featured = events.find((e) => e.isFeatured) || events[0];
 
+  // Ownership comes from the signed-in account, never from a value typed in this screen.
   const handleRSVP = async (id: string) => {
+    const evt = events.find((e) => e.id === id);
+    if (!evt) return;
+
+    if (!getVerifiedUid()) {
+      setRsvpError('Connectez-vous pour enregistrer votre présence.');
+      return;
+    }
+
+    setRsvpError(null);
     setRsvpSaved(id);
-    const evt = events.find(e => e.id === id);
-    if (evt) {
-      await saveEventRSVPToFirestore(id, evt.title, 'kedagniarnaud999@gmail.com');
+    const saved = await saveEventRSVPToFirestore(id, evt.title);
+    if (!saved) {
+      setRsvpError("L'enregistrement a échoué. Vérifiez que votre session est toujours active.");
     }
     setTimeout(() => setRsvpSaved(null), 2500);
   };
@@ -42,6 +53,13 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events }) => {
           Attend authentic festivals, artisan workshops, and sacred ceremonies with cultural protocols.
         </p>
       </div>
+
+      {rsvpError && (
+        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{rsvpError}</span>
+        </div>
+      )}
 
       {/* Filter Chips */}
       <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1">
