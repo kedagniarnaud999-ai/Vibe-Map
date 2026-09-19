@@ -52,7 +52,6 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
   // Guide accreditation modal
   const [showGuideModal, setShowGuideModal] = useState(false);
   const [applicantName, setApplicantName] = useState(user.name);
-  const [applicantEmail, setApplicantEmail] = useState(user.email);
   const [applicantPhone, setApplicantPhone] = useState('');
   const [applicantRegion, setApplicantRegion] = useState('Ouidah & Abomey');
   const [applicantExperience, setApplicantExperience] = useState(3);
@@ -61,6 +60,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
   const [applicantBio, setApplicantBio] = useState('');
   const [applyingLoading, setApplyingLoading] = useState(false);
   const [appliedSuccess, setAppliedSuccess] = useState(false);
+  const [applicationError, setApplicationError] = useState('');
 
   const handleSavePreferences = async () => {
     const updated = {
@@ -88,10 +88,10 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
     setApplyingLoading(true);
 
     try {
+      // userId and email come from the verified session inside submitGuideApplication:
+      // the applicant cannot declare who they are.
       const res = await submitGuideApplication({
-        userId: user.id || 'anonymous-applicant',
         fullName: applicantName,
-        email: applicantEmail,
         phone: applicantPhone,
         region: applicantRegion,
         experienceYears: Number(applicantExperience) || 1,
@@ -101,6 +101,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
       });
 
       if (res.success) {
+        setApplicationError('');
         setAppliedSuccess(true);
         setTimeout(() => {
           setShowGuideModal(false);
@@ -109,9 +110,12 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
           setSaveToast(true);
           setTimeout(() => setSaveToast(false), 3000);
         }, 1500);
+      } else {
+        setApplicationError(res.error || "Envoi impossible. Vérifiez que votre session est toujours active.");
       }
     } catch (e) {
       console.error(e);
+      setApplicationError("Envoi impossible. Vérifiez que votre session est toujours active.");
     } finally {
       setApplyingLoading(false);
     }
@@ -518,6 +522,12 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none resize-none"
                   />
                 </div>
+
+                {applicationError && (
+                  <div className="bg-[#fceee9] border border-[#e8e2d5] rounded-xl px-3 py-2.5 text-[11px] font-semibold text-[#c14e2f]">
+                    {applicationError}
+                  </div>
+                )}
 
                 <div className="flex gap-2 pt-2">
                   <button
