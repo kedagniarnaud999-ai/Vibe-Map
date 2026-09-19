@@ -33,6 +33,7 @@ import {
   BookingRecord 
 } from '../../lib/firebase';
 import { TRANSLATIONS } from '../../lib/i18n';
+import { PLACES_DATA } from '../../data/places';
 
 interface AdminScreenProps {
   currentLang: AppLanguage;
@@ -58,6 +59,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   onBackToPublic
 }) => {
   const [activeTab, setActiveTab] = useState<'scraper' | 'places' | 'guides' | 'bookings' | 'applications'>('scraper');
+  const [isCatalogPublishing, setIsCatalogPublishing] = useState(false);
   const [searchSiteQuery, setSearchSiteQuery] = useState('');
   const [scrapeLoading, setScrapeLoading] = useState(false);
   const [scrapeError, setScrapeError] = useState<string | null>(null);
@@ -159,6 +161,21 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     } finally {
       setScrapeLoading(false);
     }
+  };
+
+  // Upserts by place id, so publishing twice refreshes the same documents instead of duplicating them.
+  const handlePublishBundledCatalog = async () => {
+    setIsCatalogPublishing(true);
+    const outcomes = await Promise.all(
+      PLACES_DATA.map(async (place) => ({ place, saved: await savePlaceToFirestore(place) })),
+    );
+    outcomes.filter((outcome) => outcome.saved).forEach(({ place }) => onPlaceAddedOrUpdated(place));
+
+    const failed = outcomes.filter((outcome) => !outcome.saved).length;
+    setIsCatalogPublishing(false);
+    alert(failed === 0
+      ? `${outcomes.length} sites du catalogue embarqué sont publiés dans Firestore : ils sont désormais modifiables ici.`
+      : `${outcomes.length - failed} sites publiés, ${failed} refusés. Un refus veut dire que le compte connecté ne porte pas le rôle admin.`);
   };
 
   const handleSaveScrapedAsPlace = async () => {
@@ -583,17 +600,27 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   Synchronisé avec Firestore et Cloud SQL
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setEditingPlace(null);
-                  resetPlaceForm();
-                  setShowAddModal(true);
-                }}
-                className="px-4 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold flex items-center gap-1.5 shadow hover:bg-[#a83f23] cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Ajouter un Sanctuaire</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePublishBundledCatalog}
+                  disabled={isCatalogPublishing}
+                  className="px-4 py-2 rounded-xl border border-[#c14e2f] text-[#c14e2f] text-xs font-bold flex items-center gap-1.5 hover:bg-[#fdf3ef] disabled:opacity-60 cursor-pointer"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isCatalogPublishing ? 'animate-spin' : ''}`} />
+                  <span>{isCatalogPublishing ? 'Publication…' : 'Publier le catalogue embarqué'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingPlace(null);
+                    resetPlaceForm();
+                    setShowAddModal(true);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold flex items-center gap-1.5 shadow hover:bg-[#a83f23] cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Ajouter un Sanctuaire</span>
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
