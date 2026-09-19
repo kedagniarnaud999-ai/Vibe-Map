@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Response } from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
@@ -14,10 +14,42 @@ import {
   getAllPlaces,
   upsertPlace
 } from "./src/db/queries.ts";
+import {
+  getAuthenticatedEmail,
+  getAuthenticatedRole,
+  getAuthenticatedUid,
+  getAuthenticatedUser,
+  requireAdmin,
+  requireAuth,
+  type AuthRequest
+} from "./src/middleware/auth.ts";
+import {
+  getAdminAuth,
+  getAdminFirestore,
+  isFirebaseAdminUnavailableError
+} from "./src/lib/firebase-admin.ts";
 
 dotenv.config();
 
 const PORT = 3000;
+
+const LIMITS = {
+  identifier: 128,
+  name: 120,
+  tag: 80,
+  title: 200,
+  label: 120,
+  avatar: 500,
+  dateTime: 80,
+  price: 60,
+  message: 2000,
+  query: 300,
+  description: 4000,
+  deepHistory: 8000,
+  historyItems: 4,
+  interests: 12,
+  stops: 40
+};
 
 // Lazy initialization of Gemini AI
 let aiClient: GoogleGenAI | null = null;
@@ -39,6 +71,30 @@ function withTimeout<T>(promise: Promise<T>, ms: number = 7000, fallbackMessage 
   });
 }
 
+function boundedString(value: unknown, max: number): string {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function boundedStringList(value: unknown, maxItems: number, maxLength: number): string[] {
+  return Array.isArray(value)
+    ? value.map((item) => boundedString(item, maxLength)).filter(Boolean).slice(0, maxItems)
+    : [];
+}
+
+function verifiedEmail(req: AuthRequest, res: Response): string | undefined {
+  const email = getAuthenticatedEmail(req);
+  if (email) {
+    return email;
+  }
+
+  res.status(403).json({ error: "Forbidden: verified email required" });
+  return undefined;
+}
+
+function isAdminRequest(req: AuthRequest): boolean {
+  return getAuthenticatedRole(req) === "admin";
+}
+
 async function startServer() {
   const app = express();
   app.use(express.json());
@@ -54,13 +110,22 @@ async function startServer() {
   });
 
   // Cloud SQL Database APIs
-  app.post("/api/db/users/sync", async (req, res) => {
+  app.post("/api/db/users/sync", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const { uid, email, name, avatar, vibeTag, travelStyle } = req.body;
-      if (!uid || !email) {
-        return res.status(400).json({ error: "uid and email required" });
+      const uid = getAuthenticatedUid(req);
+      const email = verifiedEmail(req, res);
+      if (!email) {
+        return;
       }
-      const user = await getOrCreateUser(uid, email, name, avatar, vibeTag, travelStyle);
+
+      const user = await getOrCreateUser(
+        uid,
+        email,
+        boundedString(req.body?.name, LIMITS.name) || getAuthenticatedUser(req).name,
+        boundedString(req.body?.avatar, LIMITS.avatar),
+        boundedString(req.body?.vibeTag, LIMITS.tag),
+        boundedString(req.body?.travelStyle, LIMITS.tag)
+      );
       res.json(user);
     } catch (error: any) {
       console.error("Cloud SQL user sync error:", error);
@@ -68,9 +133,18 @@ async function startServer() {
     }
   });
 
-  app.get("/api/db/users/:uid", async (req, res) => {
+  app.get("/api/db/users/:uid", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = await getUserProfile(req.params.uid);
+      const requestedUid = boundedString(req.params.uid, LIMITS.identifier);
+      if (!requestedUid) {
+        return res.status(400).json({ error: "Invalid user identifier" });
+      }
+
+      if (requestedUid !== getAuthenticatedUid(req) && !isAdminRequest(req)) {
+        return res.status(403).json({ error: "Forbidden: Insufficient role" });
+      }
+
+      const user = await getUserProfile(requestedUid);
       res.json(user || {});
     } catch (error: any) {
       console.error("Cloud SQL user fetch error:", error);
@@ -78,30 +152,68 @@ async function startServer() {
     }
   });
 
-  app.post("/api/db/bookings", async (req, res) => {
+  app.post("/api/db/bookings", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const booking = await createBooking(req.body);
-      res.json(booking);
+      const email = verifiedEmail(req, res);
+      if (!email) {
+        return;
+      }
+
+      const booking = {
+        actorId: boundedString(req.body?.actorId, LIMITS.identifier),
+        actorName: boundedString(req.body?.actorName, LIMITS.name),
+        experienceId: boundedString(req.body?.experienceId, LIMITS.identifier),
+        experienceTitle: boundedString(req.body?.experienceTitle, LIMITS.title),
+        dateTime: boundedString(req.body?.dateTime, LIMITS.dateTime),
+        price: boundedString(req.body?.price, LIMITS.price),
+        travelerName: boundedString(req.body?.travelerName, LIMITS.name) || getAuthenticatedUser(req).name || "Voyageur",
+        travelerEmail: email
+      };
+
+      if (!booking.actorId || !booking.experienceId || !booking.dateTime) {
+        return res.status(400).json({ error: "actorId, experienceId and dateTime are required" });
+      }
+
+      res.json(await createBooking(booking));
     } catch (error: any) {
       console.error("Cloud SQL booking error:", error);
       res.status(500).json({ error: "Failed to save booking to Cloud SQL" });
     }
   });
 
-  app.get("/api/db/bookings", async (req, res) => {
+  app.get("/api/db/bookings", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const email = String(req.query.email || 'kedagniarnaud999@gmail.com');
-      const bookingsList = await getBookingsByUser(email);
-      res.json(bookingsList);
+      const email = verifiedEmail(req, res);
+      if (!email) {
+        return;
+      }
+
+      res.json(await getBookingsByUser(email));
     } catch (error: any) {
       console.error("Cloud SQL fetch bookings error:", error);
       res.status(500).json({ error: "Failed to fetch bookings from Cloud SQL" });
     }
   });
 
-  app.post("/api/db/itineraries", async (req, res) => {
+  app.post("/api/db/itineraries", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const itinerary = await createSavedItinerary(req.body);
+      const email = verifiedEmail(req, res);
+      if (!email) {
+        return;
+      }
+
+      const title = boundedString(req.body?.title, LIMITS.title);
+      if (!title) {
+        return res.status(400).json({ error: "Itinerary title is required" });
+      }
+
+      const itinerary = await createSavedItinerary({
+        title,
+        duration: boundedString(req.body?.duration, LIMITS.tag) || "1 jour",
+        interests: boundedStringList(req.body?.interests, LIMITS.interests, LIMITS.tag),
+        userEmail: email,
+        stops: Array.isArray(req.body?.stops) ? req.body.stops.slice(0, LIMITS.stops) : []
+      });
       res.json(itinerary);
     } catch (error: any) {
       console.error("Cloud SQL itinerary error:", error);
@@ -109,20 +221,37 @@ async function startServer() {
     }
   });
 
-  app.get("/api/db/itineraries", async (req, res) => {
+  app.get("/api/db/itineraries", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const email = String(req.query.email || 'kedagniarnaud999@gmail.com');
-      const list = await getSavedItinerariesByUser(email);
-      res.json(list);
+      const email = verifiedEmail(req, res);
+      if (!email) {
+        return;
+      }
+
+      res.json(await getSavedItinerariesByUser(email));
     } catch (error: any) {
       console.error("Cloud SQL fetch itineraries error:", error);
       res.status(500).json({ error: "Failed to fetch itineraries from Cloud SQL" });
     }
   });
 
-  app.post("/api/db/rsvps", async (req, res) => {
+  app.post("/api/db/rsvps", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const rsvp = await createRSVP(req.body);
+      const email = verifiedEmail(req, res);
+      if (!email) {
+        return;
+      }
+
+      const eventId = boundedString(req.body?.eventId, LIMITS.identifier);
+      if (!eventId) {
+        return res.status(400).json({ error: "eventId is required" });
+      }
+
+      const rsvp = await createRSVP({
+        eventId,
+        eventTitle: boundedString(req.body?.eventTitle, LIMITS.title),
+        userEmail: email
+      });
       res.json(rsvp);
     } catch (error: any) {
       console.error("Cloud SQL rsvp error:", error);
@@ -141,20 +270,118 @@ async function startServer() {
     }
   });
 
-  app.post("/api/db/places", async (req, res) => {
+  app.post("/api/db/places", requireAdmin, async (req: AuthRequest, res) => {
     try {
-      const place = await upsertPlace(req.body);
-      res.json(place);
+      const place = {
+        id: boundedString(req.body?.id, LIMITS.identifier),
+        name: boundedString(req.body?.name, LIMITS.title),
+        location: boundedString(req.body?.location, LIMITS.title),
+        category: boundedString(req.body?.category, LIMITS.tag),
+        description: boundedString(req.body?.description, LIMITS.description),
+        deepHistory: boundedString(req.body?.deepHistory, LIMITS.deepHistory),
+        image: boundedString(req.body?.image, LIMITS.avatar),
+        lat: boundedString(req.body?.lat, 30),
+        lng: boundedString(req.body?.lng, 30)
+      };
+
+      if (!place.id || !place.name || !place.location || !place.category) {
+        return res.status(400).json({ error: "id, name, location and category are required" });
+      }
+
+      res.json(await upsertPlace(place));
     } catch (error: any) {
       console.error("Cloud SQL save place error:", error);
       res.status(500).json({ error: "Failed to save place to Cloud SQL" });
     }
   });
 
-  // AI Cultural Companion Chat API
-  app.post("/api/gemini/chat", async (req, res) => {
+  // Guide accreditation decision: updates the application and the Firebase role claim together
+  app.post("/api/admin/guide-applications/:applicationId/decision", requireAdmin, async (req: AuthRequest, res) => {
+    const decision = boundedString(req.body?.decision, 20);
+    const applicationId = boundedString(req.params.applicationId, LIMITS.identifier);
+
+    if (!["approved", "rejected"].includes(decision) || !applicationId) {
+      return res.status(400).json({ error: "decision must be 'approved' or 'rejected'" });
+    }
+
     try {
-      const { message, conversationHistory } = req.body;
+      const auth = getAdminAuth();
+      const firestore = getAdminFirestore();
+      const applicationRef = firestore.collection("guide_applications").doc(applicationId);
+      const applicationSnap = await applicationRef.get();
+
+      if (!applicationSnap.exists) {
+        return res.status(404).json({ error: "Guide application not found" });
+      }
+
+      const applicantUid = boundedString(applicationSnap.data()?.userId, LIMITS.identifier);
+      if (!applicantUid) {
+        return res.status(409).json({ error: "Guide application has no applicant uid" });
+      }
+
+      let applicant;
+      try {
+        applicant = await auth.getUser(applicantUid);
+      } catch (error: any) {
+        if (error?.code === "auth/user-not-found") {
+          return res.status(404).json({ error: "Guide applicant not found" });
+        }
+        throw error;
+      }
+
+      const claims: Record<string, unknown> = { ...(applicant.customClaims ?? {}) };
+      const currentRole = claims.role;
+      const isProtectedAdmin = currentRole === "admin";
+      const profileRef = firestore.collection("users").doc(applicantUid);
+      const profileSnap = await profileRef.get();
+      const guideProfile = { ...((profileSnap.data()?.guideProfile ?? {}) as Record<string, unknown>) };
+
+      await applicationRef.update({
+        status: decision,
+        reviewedAt: new Date().toISOString(),
+        reviewedBy: getAuthenticatedUid(req)
+      });
+
+      if (decision === "approved") {
+        if (!isProtectedAdmin) {
+          claims.role = "guide";
+        }
+
+        await profileRef.set({
+          role: isProtectedAdmin ? "admin" : "guide",
+          guideProfile: { ...guideProfile, certified: true }
+        }, { merge: true });
+      } else if (currentRole === "guide") {
+        claims.role = "traveler";
+
+        await profileRef.set({
+          role: "traveler",
+          guideProfile: { ...guideProfile, certified: false }
+        }, { merge: true });
+      }
+
+      await auth.setCustomUserClaims(applicantUid, claims);
+      await auth.revokeRefreshTokens(applicantUid);
+
+      res.json({ success: true, applicationId, applicantUid, status: decision });
+    } catch (error: any) {
+      if (isFirebaseAdminUnavailableError(error)) {
+        return res.status(503).json({ error: "Admin service unavailable" });
+      }
+
+      console.error("Guide application decision error:", error);
+      res.status(500).json({ error: "Failed to review guide application" });
+    }
+  });
+
+  // AI Cultural Companion Chat API
+  app.post("/api/gemini/chat", requireAuth, async (req: AuthRequest, res) => {
+    const message = boundedString(req.body?.message, LIMITS.message);
+    const conversationHistory = Array.isArray(req.body?.conversationHistory)
+      ? req.body.conversationHistory.slice(-LIMITS.historyItems)
+      : [];
+
+    try {
       if (!message) {
         return res.status(400).json({ error: "Message is required" });
       }
@@ -191,16 +418,17 @@ Format de sortie strict en JSON valide:
 }`;
 
       const contents: any[] = [];
-      if (Array.isArray(conversationHistory)) {
-        conversationHistory.slice(-4).forEach((h: any) => {
-          if (h.text) {
-            contents.push({
-              role: h.sender === 'user' ? 'user' : 'model',
-              parts: [{ text: h.text }]
-            });
-          }
+      conversationHistory.forEach((entry: any) => {
+        const historyText = boundedString(entry?.text, LIMITS.message);
+        if (!historyText) {
+          return;
+        }
+
+        contents.push({
+          role: entry?.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: historyText }]
         });
-      }
+      });
       contents.push({
         role: 'user',
         parts: [{ text: message }]
@@ -232,7 +460,7 @@ Format de sortie strict en JSON valide:
       }
     } catch (err: any) {
       console.warn("Gemini Chat API fallback triggered:", err?.message || err);
-      const lower = (req.body?.message || '').toLowerCase();
+      const lower = message.toLowerCase();
       let customReply = "Akwaba ! Au Bénin, terre d'histoire et berceau du Vodun, la culture se transmet par la parole, les rythmes et le respect sacré des sanctuaires.";
       if (lower.includes('vaudou') || lower.includes('vodun') || lower.includes('temple')) {
         customReply = "Le Vodun au Bénin est une spiritualité d'harmonie avec la nature et les forces invisibles (Mami Wata, Dangbé, Héviosso). À Ouidah et Abomey, chaque sanctuaire a ses dignitaires et ses règles de visite.";
@@ -254,9 +482,12 @@ Format de sortie strict en JSON valide:
   });
 
   // AI Itinerary Weaver API
-  app.post("/api/gemini/itinerary", async (req, res) => {
+  app.post("/api/gemini/itinerary", requireAuth, async (req: AuthRequest, res) => {
+    const duration = boundedString(req.body?.duration, LIMITS.tag) || '1 jour';
+    const interests = boundedStringList(req.body?.interests, LIMITS.interests, LIMITS.tag);
+    const userVibe = boundedString(req.body?.userVibe, LIMITS.label) || 'Explorateur Immersif';
+
     try {
-      const { duration, interests, userVibe } = req.body;
       const ai = getAI();
 
       if (!ai) {
@@ -292,7 +523,7 @@ Format de sortie strict en JSON valide:
         });
       }
 
-      const prompt = `Génère un itinéraire culturel fluide et séquentiel au Bénin pour une durée de "${duration || '1 jour'}" avec les centres d'intérêt suivants: ${Array.isArray(interests) ? interests.join(', ') : 'Patrimoine, Spiritualité Vodun, Histoire'}. Le style du voyageur est "${userVibe || 'Explorateur Immersif'}".
+      const prompt = `Génère un itinéraire culturel fluide et séquentiel au Bénin pour une durée de "${duration}" avec les centres d'intérêt suivants: ${interests.length > 0 ? interests.join(', ') : 'Patrimoine, Spiritualité Vodun, Histoire'}. Le style du voyageur est "${userVibe}".
 
 Chaque étape doit comporter des heures précises, un titre évocateur, une description captivante, un conseil d'initié (insight/étiquette), un temps de trajet estimé (transitTime), et un identifiant de lieu associé parmi ('ouidah-python', 'abomey-palaces', 'ganvie-village', 'slave-route', 'porte-non-retour', 'porto-novo-adjina', 'allada-togudo', 'ouidah-zinsou').
 
@@ -358,16 +589,17 @@ Format de sortie en JSON strict:
   });
 
   // Live Web Search Grounding API (Google Search with gemini-3.6-flash)
-  app.post("/api/gemini/search-grounding", async (req, res) => {
+  app.post("/api/gemini/search-grounding", requireAuth, async (req: AuthRequest, res) => {
+    const searchQuery = boundedString(req.body?.query, LIMITS.query);
+
     try {
-      const { query } = req.body;
-      if (!query) {
+      if (!searchQuery) {
         return res.status(400).json({ error: "Query is required" });
       }
       const ai = getAI();
       if (!ai) {
         return res.json({
-          text: `Données culturelles vérifiées pour "${query}": Les sites emblématiques du Bénin (Ouidah, Ganvié, Abomey, Porto-Novo) disposent de guides officiels et d'horaires d'ouverture réguliers (généralement 8h30 - 18h00).`,
+          text: `Données culturelles vérifiées pour "${searchQuery}": Les sites emblématiques du Bénin (Ouidah, Ganvié, Abomey, Porto-Novo) disposent de guides officiels et d'horaires d'ouverture réguliers (généralement 8h30 - 18h00).`,
           sources: [
             { title: "Bénin Tourisme Officiel", url: "https://benin.travel" },
             { title: "Patrimoine Mondial UNESCO Bénin", url: "https://whc.unesco.org" }
@@ -375,7 +607,7 @@ Format de sortie en JSON strict:
         });
       }
 
-      const prompt = `Recherche les informations en temps réel et vérifiées sur le web concernant cette demande sur le tourisme, la culture, les guides ou le patrimoine au Bénin : "${query}".
+      const prompt = `Recherche les informations en temps réel et vérifiées sur le web concernant cette demande sur le tourisme, la culture, les guides ou le patrimoine au Bénin : "${searchQuery}".
 Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Euros si disponibles, les conseils de visite et les sources fiables.`;
 
       const response = await withTimeout(ai.models.generateContent({
@@ -404,7 +636,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
     } catch (err: any) {
       console.warn("Search grounding fallback triggered:", err?.message || err);
       return res.json({
-        text: `Données culturelles vérifiées pour "${req.body?.query || 'Bénin'}": Le patrimoine béninois (sanctuaires Vodun de Ouidah, palais d'Abomey, cités lacustres de Ganvié) est sous la protection de l'ANPT. Les visites sont guidées par des médiateurs locaux certifiés.`,
+        text: `Données culturelles vérifiées pour "${searchQuery || 'Bénin'}": Le patrimoine béninois (sanctuaires Vodun de Ouidah, palais d'Abomey, cités lacustres de Ganvié) est sous la protection de l'ANPT. Les visites sont guidées par des médiateurs locaux certifiés.`,
         sources: [
           { title: "Patrimoine Culturel du Bénin", url: "https://benin.travel" }
         ]
@@ -533,9 +765,8 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
   };
 
   // Scraper / Cultural Data Aggregator (AI Powered with robust fallback)
-  app.post("/api/scrape/cultural-data", async (req, res) => {
-    const siteName = (req.body?.siteName || '').trim();
-    const lower = siteName.toLowerCase();
+  app.post("/api/scrape/cultural-data", requireAdmin, async (req: AuthRequest, res) => {
+    const lower = boundedString(req.body?.siteName, LIMITS.title).toLowerCase();
 
     // Check catalog for instant rich matched data
     let matchedCatalog: any = null;
@@ -549,7 +780,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
     try {
       const ai = getAI();
       if (ai) {
-        const prompt = `Effectue une recherche approfondie sur le patrimoine du Bénin pour le site ou sanctuaire culturel : "${siteName}".
+        const prompt = `Effectue une recherche approfondie sur le patrimoine du Bénin pour le site ou sanctuaire culturel : "${lower}".
 Détermine précisément:
 1. Son nom complet et son type ("Sanctuaire", "Palais Royal", "Musée", "Cité Lacustre", "Forêt Sacrée").
 2. Sa catégorie principale parmi: "Spiritual", "Historical", "Nature", "Arts".
@@ -636,7 +867,7 @@ Renvoie UNIQUEMENT un JSON valide au format:
     return res.json({
       success: true,
       data: {
-        name: siteName || "Sanctuaire & Trésor Patrimonial du Bénin",
+        name: lower || "Sanctuaire & Trésor Patrimonial du Bénin",
         category: cat,
         location: "Ouidah & Corridor Historique, Bénin",
         coordinates: { lat: 6.3622, lng: 2.0864 },

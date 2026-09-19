@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+# Admin SDK service-account keys must never reach git.
+*firebase-adminsdk*.json
+service-account*.json

@@ -1,12 +1,13 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth,
+  getIdTokenResult,
   signInWithPopup,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as fbSignOut,
-  onAuthStateChanged,
+  onIdTokenChanged,
   User as FirebaseUser
 } from 'firebase/auth';
 import {
@@ -25,7 +26,7 @@ import {
   orderBy,
   onSnapshot
 } from 'firebase/firestore';
-import { UserProfile, ItineraryStop, Place, Actor, UserRole, GuideApplication } from '../types';
+import { UserProfile, ItineraryStop, Place, UserRole, GuideApplication } from '../types';
 
 // Configuration from firebase-applet-config.json
 const firebaseConfig = {
@@ -44,188 +45,166 @@ export const db = getFirestore(app, databaseId);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
+const USER_ROLES: readonly UserRole[] = ['traveler', 'guide', 'admin'];
+
+// Firestore keeps these for display only; the authorized role always comes from the ID token claims.
+const PROFILE_EDITABLE_FIELDS = [
+  'name', 'avatar', 'vibeTag', 'travelStyle', 'language', 'notificationsEnabled',
+  'interests', 'savedPlaces', 'completedStops', 'placesCount', 'storiesCount', 'connectionsCount'
+] as const;
+
 /**
- * Real Authentication Functions
+ * Verified identity helpers
+ */
+export function getVerifiedUid(): string {
+  return auth.currentUser?.uid ?? '';
+}
+
+export function getVerifiedEmail(): string {
+  return auth.currentUser?.email ?? '';
+}
+
+export async function getVerifiedRole(): Promise<UserRole> {
+  const user = auth.currentUser;
+  if (!user) {
+    return 'traveler';
+  }
+
+  try {
+    const claims = (await getIdTokenResult(user)).claims ?? {};
+    const role = claims.role as UserRole;
+    return USER_ROLES.includes(role) ? role : 'traveler';
+  } catch (error) {
+    console.warn('Unable to read the role claims, falling back to traveler:', error);
+    return 'traveler';
+  }
+}
+
+/**
+ * Authenticated API client: every non-public route expects the Firebase ID token.
+ */
+export async function apiFetch<T = unknown>(
+  path: string,
+  init: { method?: 'GET' | 'POST'; body?: unknown } = {}
+): Promise<T> {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('Authentication required');
+  }
+
+  const token = await user.getIdToken();
+  const response = await fetch(path, {
+    method: init.method ?? 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: init.body === undefined ? undefined : JSON.stringify(init.body)
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request ${path} failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+function editableProfileFields(user: Partial<UserProfile>): Record<string, unknown> {
+  const fields: Record<string, unknown> = {};
+
+  PROFILE_EDITABLE_FIELDS.forEach((field) => {
+    const value = (user as Record<string, unknown>)[field];
+    if (value !== undefined) {
+      fields[field] = value;
+    }
+  });
+
+  return fields;
+}
+
+function travelerProfile(fbUser: FirebaseUser): UserProfile {
+  return {
+    id: fbUser.uid,
+    name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Explorateur Culturel',
+    email: fbUser.email || '',
+    avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+    vibeTag: 'Explorateur Passionné',
+    travelStyle: 'Cultural Deep-Dive',
+    language: 'fr',
+    role: 'traveler',
+    notificationsEnabled: true,
+    interests: ['Spiritual', 'Historical'],
+    savedPlaces: [],
+    completedStops: [],
+    placesCount: 0,
+    storiesCount: 0,
+    connectionsCount: 0,
+    badges: []
+  };
+}
+
+/**
+ * Authentication. Sign-in and sign-up can only ever produce a traveler session:
+ * guide and admin access require a Firebase custom claim granted by an operator or an admin.
  */
 export async function loginWithGoogle(): Promise<{ user: UserProfile | null; error?: string }> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    const fbUser = result.user;
-    
-    // Check if user profile already exists in Firestore
-    const existing = await loadUserProfileFromFirestore(fbUser.uid);
-    if (existing) {
-      const resolvedRole: UserRole = (fbUser.email === 'kedagniarnaud999@gmail.com')
-        ? 'admin'
-        : (existing.role || 'traveler');
-      
-      const updatedProfile: UserProfile = {
-        ...existing,
-        id: fbUser.uid,
-        name: existing.name || fbUser.displayName || 'Explorateur Culturel',
-        email: fbUser.email || existing.email,
-        avatar: fbUser.photoURL || existing.avatar,
-        role: resolvedRole
-      };
-      await syncUserProfileToFirestore(updatedProfile);
-      return { user: updatedProfile };
-    }
-
-    const isAdminUser = fbUser.email === 'kedagniarnaud999@gmail.com';
-    const profile: UserProfile = {
-      id: fbUser.uid,
-      name: fbUser.displayName || 'Explorateur Culturel',
-      email: fbUser.email || 'voyageur@patrimoine.bj',
-      avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      vibeTag: isAdminUser ? 'Conservateur en Chef' : 'Explorateur Passionné',
-      travelStyle: 'Cultural Deep-Dive',
-      language: 'fr',
-      role: isAdminUser ? 'admin' : 'traveler',
-      notificationsEnabled: true,
-      interests: ['Spiritual', 'Historical', 'Arts'],
-      savedPlaces: [],
-      completedStops: [],
-      placesCount: 0,
-      storiesCount: 0,
-      connectionsCount: 0,
-      badges: [
-        { id: '1', title: 'Initiation Vodun', icon: 'Sparkles', unlocked: true, color: '#c14e2f' }
-      ]
-    };
-    await syncUserProfileToFirestore(profile);
-    return { user: profile };
+    return { user: await establishSession(result.user) };
   } catch (error: any) {
-    console.warn('Google sign-in popup error (using fallback profile):', error);
     return { user: null, error: error?.message || 'Erreur lors de la connexion Google' };
   }
 }
 
-export function getActiveSessionRole(): UserRole {
+export async function loginWithEmail(email: string, pass: string): Promise<{ user: UserProfile | null; error?: string }> {
   try {
-    const saved = localStorage.getItem('lavibemap_active_role') as UserRole;
-    if (saved === 'admin' || saved === 'guide' || saved === 'traveler') {
-      return saved;
-    }
-  } catch (e) {}
-  return 'traveler';
-}
-
-export function setActiveSessionRole(role: UserRole) {
-  try {
-    localStorage.setItem('lavibemap_active_role', role);
-  } catch (e) {}
-}
-
-export function isAuthorizedAdmin(email?: string | null): boolean {
-  if (!email) return false;
-  const clean = email.trim().toLowerCase();
-  return clean === 'kedagniarnaud999@gmail.com' || clean.startsWith('admin@') || clean.includes('conservateur');
-}
-
-export async function loginWithEmail(email: string, pass: string, targetRole: UserRole = 'traveler'): Promise<{ user: UserProfile | null; error?: string }> {
-  try {
-    if (targetRole === 'admin' && !isAuthorizedAdmin(email)) {
-      return { 
-        user: null, 
-        error: "Accès restreint : cette adresse n'a pas les droits d'administration du patrimoine." 
-      };
-    }
-
-    const res = await signInWithEmailAndPassword(auth, email, pass);
-    setActiveSessionRole(targetRole);
-
-    const existing = await loadUserProfileFromFirestore(res.user.uid);
-    if (existing) {
-      const updated: UserProfile = {
-        ...existing,
-        role: targetRole
-      };
-      await syncUserProfileToFirestore(updated);
-      return { user: updated };
-    }
-
-    const newProfile: UserProfile = {
-      id: res.user.uid,
-      name: email.split('@')[0] || (targetRole === 'admin' ? 'Administrateur' : 'Voyageur'),
-      email: email,
-      avatar: targetRole === 'guide'
-        ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'
-        : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      vibeTag: targetRole === 'admin' ? 'Conservateur du Patrimoine' : targetRole === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Explorateur Passionné',
-      travelStyle: 'Cultural Deep-Dive',
-      language: 'fr',
-      role: targetRole,
-      notificationsEnabled: true,
-      interests: ['Spiritual', 'Historical'],
-      savedPlaces: [],
-      completedStops: [],
-      placesCount: 0,
-      storiesCount: 0,
-      connectionsCount: 0,
-      badges: []
-    };
-    await syncUserProfileToFirestore(newProfile);
-    return { user: newProfile };
-  } catch (err: any) {
-    return { user: null, error: err.message };
+    const result = await signInWithEmailAndPassword(auth, email, pass);
+    return { user: await establishSession(result.user) };
+  } catch (error: any) {
+    return { user: null, error: error?.message };
   }
 }
 
 export async function registerWithEmail(
-  email: string, 
-  pass: string, 
-  name: string, 
-  role: UserRole = 'traveler',
-  guideInfo?: { phone?: string; region?: string; specialties?: string }
+  email: string,
+  pass: string,
+  name: string
 ): Promise<{ user: UserProfile | null; error?: string }> {
   try {
-    if (role === 'admin' && !isAuthorizedAdmin(email)) {
-      return { 
-        user: null, 
-        error: "Création d'administrateur non autorisée pour cette adresse email." 
-      };
-    }
-
-    const res = await createUserWithEmailAndPassword(auth, email, pass);
-    setActiveSessionRole(role);
-
-    const newProfile: UserProfile = {
-      id: res.user.uid,
-      name: name || email.split('@')[0],
-      email: email,
-      avatar: role === 'guide' 
-        ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200' 
-        : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      vibeTag: role === 'admin' ? 'Conservateur du Patrimoine' : role === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Voyageur Curieux',
-      travelStyle: 'Cultural Deep-Dive',
-      language: 'fr',
-      role: role,
-      guideProfile: role === 'guide' ? {
-        certified: true,
-        pricing: '20 000 FCFA (~30 €)',
-        phone: guideInfo?.phone || '+229 97 00 00 00',
-        bio: `Médiateur culturel spécialisé en ${guideInfo?.specialties || 'Histoire Royale & Rituels Vodun'} (${guideInfo?.region || 'Bénin'}).`,
-        specialties: [guideInfo?.specialties || 'Histoire Royale', 'Patrimoine Vodun', guideInfo?.region || 'Ouidah']
-      } : undefined,
-      notificationsEnabled: true,
-      interests: ['Spiritual', 'Historical', 'Nature', 'Arts'],
-      savedPlaces: [],
-      completedStops: [],
-      placesCount: 0,
-      storiesCount: 0,
-      connectionsCount: 0,
-      badges: []
-    };
-    await syncUserProfileToFirestore(newProfile);
-    return { user: newProfile };
-  } catch (err: any) {
-    return { user: null, error: err.message };
+    const result = await createUserWithEmailAndPassword(auth, email, pass);
+    return { user: await establishSession(result.user, name) };
+  } catch (error: any) {
+    return { user: null, error: error?.message };
   }
+}
+
+export async function establishSession(fbUser: FirebaseUser, displayName?: string): Promise<UserProfile> {
+  const role = await getVerifiedRole();
+  const existing = await loadUserProfileFromFirestore(fbUser.uid);
+
+  if (existing) {
+    return {
+      ...existing,
+      id: fbUser.uid,
+      email: fbUser.email || existing.email,
+      name: existing.name || displayName || fbUser.displayName || 'Explorateur Culturel',
+      avatar: fbUser.photoURL || existing.avatar,
+      role
+    };
+  }
+
+  const profile: UserProfile = {
+    ...travelerProfile(fbUser),
+    name: displayName || fbUser.displayName || fbUser.email?.split('@')[0] || 'Explorateur Culturel',
+    role
+  };
+
+  await syncUserProfileToFirestore(profile);
+  return profile;
 }
 
 export async function logoutUser() {
   try {
-    setActiveSessionRole('traveler');
     await fbSignOut(auth);
   } catch (e) {
     console.warn('Sign out note:', e);
@@ -233,36 +212,27 @@ export async function logoutUser() {
 }
 
 export function onAuthStateChange(callback: (user: UserProfile | null) => void) {
-  return onAuthStateChanged(auth, async (fbUser) => {
-    if (fbUser) {
-      const activeRole = getActiveSessionRole();
-      const profile = await loadUserProfileFromFirestore(fbUser.uid);
-      if (profile) {
+  return onIdTokenChanged(auth, async (fbUser) => {
+    if (!fbUser) {
+      callback(null);
+      return;
+    }
+
+    try {
+      const existing = await loadUserProfileFromFirestore(fbUser.uid);
+      if (existing) {
         callback({
-          ...profile,
-          role: activeRole || profile.role || 'traveler'
-        });
-      } else {
-        callback({
+          ...existing,
           id: fbUser.uid,
-          name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Voyageur',
-          email: fbUser.email || '',
-          avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-          vibeTag: activeRole === 'admin' ? 'Conservateur du Patrimoine' : activeRole === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Explorateur Passionné',
-          travelStyle: 'Cultural Deep-Dive',
-          language: 'fr',
-          role: activeRole,
-          notificationsEnabled: true,
-          interests: ['Spiritual', 'Historical'],
-          savedPlaces: [],
-          completedStops: [],
-          placesCount: 0,
-          storiesCount: 0,
-          connectionsCount: 0,
-          badges: []
+          email: fbUser.email || existing.email,
+          role: await getVerifiedRole()
         });
+        return;
       }
-    } else {
+
+      callback(await establishSession(fbUser));
+    } catch (error) {
+      console.warn('Session restore error:', error);
       callback(null);
     }
   });
@@ -272,31 +242,36 @@ export function onAuthStateChange(callback: (user: UserProfile | null) => void) 
  * Sync user profile to Firestore & Cloud SQL
  */
 export async function syncUserProfileToFirestore(user: UserProfile): Promise<boolean> {
-  try {
-    const userRef = doc(db, 'users', user.id || 'default-user');
-    await setDoc(userRef, {
-      ...user,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
+  const uid = getVerifiedUid();
+  if (!uid || (user.id && user.id !== uid)) {
+    console.warn('Refusing to sync a profile that is not the signed-in user');
+    return false;
+  }
 
-    // Dual-sync to Cloud SQL
-    try {
-      await fetch('/api/db/users/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid: user.id,
-          email: user.email,
-          name: user.name,
-          avatar: user.avatar,
-          vibeTag: user.vibeTag,
-          travelStyle: user.travelStyle,
-          role: user.role
-        })
+  try {
+    const userRef = doc(db, 'users', uid);
+    const editable = editableProfileFields(user);
+    const existing = await getDoc(userRef);
+
+    if (existing.exists()) {
+      await updateDoc(userRef, {
+        ...editable,
+        updatedAt: new Date().toISOString()
       });
-    } catch (e) {
-      console.warn('Cloud SQL user sync background note:', e);
+    } else {
+      await setDoc(userRef, {
+        ...editable,
+        id: uid,
+        email: getVerifiedEmail(),
+        role: 'traveler',
+        badges: user.badges ?? [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
     }
+
+    apiFetch('/api/db/users/sync', { method: 'POST', body: editable })
+      .catch((e) => console.warn('Cloud SQL user sync background note:', e));
 
     return true;
   } catch (error) {
@@ -310,10 +285,19 @@ export async function syncUserProfileToFirestore(user: UserProfile): Promise<boo
  */
 export async function loadUserProfileFromFirestore(userId: string): Promise<UserProfile | null> {
   try {
-    const userRef = doc(db, 'users', userId || 'default-user');
+    const uid = userId || getVerifiedUid();
+    if (!uid) {
+      return null;
+    }
+
+    const userRef = doc(db, 'users', uid);
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
-      return docSnap.data() as UserProfile;
+      return {
+        ...(docSnap.data() as UserProfile),
+        id: uid,
+        role: await getVerifiedRole()
+      };
     }
     return null;
   } catch (error) {
@@ -326,10 +310,14 @@ export async function loadUserProfileFromFirestore(userId: string): Promise<User
  * Real-time listener for user profile
  */
 export function subscribeToUserProfile(userId: string, callback: (user: UserProfile) => void) {
-  const userRef = doc(db, 'users', userId || 'default-user');
-  return onSnapshot(userRef, (snapshot) => {
+  const userRef = doc(db, 'users', userId || getVerifiedUid());
+  return onSnapshot(userRef, async (snapshot) => {
     if (snapshot.exists()) {
-      callback(snapshot.data() as UserProfile);
+      callback({
+        ...(snapshot.data() as UserProfile),
+        id: userId || getVerifiedUid(),
+        role: await getVerifiedRole()
+      });
     }
   }, (err) => {
     console.warn('User profile snapshot error:', err);
@@ -341,6 +329,7 @@ export function subscribeToUserProfile(userId: string, callback: (user: UserProf
  */
 export interface BookingRecord {
   id?: string;
+  travelerUid?: string;
   actorId: string;
   actorName: string;
   experienceId: string;
@@ -353,26 +342,34 @@ export interface BookingRecord {
   createdAt?: string;
 }
 
-export async function createBookingInFirestore(booking: Omit<BookingRecord, 'id' | 'createdAt' | 'status'>): Promise<string | null> {
+export type BookingInput = Pick<
+  BookingRecord,
+  'actorId' | 'actorName' | 'experienceId' | 'experienceTitle' | 'dateTime' | 'price'
+>;
+
+export async function createBookingInFirestore(booking: BookingInput): Promise<string | null> {
+  const travelerUid = getVerifiedUid();
+  const travelerEmail = getVerifiedEmail();
+  if (!travelerUid || !travelerEmail) {
+    console.warn('A verified account is required to book an experience');
+    return null;
+  }
+
+  const travelerName = auth.currentUser?.displayName || 'Voyageur';
+
   try {
-    const bookingsCol = collection(db, 'bookings');
-    const docRef = await addDoc(bookingsCol, {
+    const docRef = await addDoc(collection(db, 'bookings'), {
       ...booking,
+      travelerUid,
+      travelerEmail,
+      travelerName,
       status: 'confirmed',
       createdAt: new Date().toISOString(),
       timestamp: serverTimestamp()
     });
 
-    // Dual-sync to Cloud SQL
-    try {
-      await fetch('/api/db/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(booking)
-      });
-    } catch (e) {
-      console.warn('Cloud SQL booking background sync note:', e);
-    }
+    apiFetch('/api/db/bookings', { method: 'POST', body: { ...booking, travelerName } })
+      .catch((e) => console.warn('Cloud SQL booking background sync note:', e));
 
     return docRef.id;
   } catch (error) {
@@ -383,12 +380,11 @@ export async function createBookingInFirestore(booking: Omit<BookingRecord, 'id'
 
 export async function getUserBookingsFromFirestore(userEmail: string): Promise<BookingRecord[]> {
   try {
-    const bookingsCol = collection(db, 'bookings');
-    const q = query(bookingsCol, where('travelerEmail', '==', userEmail));
+    const q = query(collection(db, 'bookings'), where('travelerEmail', '==', userEmail));
     const querySnapshot = await getDocs(q);
     const results: BookingRecord[] = [];
-    querySnapshot.forEach((doc) => {
-      results.push({ id: doc.id, ...doc.data() } as BookingRecord);
+    querySnapshot.forEach((docSnap) => {
+      results.push({ id: docSnap.id, ...docSnap.data() } as BookingRecord);
     });
     return results;
   } catch (error) {
@@ -399,12 +395,11 @@ export async function getUserBookingsFromFirestore(userEmail: string): Promise<B
 
 export async function getGuideBookingsFromFirestore(actorId: string): Promise<BookingRecord[]> {
   try {
-    const bookingsCol = collection(db, 'bookings');
-    const q = query(bookingsCol, where('actorId', '==', actorId));
+    const q = query(collection(db, 'bookings'), where('actorId', '==', actorId));
     const querySnapshot = await getDocs(q);
     const results: BookingRecord[] = [];
-    querySnapshot.forEach((doc) => {
-      results.push({ id: doc.id, ...doc.data() } as BookingRecord);
+    querySnapshot.forEach((docSnap) => {
+      results.push({ id: docSnap.id, ...docSnap.data() } as BookingRecord);
     });
     return results;
   } catch (error) {
@@ -415,11 +410,10 @@ export async function getGuideBookingsFromFirestore(actorId: string): Promise<Bo
 
 export async function getAllBookingsForAdmin(): Promise<BookingRecord[]> {
   try {
-    const bookingsCol = collection(db, 'bookings');
-    const querySnapshot = await getDocs(bookingsCol);
+    const querySnapshot = await getDocs(collection(db, 'bookings'));
     const results: BookingRecord[] = [];
-    querySnapshot.forEach((doc) => {
-      results.push({ id: doc.id, ...doc.data() } as BookingRecord);
+    querySnapshot.forEach((docSnap) => {
+      results.push({ id: docSnap.id, ...docSnap.data() } as BookingRecord);
     });
     return results;
   } catch (error) {
@@ -430,8 +424,7 @@ export async function getAllBookingsForAdmin(): Promise<BookingRecord[]> {
 
 export async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'completed' | 'cancelled') {
   try {
-    const bookingRef = doc(db, 'bookings', bookingId);
-    await updateDoc(bookingRef, { status });
+    await updateDoc(doc(db, 'bookings', bookingId), { status });
     return true;
   } catch (e) {
     console.warn('Update booking error:', e);
@@ -440,36 +433,30 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
 }
 
 /**
- * Places Management in Firestore & Dual Sync
+ * Places Management in Firestore & Dual Sync (catalog mutations need the admin claim)
  */
 export async function savePlaceToFirestore(place: Place): Promise<boolean> {
   try {
-    const placeRef = doc(db, 'places', place.id);
-    await setDoc(placeRef, {
+    await setDoc(doc(db, 'places', place.id), {
       ...place,
       updatedAt: new Date().toISOString()
     }, { merge: true });
 
-    // Cloud SQL Sync
-    try {
-      await fetch('/api/db/places', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: place.id,
-          name: place.name,
-          location: place.location,
-          category: place.category,
-          description: place.description,
-          deepHistory: place.deepHistory,
-          image: place.image,
-          lat: String(place.coordinates.lat),
-          lng: String(place.coordinates.lng)
-        })
-      });
-    } catch (e) {
-      console.warn('Cloud SQL place sync note:', e);
-    }
+    apiFetch('/api/db/places', {
+      method: 'POST',
+      body: {
+        id: place.id,
+        name: place.name,
+        location: place.location,
+        category: place.category,
+        description: place.description,
+        deepHistory: place.deepHistory,
+        image: place.image,
+        lat: String(place.coordinates.lat),
+        lng: String(place.coordinates.lng)
+      }
+    }).catch((e) => console.warn('Cloud SQL place sync note:', e));
+
     return true;
   } catch (error) {
     console.warn('Save place error:', error);
@@ -479,8 +466,7 @@ export async function savePlaceToFirestore(place: Place): Promise<boolean> {
 
 export async function deletePlaceFromFirestore(placeId: string): Promise<boolean> {
   try {
-    const placeRef = doc(db, 'places', placeId);
-    await deleteDoc(placeRef);
+    await deleteDoc(doc(db, 'places', placeId));
     return true;
   } catch (e) {
     console.warn('Delete place error:', e);
@@ -490,15 +476,14 @@ export async function deletePlaceFromFirestore(placeId: string): Promise<boolean
 
 export async function getAllPlacesFromFirestore(): Promise<Place[]> {
   try {
-    const placesCol = collection(db, 'places');
-    const snap = await getDocs(placesCol);
+    const snap = await getDocs(collection(db, 'places'));
     const results: Place[] = [];
-    snap.forEach((doc) => {
-      results.push({ id: doc.id, ...doc.data() } as Place);
+    snap.forEach((docSnap) => {
+      results.push({ id: docSnap.id, ...docSnap.data() } as Place);
     });
     return results;
-  } catch (e) {
-    console.warn('Get places error:', e);
+  } catch (error) {
+    console.warn('Get places error:', error);
     return [];
   }
 }
@@ -506,28 +491,27 @@ export async function getAllPlacesFromFirestore(): Promise<Place[]> {
 export const getPlacesFromFirestore = getAllPlacesFromFirestore;
 
 /**
- * RSVP and Itinerary Functions
+ * RSVP and Itinerary Functions. Ownership comes from the signed-in user, never from a form value.
  */
-export async function saveEventRSVPToFirestore(eventId: string, eventTitle: string, userEmail: string): Promise<boolean> {
+export async function saveEventRSVPToFirestore(eventId: string, eventTitle: string): Promise<boolean> {
+  const userUid = getVerifiedUid();
+  const userEmail = getVerifiedEmail();
+  if (!userUid || !userEmail) {
+    return false;
+  }
+
   try {
-    const rsvpCol = collection(db, 'rsvps');
-    await addDoc(rsvpCol, {
+    await addDoc(collection(db, 'rsvps'), {
       eventId,
       eventTitle,
+      userUid,
       userEmail,
       createdAt: new Date().toISOString(),
       timestamp: serverTimestamp()
     });
 
-    try {
-      await fetch('/api/db/rsvps', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId, eventTitle, userEmail })
-      });
-    } catch (e) {
-      console.warn('Cloud SQL RSVP sync note:', e);
-    }
+    apiFetch('/api/db/rsvps', { method: 'POST', body: { eventId, eventTitle } })
+      .catch((e) => console.warn('Cloud SQL RSVP sync note:', e));
 
     return true;
   } catch (error) {
@@ -536,12 +520,21 @@ export async function saveEventRSVPToFirestore(eventId: string, eventTitle: stri
   }
 }
 
+export async function getUserRSVPsFromFirestore(userEmail: string): Promise<any[]> {
+  try {
+    const snap = await getDocs(query(collection(db, 'rsvps'), where('userEmail', '==', userEmail)));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    console.warn('Firestore RSVP fetch error:', e);
+    return [];
+  }
+}
+
 export async function getAllRSVPsForAdmin(): Promise<any[]> {
   try {
-    const rsvpsCol = collection(db, 'rsvps');
-    const snap = await getDocs(rsvpsCol);
+    const snap = await getDocs(collection(db, 'rsvps'));
     const results: any[] = [];
-    snap.forEach((doc) => results.push({ id: doc.id, ...doc.data() }));
+    snap.forEach((docSnap) => results.push({ id: docSnap.id, ...docSnap.data() }));
     return results;
   } catch (e) {
     return [];
@@ -552,36 +545,30 @@ export async function saveItineraryToFirestore(
   title: string,
   duration: string,
   interests: string[],
-  stops: ItineraryStop[],
-  userEmail: string
+  stops: ItineraryStop[]
 ): Promise<string | null> {
+  const userUid = getVerifiedUid();
+  const userEmail = getVerifiedEmail();
+  if (!userUid || !userEmail) {
+    return null;
+  }
+
   try {
-    const itinerariesCol = collection(db, 'savedItineraries');
-    const docRef = await addDoc(itinerariesCol, {
+    const docRef = await addDoc(collection(db, 'savedItineraries'), {
       title,
       duration,
       interests,
       stops,
+      userUid,
       userEmail,
       createdAt: new Date().toISOString(),
       timestamp: serverTimestamp()
     });
 
-    try {
-      await fetch('/api/db/itineraries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          duration,
-          interests,
-          stops,
-          userEmail
-        })
-      });
-    } catch (e) {
-      console.warn('Cloud SQL itinerary sync note:', e);
-    }
+    apiFetch('/api/db/itineraries', {
+      method: 'POST',
+      body: { title, duration, interests, stops }
+    }).catch((e) => console.warn('Cloud SQL itinerary sync note:', e));
 
     return docRef.id;
   } catch (error) {
@@ -590,14 +577,40 @@ export async function saveItineraryToFirestore(
   }
 }
 
+export async function getUserItinerariesFromFirestore(userEmail: string): Promise<any[]> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, 'savedItineraries'), where('userEmail', '==', userEmail))
+    );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    console.warn('Firestore itinerary fetch error:', e);
+    return [];
+  }
+}
+
 /**
  * Guide Accreditation Applications
  */
-export async function submitGuideApplication(application: Omit<GuideApplication, 'id' | 'status' | 'submittedAt'>): Promise<{ success: boolean; id?: string; error?: string }> {
+export type GuideApplicationInput = Omit<
+  GuideApplication,
+  'id' | 'userId' | 'email' | 'status' | 'submittedAt'
+>;
+
+export async function submitGuideApplication(
+  application: GuideApplicationInput
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  const userId = getVerifiedUid();
+  const email = getVerifiedEmail();
+  if (!userId || !email) {
+    return { success: false, error: 'Une connexion vérifiée est requise pour soumettre une demande' };
+  }
+
   try {
-    const colRef = collection(db, 'guide_applications');
-    const docRef = await addDoc(colRef, {
+    const docRef = await addDoc(collection(db, 'guide_applications'), {
       ...application,
+      userId,
+      email,
       status: 'pending',
       submittedAt: new Date().toISOString(),
       timestamp: serverTimestamp()
@@ -610,10 +623,24 @@ export async function submitGuideApplication(application: Omit<GuideApplication,
   }
 }
 
+export async function getMyGuideApplicationsFromFirestore(): Promise<GuideApplication[]> {
+  const userId = getVerifiedUid();
+  if (!userId) {
+    return [];
+  }
+
+  try {
+    const snap = await getDocs(query(collection(db, 'guide_applications'), where('userId', '==', userId)));
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<GuideApplication, 'id'>) }));
+  } catch (e) {
+    console.warn('Error fetching own guide applications:', e);
+    return [];
+  }
+}
+
 export async function getAllGuideApplicationsForAdmin(): Promise<GuideApplication[]> {
   try {
-    const colRef = collection(db, 'guide_applications');
-    const snap = await getDocs(query(colRef, orderBy('submittedAt', 'desc')));
+    const snap = await getDocs(query(collection(db, 'guide_applications'), orderBy('submittedAt', 'desc')));
     return snap.docs.map((d) => ({
       id: d.id,
       ...(d.data() as Omit<GuideApplication, 'id'>)
@@ -624,29 +651,22 @@ export async function getAllGuideApplicationsForAdmin(): Promise<GuideApplicatio
   }
 }
 
-export async function updateGuideApplicationStatus(
-  applicationId: string, 
-  userId: string, 
-  status: 'approved' | 'rejected'
-): Promise<boolean> {
+/**
+ * Only the authenticated admin API may decide: it updates the application and the Firebase
+ * role claim together, so a rejected guide loses access once its token is renewed.
+ */
+export async function decideGuideApplication(
+  applicationId: string,
+  decision: 'approved' | 'rejected'
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const appRef = doc(db, 'guide_applications', applicationId);
-    await updateDoc(appRef, {
-      status,
-      reviewedAt: new Date().toISOString()
+    await apiFetch(`/api/admin/guide-applications/${encodeURIComponent(applicationId)}/decision`, {
+      method: 'POST',
+      body: { decision }
     });
-
-    if (status === 'approved' && userId) {
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        role: 'guide',
-        'guideProfile.certified': true
-      });
-    }
-
-    return true;
-  } catch (e) {
-    console.warn('Error updating guide application status:', e);
-    return false;
+    return { success: true };
+  } catch (error: any) {
+    console.warn('Guide application decision error:', error);
+    return { success: false, error: error?.message || 'Décision impossible' };
   }
 }

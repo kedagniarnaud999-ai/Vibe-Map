@@ -15,7 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { Actor } from '../../types';
-import { createBookingInFirestore } from '../../lib/firebase';
+import { createBookingInFirestore, getVerifiedEmail, getVerifiedUid } from '../../lib/firebase';
 
 interface ActorProfileScreenProps {
   actor: Actor;
@@ -25,27 +25,46 @@ interface ActorProfileScreenProps {
 export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, onBack }) => {
   const [selectedExperience, setSelectedExperience] = useState<any | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingError, setBookingError] = useState('');
   const [bookingDate, setBookingDate] = useState('Tomorrow, 10:00 AM');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const openBookingDrawer = (exp: any) => {
+    setBookingError('');
+    setSelectedExperience(exp);
+  };
+
+  const closeBookingDrawer = () => {
+    setBookingError('');
+    setSelectedExperience(null);
+  };
+
   const handleBook = async () => {
     if (!selectedExperience) return;
-    setIsSubmitting(true);
-    try {
-      await createBookingInFirestore({
-        actorId: actor.id,
-        actorName: actor.name,
-        experienceId: selectedExperience.id || 'exp-1',
-        experienceTitle: selectedExperience.title,
-        dateTime: bookingDate,
-        price: selectedExperience.price,
-        travelerName: 'Arnaud K.',
-        travelerEmail: 'kedagniarnaud999@gmail.com'
-      });
-    } catch (e) {
-      console.warn('Booking save warning:', e);
+
+    if (!getVerifiedUid() || !getVerifiedEmail()) {
+      setBookingError('Connectez-vous avec un compte verifie pour demander une introduction.');
+      return;
     }
+
+    setIsSubmitting(true);
+
+    const bookingId = await createBookingInFirestore({
+      actorId: actor.id,
+      actorName: actor.name,
+      experienceId: selectedExperience.id || 'exp-1',
+      experienceTitle: selectedExperience.title,
+      dateTime: bookingDate,
+      price: selectedExperience.price
+    });
+
     setIsSubmitting(false);
+
+    if (!bookingId) {
+      setBookingError('La reservation na pas pu etre enregistree. Verifiez que votre session est toujours active.');
+      return;
+    }
+
     setBookingSuccess(true);
     setTimeout(() => {
       setBookingSuccess(false);
@@ -114,7 +133,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                 <MapPin className="w-3.5 h-3.5 text-[#8c867c]" /> {actor.location}
               </span>
               <span className="flex items-center gap-1">
-                <Globe className="w-3.5 h-3.5 text-[#8c867c]" /> {actor.languages.join(' • ')}
+                <Globe className="w-3.5 h-3.5 text-[#8c867c]" /> {actor.languages.join(' ')}
               </span>
             </div>
           </div>
@@ -209,7 +228,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                 </div>
 
                 <button
-                  onClick={() => setSelectedExperience(exp)}
+                  onClick={() => openBookingDrawer(exp)}
                   className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
                 >
                   Book Experience
@@ -245,7 +264,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                   </div>
                 </div>
                 <p className="text-xs text-[#6b665e] italic leading-relaxed">
-                  "{rev.comment}"
+                  {rev.comment}
                 </p>
                 <span className="text-[10px] text-[#8c867c] block">
                   {rev.date}
@@ -270,7 +289,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                 </h3>
               </div>
               <button
-                onClick={() => setSelectedExperience(null)}
+                onClick={closeBookingDrawer}
                 className="p-2 rounded-full hover:bg-[#e8e2d5] text-[#2c2926]"
               >
                 <X className="w-5 h-5" />
@@ -326,11 +345,18 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                   <span>Your visit directly supports local heritage preservation.</span>
                 </div>
 
+                {bookingError && (
+                  <div className="bg-[#fceee9] border border-[#e8e2d5] rounded-xl px-3 py-2.5 text-[11px] font-semibold text-[#c14e2f]">
+                    {bookingError}
+                  </div>
+                )}
+
                 <button
                   onClick={handleBook}
-                  className="w-full py-3.5 rounded-xl bg-[#c14e2f] text-white font-bold text-xs shadow-md hover:bg-[#a83f23] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 rounded-xl bg-[#c14e2f] text-white font-bold text-xs shadow-md hover:bg-[#a83f23] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <span>Confirm Introduction Request</span>
+                  <span>{isSubmitting ? 'Enregistrement en cours' : 'Confirm Introduction Request'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

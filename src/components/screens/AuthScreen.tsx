@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Shield, 
-  Sparkles, 
   Mail, 
   Lock, 
   User, 
@@ -10,49 +9,42 @@ import {
   CheckCircle2, 
   AlertCircle, 
   ArrowRight, 
-  KeyRound,
   Eye,
   EyeOff,
-  Globe,
   Phone,
-  MapPin,
-  FileText,
-  ChevronRight
+  MapPin
 } from 'lucide-react';
-import { UserProfile, UserRole, AppLanguage } from '../../types';
+import { UserProfile, AppLanguage } from '../../types';
 import { 
   loginWithGoogle, 
   loginWithEmail, 
   registerWithEmail, 
-  setActiveSessionRole,
-  isAuthorizedAdmin 
+  submitGuideApplication
 } from '../../lib/firebase';
-import { TRANSLATIONS } from '../../lib/i18n';
 
 interface AuthScreenProps {
   currentLang: AppLanguage;
-  initialRole?: UserRole;
+  initialPortal?: 'public' | 'admin';
   onAuthSuccess: (user: UserProfile) => void;
   onCancel: () => void;
 }
 
+const splitList = (value: string): string[] =>
+  value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
 export const AuthScreen: React.FC<AuthScreenProps> = ({
-  currentLang,
-  initialRole = 'traveler',
+  initialPortal = 'public',
   onAuthSuccess,
   onCancel
 }) => {
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
+  // View state: 'public' (Travelers and Guide applicants) vs 'admin' (dissociated portal)
+  const [portalMode, setPortalMode] = useState<'public' | 'admin'>(initialPortal);
 
-  // View state: 'public' (Travelers and Guides) vs 'admin' (strictly dissociated dedicated portal)
-  const [portalMode, setPortalMode] = useState<'public' | 'admin'>(
-    initialRole === 'admin' ? 'admin' : 'public'
-  );
-
-  // Role in public portal: 'traveler' or 'guide'
-  const [selectedRole, setSelectedRole] = useState<'traveler' | 'guide'>(
-    initialRole === 'guide' ? 'guide' : 'traveler'
-  );
+  // Intention only: an applicant signs in as a traveler until the guide claim is granted.
+  const [selectedRole, setSelectedRole] = useState<'traveler' | 'guide'>('traveler');
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -60,198 +52,175 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [fullName, setFullName] = useState('');
   const [guidePhone, setGuidePhone] = useState('');
   const [guideRegion, setGuideRegion] = useState('Ouidah');
-  const [guideSpecialties, setGuideSpecialties] = useState('Histoire Royale & Sanctuaires Vodun');
+  const [guideSpecialties, setGuideSpecialties] = useState('Histoire Royale, Sanctuaires Vodun');
+  const [guideLanguages, setGuideLanguages] = useState('Français');
+  const [guideExperienceYears, setGuideExperienceYears] = useState('5');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [pendingUser, setPendingUser] = useState<UserProfile | null>(null);
 
-  // Handle Public Authentication (Travelers & Guides)
+  const resetNotices = () => {
+    setErrorMessage(null);
+    setConfirmation(null);
+    setPendingUser(null);
+  };
+
+  // A guide intent is not a guide role: the verified claim decides where the session lands.
+  const finishWithSession = (user: UserProfile, notice?: string) => {
+    if (!notice) {
+      onAuthSuccess(user);
+      return;
+    }
+    setPendingUser(user);
+    setConfirmation(notice);
+  };
+
+  const handleAuthResult = async (
+    result: { user: UserProfile | null; error?: string },
+    guideNotice?: string
+  ) => {
+    setLoading(false);
+
+    if (!result.user) {
+      setErrorMessage(result.error || 'Connexion impossible. Vérifiez votre email et votre mot de passe.');
+      return;
+    }
+
+    if (portalMode === 'admin' && result.user.role !== 'admin') {
+      setErrorMessage(
+        'Identifiants corrects, mais ce compte ne détient pas le rôle administrateur. Seul un opérateur peut le lui accorder côté Firebase.'
+      );
+      return;
+    }
+
+    if (selectedRole === 'guide' && result.user.role !== 'guide') {
+      finishWithSession(result.user, guideNotice);
+      return;
+    }
+
+    finishWithSession(result.user);
+  };
+
+  // Handle Public Authentication (Travelers & Guide applicants)
   const handlePublicSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
+    resetNotices();
+
+    if (!email || !password) {
+      setErrorMessage('Veuillez renseigner votre email et un mot de passe.');
+      return;
+    }
+    if (isSignUp && !fullName.trim()) {
+      setErrorMessage('Veuillez indiquer votre nom complet.');
+      return;
+    }
+
     setLoading(true);
 
-    const targetRole: UserRole = selectedRole;
-
     try {
-      if (!email || !password) {
-        setErrorMessage('Veuillez renseigner votre email et un mot de passe.');
+      if (isSignUp) {
+        const res = await registerWithEmail(email, password, fullName.trim());
         setLoading(false);
+
+        if (!res.user) {
+          setErrorMessage(res.error || 'Erreur lors de la création de compte');
+          return;
+        }
+
+        if (selectedRole === 'guide') {
+          const application = await submitGuideApplication({
+            fullName: fullName.trim(),
+            phone: guidePhone.trim(),
+            region: guideRegion.trim(),
+            experienceYears: Number.parseInt(guideExperienceYears, 10) || 0,
+            languages: splitList(guideLanguages),
+            specialties: splitList(guideSpecialties),
+            bio: `Médiateur culturel spécialisé en ${guideSpecialties} (${guideRegion}).`
+          });
+
+          finishWithSession(
+            res.user,
+            application.success
+              ? 'Compte voyageur créé et demande d’agrément déposée. Un conservateur validera votre dossier ; l’accès Guide s’activera à ce moment-là.'
+              : `Compte voyageur créé. La demande d’agrément n’a pas pu être enregistrée : ${application.error || 'erreur inconnue'}`
+          );
+          return;
+        }
+
+        finishWithSession(res.user);
         return;
       }
 
-      if (isSignUp) {
-        const res = await registerWithEmail(
-          email, 
-          password, 
-          fullName || email.split('@')[0], 
-          targetRole,
-          targetRole === 'guide' ? {
-            phone: guidePhone,
-            region: guideRegion,
-            specialties: guideSpecialties
-          } : undefined
-        );
-
-        if (res.user) {
-          setActiveSessionRole(targetRole);
-          onAuthSuccess({
-            ...res.user,
-            role: targetRole
-          });
-        } else {
-          setErrorMessage(res.error || 'Erreur lors de la création de compte');
-        }
-      } else {
-        // Sign in to public role
-        const res = await loginWithEmail(email, password, targetRole);
-        if (res.user) {
-          setActiveSessionRole(targetRole);
-          onAuthSuccess({
-            ...res.user,
-            role: targetRole
-          });
-        } else {
-          // Fallback demo user if network error
-          const fallbackUser: UserProfile = {
-            id: 'user-' + Date.now(),
-            name: fullName || (targetRole === 'guide' ? 'Dossou Houndégnon' : 'Alexandre Morel'),
-            email: email,
-            avatar: targetRole === 'guide'
-              ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200' 
-              : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-            vibeTag: targetRole === 'guide' ? 'Médiateur Traditionnel Agréé' : 'Explorateur Passionné',
-            travelStyle: 'Cultural Deep-Dive',
-            language: currentLang,
-            role: targetRole,
-            guideProfile: targetRole === 'guide' ? {
-              certified: true,
-              pricing: '20 000 FCFA (~30 €)',
-              phone: guidePhone || '+229 97 45 12 89',
-              bio: `Spécialiste agréé en ${guideSpecialties} (${guideRegion}).`,
-              specialties: [guideSpecialties, 'Patrimoine Béninois', guideRegion]
-            } : undefined,
-            notificationsEnabled: true,
-            interests: ['Spiritual', 'Historical', 'Arts'],
-            savedPlaces: [],
-            completedStops: [],
-            placesCount: targetRole === 'guide' ? 5 : 2,
-            storiesCount: 3,
-            connectionsCount: 2,
-            badges: [{ id: '1', title: 'Passeport Dahomey', icon: 'Award', unlocked: true, color: '#c14e2f' }]
-          };
-          setActiveSessionRole(targetRole);
-          onAuthSuccess(fallbackUser);
-        }
-      }
+      await handleAuthResult(
+        await loginWithEmail(email, password),
+        'Connexion réussie. Votre accès Guide s’ouvrira dès qu’un administrateur aura validé votre demande d’agrément.'
+      );
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Erreur d’authentification');
-    } finally {
       setLoading(false);
+      setErrorMessage(err?.message || 'Erreur d’authentification');
     }
   };
 
-  // Handle Google Sign-in for Travelers & Guides
+  // Handle Google Sign-in
   const handleGoogleSignIn = async () => {
+    resetNotices();
     setLoading(true);
-    setErrorMessage(null);
-    const targetRole: UserRole = selectedRole;
     try {
-      const res = await loginWithGoogle();
-      if (res.user) {
-        setActiveSessionRole(targetRole);
-        onAuthSuccess({
-          ...res.user,
-          role: targetRole
-        });
-      } else {
-        const googleUser: UserProfile = {
-          id: 'google-user-' + Date.now(),
-          name: targetRole === 'guide' ? 'Guide Agréé' : 'Alexandre Morel',
-          email: 'voyageur.culturel@gmail.com',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-          vibeTag: targetRole === 'guide' ? 'Médiateur Traditionnel' : 'Explorateur Passionné',
-          travelStyle: 'Cultural Deep-Dive',
-          language: currentLang,
-          role: targetRole,
-          notificationsEnabled: true,
-          interests: ['Spiritual', 'Historical', 'Nature', 'Arts'],
-          savedPlaces: [],
-          completedStops: [],
-          placesCount: 4,
-          storiesCount: 2,
-          connectionsCount: 3,
-          badges: [
-            { id: '1', title: 'Initié Vodun', icon: 'Sparkles', unlocked: true, color: '#c14e2f' }
-          ]
-        };
-        setActiveSessionRole(targetRole);
-        onAuthSuccess(googleUser);
-      }
+      await handleAuthResult(
+        await loginWithGoogle(),
+        'Connexion réussie. Déposez une demande d’agrément pour accéder à l’espace Guide.'
+      );
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Erreur de connexion Google');
-    } finally {
       setLoading(false);
+      setErrorMessage(err?.message || 'Erreur de connexion Google');
     }
   };
 
   // Handle Dedicated Admin Portal Login
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
-    setLoading(true);
+    resetNotices();
 
     if (!email || !password) {
       setErrorMessage('Identifiant administrateur et mot de passe requis.');
-      setLoading(false);
       return;
     }
 
-    if (!isAuthorizedAdmin(email)) {
-      setErrorMessage("Accès refusé : Ce compte n'a pas les privilèges d'administration du patrimoine.");
-      setLoading(false);
-      return;
-    }
-
+    setLoading(true);
     try {
-      const res = await loginWithEmail(email, password, 'admin');
-      if (res.user) {
-        setActiveSessionRole('admin');
-        onAuthSuccess({
-          ...res.user,
-          role: 'admin'
-        });
-      } else {
-        // Fallback for official admin in test/demo mode
-        const adminProfile: UserProfile = {
-          id: 'admin-' + Date.now(),
-          name: 'Arnaud Kèdagni (Conservateur)',
-          email: email,
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
-          vibeTag: 'Administrateur Général du Patrimoine',
-          travelStyle: 'Cultural Deep-Dive',
-          language: currentLang,
-          role: 'admin',
-          notificationsEnabled: true,
-          interests: ['Spiritual', 'Historical', 'Arts', 'Nature'],
-          savedPlaces: [],
-          completedStops: [],
-          placesCount: 16,
-          storiesCount: 12,
-          connectionsCount: 8,
-          badges: [
-            { id: 'admin-key', title: 'Conservateur en Chef', icon: 'Shield', unlocked: true, color: '#2c2926' }
-          ]
-        };
-        setActiveSessionRole('admin');
-        onAuthSuccess(adminProfile);
-      }
+      await handleAuthResult(await loginWithEmail(email, password));
     } catch (err: any) {
-      setErrorMessage(err?.message || "Erreur de connexion à l'administration.");
-    } finally {
       setLoading(false);
+      setErrorMessage(err?.message || "Erreur de connexion à l'administration.");
     }
   };
+
+  if (confirmation && pendingUser) {
+    return (
+      <div className="min-h-screen bg-[#f5f1e8] py-8 px-4 flex flex-col justify-center items-center font-sans">
+        <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-[#e8e2d5] text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-green-50 text-green-700 border border-green-200 flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-7 h-7" />
+          </div>
+          <h2 className="font-serif font-bold text-xl text-[#2c2926]">Session vérifiée ouverte</h2>
+          <p className="text-xs text-[#6b665e] leading-relaxed">{confirmation}</p>
+          <p className="text-[11px] text-[#8c867c]">
+            Rôle accordé par Firebase : <span className="font-bold text-[#2c2926]">{pendingUser.role}</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => onAuthSuccess(pendingUser)}
+            className="w-full py-2.5 px-4 rounded-xl bg-[#c14e2f] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#a83f23] transition-all cursor-pointer"
+          >
+            <span>Continuer</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f1e8] py-8 px-4 flex flex-col justify-center items-center font-sans">
@@ -269,7 +238,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               Portail Conservateur & Admin
             </h2>
             <p className="text-xs text-[#a8a29e] mt-1 max-w-xs mx-auto">
-              Accès strictement réservé aux conservateurs du patrimoine et gestionnaires autorisés de La Vibe Map.
+              Réservé aux comptes titulaires du rôle administrateur. La connexion seule ne suffit pas : le rôle est vérifié dans Firebase.
             </p>
           </div>
 
@@ -283,7 +252,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <form onSubmit={handleAdminSubmit} className="space-y-3.5">
             <div>
               <label className="block text-xs font-semibold text-[#e7e5e4] mb-1">
-                Email Administrateur
+                Email du compte administrateur
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a8a29e]" />
@@ -291,7 +260,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="kedagniarnaud999@gmail.com"
+                  placeholder="vous@exemple.bj"
+                  autoComplete="username"
                   className="w-full pl-10 pr-4 py-2.5 bg-[#2a2723] border border-[#44403c] rounded-xl text-xs sm:text-sm text-white placeholder-[#78716c] focus:border-amber-400 focus:outline-none transition-all"
                   required
                 />
@@ -300,7 +270,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-[#e7e5e4] mb-1">
-                Mot de passe Administrateur
+                Mot de passe
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a8a29e]" />
@@ -309,6 +279,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   className="w-full pl-10 pr-10 py-2.5 bg-[#2a2723] border border-[#44403c] rounded-xl text-xs sm:text-sm text-white placeholder-[#78716c] focus:border-amber-400 focus:outline-none transition-all"
                   required
                 />
@@ -328,7 +299,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               className="w-full mt-3 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg active:scale-[0.99] transition-all cursor-pointer"
             >
               {loading ? (
-                <span>⌛ Vérification des droits...</span>
+                <span>Vérification des droits...</span>
               ) : (
                 <>
                   <span>Ouvrir l'Espace Administrateur</span>
@@ -343,7 +314,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               type="button"
               onClick={() => {
                 setPortalMode('public');
-                setErrorMessage(null);
+                resetNotices();
               }}
               className="text-xs text-amber-400 hover:underline flex items-center gap-1"
             >
@@ -359,35 +330,30 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           </div>
         </div>
       ) : (
-        /* ==================== STANDARD PUBLIC PORTAL (VOYAGEURS & GUIDES) ==================== */
+        /* ==================== STANDARD PUBLIC PORTAL (VOYAGEURS & CANDIDATS GUIDE) ==================== */
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-xl border border-[#e8e2d5]">
-          {/* Header Branding */}
           <div className="text-center mb-5">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto shadow-md mb-2.5 transition-all ${
               selectedRole === 'guide'
                 ? 'bg-[#5a5a40] text-white'
                 : 'bg-gradient-to-tr from-[#c14e2f] to-[#d9822b] text-white'
             }`}>
-              {selectedRole === 'guide' ? (
-                <Award className="w-7 h-7" />
-              ) : (
-                <Compass className="w-7 h-7" />
-              )}
+              {selectedRole === 'guide' ? <Award className="w-7 h-7" /> : <Compass className="w-7 h-7" />}
             </div>
 
             <h2 className="font-serif font-bold text-2xl text-[#2c2926]">
               {selectedRole === 'guide'
-                ? (isSignUp ? 'Agrément Médiateur Culturel' : 'Portail des Guides du Bénin')
+                ? (isSignUp ? 'Demander un Agrément Médiateur' : 'Connexion Guide')
                 : (isSignUp ? 'Créer un Compte Voyageur' : 'Connexion Voyageur')}
             </h2>
             <p className="text-xs text-[#6b665e] mt-1 max-w-xs mx-auto">
               {selectedRole === 'guide'
-                ? 'Espace réservé aux guides certifiés et maîtres du patrimoine.'
+                ? 'Votre demande est examinée par un conservateur ; l’accès Guide est accordé après vérification.'
                 : 'Explorez les sanctuaires sacrés, sauvez vos favoris et réservez vos visites.'}
             </p>
           </div>
 
-          {/* Proper Two-Role Selection Component (Dissociated from Admin) */}
+          {/* Intent Selection */}
           <div className="mb-5 bg-[#faf7f0] p-1.5 rounded-2xl border border-[#e8e2d5]">
             <div className="text-[10px] font-bold uppercase tracking-wider text-[#8c867c] px-2 py-1 mb-1">
               Choisir votre profil d'accès
@@ -431,35 +397,22 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   <span className="text-xs font-bold">Guide / Médiateur</span>
                 </div>
                 <span className="text-[10px] text-[#8c867c] leading-tight">
-                  Espace professionnel
+                  Demande d’agrément
                 </span>
               </button>
             </div>
           </div>
 
-          {/* Google Authentication for Public Roles */}
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
             className="w-full py-2.5 px-4 bg-white border border-[#d6cfbe] rounded-2xl flex items-center justify-center gap-2.5 text-xs sm:text-sm font-semibold text-[#2c2926] hover:bg-[#faf7f0] active:scale-[0.99] transition-all shadow-2xs mb-3 cursor-pointer"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-              />
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
             </svg>
             <span>Continuer avec Google</span>
           </button>
@@ -478,7 +431,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           )}
 
           <form onSubmit={handlePublicSubmit} className="space-y-3">
-            {/* Guide or Sign-up extra fields */}
             {isSignUp && (
               <div>
                 <label className="block text-xs font-semibold text-[#2c2926] mb-1">
@@ -534,9 +486,38 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">
+                      Années d'expérience
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="70"
+                      value={guideExperienceYears}
+                      onChange={(e) => setGuideExperienceYears(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">
+                      Langues (séparées par des virgules)
+                    </label>
+                    <input
+                      type="text"
+                      value={guideLanguages}
+                      onChange={(e) => setGuideLanguages(e.target.value)}
+                      placeholder="Français, Fon, English"
+                      className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">
-                    Spécialités culturelles
+                    Spécialités culturelles (séparées par des virgules)
                   </label>
                   <input
                     type="text"
@@ -560,6 +541,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nom@exemple.bj"
+                  autoComplete="username"
                   className="w-full pl-10 pr-4 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs sm:text-sm text-[#2c2926] focus:border-[#c14e2f] focus:outline-none transition-all"
                   required
                 />
@@ -577,6 +559,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete={isSignUp ? "new-password" : "current-password"}
                   className="w-full pl-10 pr-10 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs sm:text-sm text-[#2c2926] focus:border-[#c14e2f] focus:outline-none transition-all"
                   required
                 />
@@ -600,13 +583,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               }`}
             >
               {loading ? (
-                <span className="inline-block animate-spin">⌛ Connexion...</span>
+                <span>Connexion en cours...</span>
               ) : (
                 <>
                   <span>
                     {isSignUp
-                      ? (selectedRole === 'guide' ? 'Valider mon Inscription Guide' : 'Créer mon Compte Voyageur')
-                      : (selectedRole === 'guide' ? 'Se Connecter comme Guide' : 'Se Connecter')}
+                      ? (selectedRole === 'guide' ? 'Déposer ma demande d’agrément' : 'Créer mon Compte Voyageur')
+                      : 'Se Connecter'}
                   </span>
                   <ArrowRight className="w-4 h-4" />
                 </>
@@ -614,7 +597,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             </button>
           </form>
 
-          {/* Toggle Sign up / Sign In */}
           <div className="mt-4 text-center space-y-3 border-t border-[#f0ece1] pt-3">
             <button
               type="button"
@@ -629,7 +611,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 : (selectedRole === 'guide' ? 'Nouveau médiateur ? Déposer une demande d’agrément' : 'Nouveau voyageur ? Créer un compte')}
             </button>
 
-            {/* Bottom Actions: Guest Mode and Completely Dissociated Admin Access */}
             <div className="flex items-center justify-between pt-1">
               <button
                 type="button"
@@ -643,8 +624,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 type="button"
                 onClick={() => {
                   setPortalMode('admin');
-                  setErrorMessage(null);
-                  setEmail('kedagniarnaud999@gmail.com');
+                  resetNotices();
                 }}
                 className="text-[11px] text-[#8c867c] hover:text-[#2c2926] flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-[#faf7f0] border border-transparent hover:border-[#e8e2d5] transition-all cursor-pointer"
               >

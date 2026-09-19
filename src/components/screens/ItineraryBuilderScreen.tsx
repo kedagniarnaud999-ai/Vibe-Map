@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import { 
   Sparkles, 
-  Clock, 
   MapPin, 
   ArrowRight, 
-  CheckCircle2, 
-  Compass, 
   Bookmark, 
-  Share2, 
   RefreshCw,
   Navigation,
-  ShieldCheck
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Place, Story, ItineraryStop } from '../../types';
-import { saveItineraryToFirestore } from '../../lib/firebase';
+import { Place, ItineraryStop } from '../../types';
+import { apiFetch, saveItineraryToFirestore, getVerifiedUid } from '../../lib/firebase';
 
 interface ItineraryBuilderScreenProps {
   places: Place[];
@@ -35,6 +32,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedTimeline, setGeneratedTimeline] = useState<ItineraryStop[] | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const interestOptions = [
     'Spiritual Traditions',
@@ -58,40 +56,37 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
     setGeneratedTimeline(null);
 
     try {
-      const response = await fetch('/api/gemini/itinerary', {
+      // The route is authenticated; without a session the local sequence below is used.
+      const data = await apiFetch<any>('/api/gemini/itinerary', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           duration,
           interests: selectedInterests,
           userVibe: 'Explorateur Immersif du Patrimoine'
-        })
+        }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.timeline && Array.isArray(data.timeline) && data.timeline.length > 0) {
-          const stops: ItineraryStop[] = data.timeline.map((s: any, idx: number) => ({
-            id: `stop-${idx + 1}`,
-            time: s.time || '09:00',
-            placeId: s.placeId || (places[idx % places.length]?.id ?? 'ouidah-python'),
-            title: s.title || 'Visite Culturelle',
-            description: s.description || 'Immersion patrimoniale au cœur des traditions.',
-            insight: s.insight || 'Saluez toujours les aînés et gardiens du sanctuaire.',
-            transitTime: s.transitTime || '10 min',
-            transitMode: 'walk',
-            icon: 'sparkles',
-            color: 'bg-primary',
-            verified: true
-          }));
+      if (data.timeline && Array.isArray(data.timeline) && data.timeline.length > 0) {
+        const stops: ItineraryStop[] = data.timeline.map((s: any, idx: number) => ({
+          id: `stop-${idx + 1}`,
+          time: s.time || '09:00',
+          placeId: s.placeId || (places[idx % places.length]?.id ?? 'ouidah-python'),
+          title: s.title || 'Visite Culturelle',
+          description: s.description || 'Immersion patrimoniale au cœur des traditions.',
+          insight: s.insight || 'Saluez toujours les aînés et gardiens du sanctuaire.',
+          transitTime: s.transitTime || '10 min',
+          transitMode: 'walk',
+          icon: 'sparkles',
+          color: 'bg-primary',
+          verified: true
+        }));
 
-          setGeneratedTimeline(stops);
-          setIsGenerating(false);
-          return;
-        }
+        setGeneratedTimeline(stops);
+        setIsGenerating(false);
+        return;
       }
     } catch (e) {
-      console.warn('Gemini itinerary API error, using rich local fallback:', e);
+      console.warn('Gemini itinerary API unavailable, using rich local fallback:', e);
     }
 
     // Rich fallback
@@ -163,17 +158,27 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
         colors: ['#c14e2f', '#5a5a40', '#d9822b', '#7c766b']
       });
     } catch (e) {
-      // fallback
+      // confetti is decorative only
     }
 
-    if (generatedTimeline) {
-      await saveItineraryToFirestore(
-        `Itinéraire ${duration} - ${selectedInterests.join(', ')}`,
-        duration,
-        selectedInterests,
-        generatedTimeline,
-        'kedagniarnaud999@gmail.com'
-      );
+    if (!generatedTimeline) return;
+
+    if (!getVerifiedUid()) {
+      setSaveError('Connectez-vous pour enregistrer votre itinéraire dans le Passeport Culturel.');
+      return;
+    }
+
+    setSaveError(null);
+    const savedId = await saveItineraryToFirestore(
+      `Itinéraire ${duration} - ${selectedInterests.join(', ')}`,
+      duration,
+      selectedInterests,
+      generatedTimeline
+    );
+
+    if (!savedId) {
+      setSaveError("Enregistrement impossible. Vérifiez que votre session est toujours active.");
+      return;
     }
 
     setSavedSuccess(true);
@@ -291,6 +296,13 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
               <span>{savedSuccess ? 'Saved to Journal!' : 'Save Itinerary'}</span>
             </button>
           </div>
+
+          {saveError && (
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{saveError}</span>
+            </div>
+          )}
 
           {/* Timeline Nodes */}
           <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#dedad0]">

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { AppLanguage } from '../../types';
 import { TRANSLATIONS, playCulturalTermAudio } from '../../lib/i18n';
+import { apiFetch } from '../../lib/firebase';
 
 interface Message {
   id: string;
@@ -73,6 +74,23 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
     scrollToBottom();
   }, [messages, isLoading]);
 
+  const buildAiMessage = (data: any, query: string, withGrounding: boolean): Message => {
+    return {
+      id: (Date.now() + 1).toString(),
+      sender: 'ai',
+      text: withGrounding ? data.text || data.reply : data.reply || data.text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      groundingSources: withGrounding
+        ? data.groundingChunks?.map((c: any) => ({
+            title: c.web?.title || 'Patrimoine Bénin',
+            url: c.web?.uri || 'https://fr.wikipedia.org/wiki/Culture_du_B%C3%A9nin'
+          })) || []
+        : undefined,
+      fonPhrase: data.fonPhrase,
+      etiquetteTip: data.etiquetteTip
+    };
+  };
+
   const generateAnswer = async (query: string) => {
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -85,61 +103,26 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
     setInputQuery('');
     setIsLoading(true);
 
+    // Both routes sit behind requireAuth: apiFetch carries the verified ID token and throws
+    // without a session, which falls through to the local cultural archive below.
     try {
-      if (useLiveWebSearch) {
-        // Call live server Search Grounding endpoint
-        const response = await fetch('/api/gemini/search-grounding', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: query + ' patrimoine bénin culture vaudou histoire ouidah abomey' })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const aiMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            sender: 'ai',
-            text: data.text || data.reply,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            groundingSources: data.groundingChunks?.map((c: any) => ({
-              title: c.web?.title || 'Patrimoine Bénin',
-              url: c.web?.uri || 'https://fr.wikipedia.org/wiki/Culture_du_B%C3%A9nin'
-            })) || [],
-            fonPhrase: data.fonPhrase,
-            etiquetteTip: data.etiquetteTip
-          };
-          setMessages((prev) => [...prev, aiMsg]);
-          setIsLoading(false);
-          return;
-        }
-      } else {
-        // Call standard chat endpoint
-        const response = await fetch('/api/gemini/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            message: query,
-            conversationHistory: messages.slice(-6)
+      const data = useLiveWebSearch
+        ? await apiFetch<any>('/api/gemini/search-grounding', {
+            method: 'POST',
+            body: { query: query + ' patrimoine bénin culture vaudou histoire ouidah abomey' }
           })
-        });
+        : await apiFetch<any>('/api/gemini/chat', {
+            method: 'POST',
+            body: { message: query, conversationHistory: messages.slice(-6) }
+          });
 
-        if (response.ok) {
-          const data = await response.json();
-          const aiMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            sender: 'ai',
-            text: data.reply || data.text,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            fonPhrase: data.fonPhrase,
-            etiquetteTip: data.etiquetteTip
-          };
-          setMessages((prev) => [...prev, aiMsg]);
-          setIsLoading(false);
-          return;
-        }
+      if (data && (data.text || data.reply)) {
+        setMessages((prev) => [...prev, buildAiMessage(data, query, useLiveWebSearch)]);
+        setIsLoading(false);
+        return;
       }
     } catch (e) {
-      console.warn('Gemini live search grounded response error, falling back locally:', e);
+      console.warn('Gemini grounded response error, falling back locally:', e);
     }
 
     // Local rich fallback response based on cultural queries

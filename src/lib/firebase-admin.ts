@@ -54,7 +54,7 @@ export function getAdminAuth(): Auth {
 
 export function getAdminFirestore(): Firestore {
   try {
-    return getFirestore(initializeFirebaseAdmin());
+    return getFirestore(initializeFirebaseAdmin(), firebaseConfig.firestoreDatabaseId);
   } catch (error) {
     if (error instanceof FirebaseAdminUnavailableError) {
       throw error;

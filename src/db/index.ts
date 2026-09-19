@@ -33,17 +33,20 @@ export const createPool = () => {
 };
 
 const pool = createPool();
-export const db = pool ? drizzle(pool, { schema }) : (new Proxy({}, {
-  get: (_target, prop) => {
-    if (prop === 'query') {
-      return new Proxy({}, {
-        get: () => ({ findFirst: async () => null, findMany: async () => [] })
-      });
-    }
-    return () => ({
-      values: () => ({ onConflictDoUpdate: () => Promise.resolve(), returning: () => Promise.resolve([]) }),
-      set: () => ({ where: () => Promise.resolve() }),
-      where: () => Promise.resolve([])
-    });
-  }
-}) as any);
+
+/**
+ * Without `SQL_HOST` there is no database to reach, so every builder chain has to await to an
+ * empty result. A hand-written shape would have to list `.from/.where/.orderBy/.limit`, which is
+ * how the previous shim came to throw on every SELECT.
+ */
+const emptyChain: any = new Proxy(function () {}, {
+  get: (_target, property) =>
+    property === 'then'
+      ? (resolve: (value: unknown[]) => void) => resolve([])
+      : emptyChain,
+  apply: () => emptyChain,
+});
+
+export const db = pool ? drizzle(pool, { schema }) : new Proxy({} as any, {
+  get: () => emptyChain,
+});

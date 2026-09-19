@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ScreenId, Place, Story, Actor, UserPreferences, AppLanguage, UserProfile, UserRole } from './types';
+import { ScreenId, Place, Story, Actor, AppLanguage, UserProfile } from './types';
 import { PLACES_DATA } from './data/places';
 import { STORIES_DATA } from './data/stories';
 import { ACTORS_DATA } from './data/actors';
@@ -9,10 +9,7 @@ import { INITIAL_USER } from './data/user';
 import { 
   syncUserProfileToFirestore, 
   getPlacesFromFirestore,
-  onAuthStateChange,
-  getActiveSessionRole,
-  setActiveSessionRole,
-  isAuthorizedAdmin
+  onAuthStateChange
 } from './lib/firebase';
 import { TRANSLATIONS } from './lib/i18n';
 
@@ -51,7 +48,8 @@ export default function App() {
     role: 'traveler'
   });
   
-  const [authTargetRole, setAuthTargetRole] = useState<UserRole>('traveler');
+  // Cosmetic only: which sign-in card AuthScreen opens on. Never a privilege.
+  const [authPortal, setAuthPortal] = useState<'public' | 'admin'>('public');
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(true);
 
   // Initialize onboarding, Firebase Auth & Firestore DB
@@ -71,20 +69,12 @@ export default function App() {
       localStorage.setItem('lavibemap_language', 'fr');
     }
 
-    // Listen to Firebase Auth state and respect active persistent role
+    // authUser.role is resolved from the Firebase ID token claims, not from storage.
     const unsubscribeAuth = onAuthStateChange((authUser) => {
-      const activeRole = getActiveSessionRole();
       if (authUser) {
-        // Enforce role separation: only grant admin if explicit admin session AND email authorized
-        const verifiedRole: UserRole = 
-          (activeRole === 'admin' && isAuthorizedAdmin(authUser.email))
-            ? 'admin'
-            : (activeRole === 'guide' ? 'guide' : 'traveler');
-
         setUser((prev) => ({
           ...prev,
           ...authUser,
-          role: verifiedRole,
           language: prev.language || 'fr'
         }));
         return;
@@ -93,7 +83,7 @@ export default function App() {
       setUser((prev) => ({
         ...INITIAL_USER,
         language: prev.language || 'fr',
-        role: activeRole || 'traveler'
+        role: 'traveler'
       }));
     });
 
@@ -113,24 +103,8 @@ export default function App() {
       }
     }).catch(console.warn);
 
-    // Dual-sync places to Cloud SQL
-    PLACES_DATA.forEach((p) => {
-      fetch('/api/db/places', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: p.id,
-          name: p.name,
-          location: p.location,
-          category: p.category,
-          description: p.description,
-          deepHistory: p.deepHistory,
-          image: p.image,
-          lat: String(p.coordinates?.lat || 6.36),
-          lng: String(p.coordinates?.lng || 2.08),
-        }),
-      }).catch(() => {});
-    });
+    // The catalogue is fed by the admin console and server-side scrapes only:
+    // POST /api/db/places now requires the admin claim, so a browser-wide seed would 401.
 
     return () => {
       if (unsubscribeAuth) unsubscribeAuth();
@@ -143,40 +117,22 @@ export default function App() {
     handleUpdateUser({ language: lang });
   };
 
-  // Switch role with persistent session storage
-  const handleRoleChange = (newRole: UserRole) => {
-    setActiveSessionRole(newRole);
-    setUser((prev) => ({ ...prev, role: newRole }));
-    if (newRole === 'admin') {
-      navigateTo('admin');
-    } else if (newRole === 'guide') {
-      navigateTo('guide-portal');
-    } else {
-      navigateTo('home');
-    }
+  const openAuth = (portal: 'public' | 'admin') => {
+    setAuthPortal(portal);
+    setScreenHistory((prev) => [...prev, 'auth']);
+    setCurrentScreen('auth');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateTo = (screen: ScreenId) => {
-    // Enforce exclusive role access
+    // Access follows the verified role; there is no local elevation path anymore.
     if (screen === 'admin' && user.role !== 'admin') {
-      if (isAuthorizedAdmin(user.email)) {
-        // Authorized administrator can switch into admin session
-        setActiveSessionRole('admin');
-        setUser((prev) => ({ ...prev, role: 'admin' }));
-      } else {
-        setAuthTargetRole('admin');
-        setScreenHistory((prev) => [...prev, 'auth']);
-        setCurrentScreen('auth');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
+      openAuth('admin');
+      return;
     }
 
     if (screen === 'guide-portal' && user.role !== 'guide' && user.role !== 'admin') {
-      setAuthTargetRole('guide');
-      setScreenHistory((prev) => [...prev, 'auth']);
-      setCurrentScreen('auth');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      openAuth('public');
       return;
     }
 
@@ -230,7 +186,7 @@ export default function App() {
         savedPlaces: updatedPlaces,
         placesCount: updatedPlaces.length
       };
-      syncUserProfileToFirestore(updatedUser as any).catch(console.warn);
+      syncUserProfileToFirestore(updatedUser).catch(console.warn);
       return updatedUser;
     });
   };
@@ -238,7 +194,7 @@ export default function App() {
   const handleUpdateUser = (updated: Partial<UserProfile>) => {
     setUser((prev) => {
       const updatedUser = { ...prev, ...updated };
-      syncUserProfileToFirestore(updatedUser as any).catch(console.warn);
+      syncUserProfileToFirestore(updatedUser).catch(console.warn);
       return updatedUser;
     });
   };
@@ -374,7 +330,6 @@ export default function App() {
           currentLang={currentLang}
           onLanguageChange={handleLanguageChange}
           user={user}
-          onRoleChange={handleRoleChange}
         />
       )}
 
@@ -396,10 +351,9 @@ export default function App() {
             {currentScreen === 'auth' && (
               <AuthScreen
                 currentLang={currentLang}
-                initialRole={authTargetRole}
+                initialPortal={authPortal}
                 onAuthSuccess={(authenticatedUser) => {
-                  setUser(authenticatedUser);
-                  setActiveSessionRole(authenticatedUser.role);
+                  setUser((prev) => ({ ...prev, ...authenticatedUser }));
                   if (authenticatedUser.role === 'admin') {
                     navigateTo('admin');
                   } else if (authenticatedUser.role === 'guide') {
@@ -515,10 +469,7 @@ export default function App() {
                 events={EVENTS_DATA}
                 onPlaceAddedOrUpdated={handlePlaceAddedOrUpdated}
                 onPlaceDeleted={handlePlaceDeleted}
-                onOpenAuth={(role) => {
-                  setAuthTargetRole(role || 'admin');
-                  navigateTo('auth');
-                }}
+                onOpenAuth={(role) => openAuth(role === 'admin' ? 'admin' : 'public')}
                 onBackToPublic={() => navigateTo('home')}
               />
             )}
@@ -528,10 +479,7 @@ export default function App() {
                 user={user}
                 currentLang={currentLang}
                 actors={actors}
-                onOpenAuth={(role) => {
-                  setAuthTargetRole(role || 'guide');
-                  navigateTo('auth');
-                }}
+                onOpenAuth={(role) => openAuth(role === 'admin' ? 'admin' : 'public')}
                 onBackToPublic={() => navigateTo('home')}
               />
             )}
@@ -542,10 +490,7 @@ export default function App() {
                 currentLang={currentLang}
                 onLanguageChange={handleLanguageChange}
                 onUpdateUser={handleUpdateUser}
-                onOpenAuth={(role) => {
-                  setAuthTargetRole(role || 'traveler');
-                  navigateTo('auth');
-                }}
+                onOpenAuth={(role) => openAuth(role === 'admin' ? 'admin' : 'public')}
                 onNavigate={navigateTo}
               />
             )}
