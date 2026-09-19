@@ -109,7 +109,7 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
 
       // Attribution
       L.control.attribution({ position: 'bottomright', prefix: false })
-        .addAttribution('&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> & CartoDB')
+        .addAttribution('&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · Imagerie &copy; Esri')
         .addTo(map);
 
       mapInstanceRef.current = map;
@@ -129,11 +129,13 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
       map.removeLayer(tileLayerRef.current);
     }
 
-    let tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    let tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    let subdomains = 'abc';
     let maxZoom = 19;
 
     if (layerType === 'satellite') {
       tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+      subdomains = '';
       maxZoom = 18;
     } else if (layerType === 'terrain') {
       tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
@@ -145,7 +147,7 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
 
     const newLayer = L.tileLayer(tileUrl, {
       maxZoom,
-      subdomains: 'abcd',
+      subdomains,
     }).addTo(map);
 
     tileLayerRef.current = newLayer;

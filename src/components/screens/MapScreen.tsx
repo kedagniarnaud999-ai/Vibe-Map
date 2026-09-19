@@ -652,7 +652,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             <div className="mt-3 pt-2.5 border-t border-[#f0ece1] flex items-center justify-between">
               <div className="text-xs text-[#6b665e]">
                 <span className="font-semibold text-[#c14e2f]">
-                  {activePlace.verifiedGuideIds.length} Guides Certifiés
+                  {activePlace.verifiedGuideIds.length}{' '}
+                  {activePlace.verifiedGuideIds.length > 1 ? 'Guides Certifiés' : 'Guide Certifié'}
                 </span>{' '}
                 disponibles
               </div>
