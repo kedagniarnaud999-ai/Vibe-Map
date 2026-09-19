@@ -40,6 +40,8 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
   const [guideBookings, setGuideBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusError, setStatusError] = useState('');
+  const [applicationError, setApplicationError] = useState('');
 
   // Application form state if not accredited
   const [applicantName, setApplicantName] = useState(user.name);
@@ -54,25 +56,35 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
 
   const isGuide = user.role === 'guide' || user.role === 'admin';
 
-  // Match current user with an Actor profile if available
-  const currentActor = actors.find((a) => 
-    a.name.toLowerCase().includes(user.name.toLowerCase()) || 
-    a.id === user.guideProfile?.actorId || 
-    a.id === '1'
-  ) || actors[0];
+  // A mediator may only ever see the actor profile explicitly attributed to their own account.
+  // There is no self-service attribution: an administrator links a verified guide to an actor.
+  const attributedActorId = user.guideProfile?.actorId;
+  const currentActor = attributedActorId
+    ? actors.find((a) => a.id === attributedActorId)
+    : undefined;
 
   useEffect(() => {
-    if (isGuide) {
-      getGuideBookingsFromFirestore(currentActor.id)
-        .then((records) => {
-          setGuideBookings(records);
-        })
-        .finally(() => setLoading(false));
+    if (!isGuide || !currentActor) {
+      setLoading(false);
+      return;
     }
-  }, [currentActor.id, isGuide]);
+
+    getGuideBookingsFromFirestore(currentActor.id)
+      .then((records) => {
+        setGuideBookings(records);
+      })
+      .finally(() => setLoading(false));
+  }, [currentActor, isGuide]);
 
   const handleStatusChange = async (bookingId: string, status: 'confirmed' | 'completed' | 'cancelled') => {
-    await updateBookingStatus(bookingId, status);
+    setStatusError('');
+    const updated = await updateBookingStatus(bookingId, status);
+
+    if (!updated) {
+      setStatusError('Mise à jour impossible : cette réservation ne dépend pas de votre compte.');
+      return;
+    }
+
     setGuideBookings((prev) =>
       prev.map((b) => (b.id === bookingId ? { ...b, status } : b))
     );
@@ -81,11 +93,12 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmittingApp(true);
+    setApplicationError('');
     try {
+      // userId and email are stamped from the verified session by submitGuideApplication;
+      // the client never declares who is applying.
       const res = await submitGuideApplication({
-        userId: user.id || 'applicant-' + Date.now(),
         fullName: applicantName,
-        email: user.email,
         phone: applicantPhone,
         region: applicantRegion,
         experienceYears: Number(applicantExp) || 1,
@@ -95,9 +108,12 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
       });
       if (res.success) {
         setSubmittedSuccess(true);
+      } else {
+        setApplicationError(res.error || "Envoi impossible. Vérifiez que votre session est toujours active.");
       }
     } catch (e) {
       console.error(e);
+      setApplicationError("Envoi impossible. Vérifiez que votre session est toujours active.");
     } finally {
       setSubmittingApp(false);
     }
@@ -129,7 +145,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                 Demande d'Agrément Enregistrée !
               </h4>
               <p className="text-xs text-green-800">
-                Votre dossier a été transmis à la commission des conservateurs. Vous serez notifié dès activation de votre compte guide.
+                Votre dossier a été transmis à la commission des conservateurs. Votre rôle reste <strong>{user.role}</strong> tant qu'un administrateur ne l'a pas validé.
               </p>
               {onBackToPublic && (
                 <button
@@ -147,7 +163,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                   Vous êtes déjà Guide ou Médiateur Agréé ?
                 </h4>
                 <p className="text-xs text-[#6b665e]">
-                  Connectez-vous avec votre compte professionnel pour accéder à vos demandes de visite et plannings.
+                  Le rôle est attaché à votre compte Firebase par un administrateur. Reconnectez-vous pour renouveler le jeton qui le porte.
                 </p>
                 {onOpenAuth && (
                   <button
@@ -155,7 +171,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                     className="w-full py-2.5 px-4 bg-[#5a5a40] text-white font-bold text-xs rounded-xl hover:bg-[#484833] transition-all flex items-center justify-center gap-2 cursor-pointer shadow"
                   >
                     <Award className="w-3.5 h-3.5" />
-                    <span>Se Connecter avec mon Compte Guide</span>
+                    <span>Reconnecter mon Compte</span>
                   </button>
                 )}
               </div>
@@ -213,10 +229,38 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">Langues pratiquées</label>
+                    <input
+                      type="text"
+                      value={applicantLanguages}
+                      onChange={(e) => setApplicantLanguages(e.target.value)}
+                      placeholder="Français, Fon, English"
+                      className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">Présentation</label>
+                    <textarea
+                      value={applicantBio}
+                      onChange={(e) => setApplicantBio(e.target.value)}
+                      rows={3}
+                      placeholder="Votre lien aux lieux et aux traditions que vous transmettez"
+                      className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs resize-none"
+                    />
+                  </div>
+
+                  {applicationError && (
+                    <div className="bg-[#fceee9] border border-[#e8e2d5] rounded-xl px-3 py-2.5 text-[11px] font-semibold text-[#c14e2f]">
+                      {applicationError}
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     disabled={submittingApp}
-                    className="w-full py-2.5 rounded-xl bg-[#c14e2f] text-white font-bold text-xs hover:bg-[#a83f23] transition-all flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-[#c14e2f] text-white font-bold text-xs hover:bg-[#a83f23] transition-all flex items-center justify-center gap-1.5 shadow cursor-pointer disabled:opacity-60"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{submittingApp ? 'Envoi...' : 'Soumettre ma Demande d’Agrément'}</span>
@@ -235,6 +279,37 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                 </div>
               )}
             </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentActor) {
+    return (
+      <div className="min-h-screen bg-[#f5f1e8] py-8 px-4 font-sans text-[#2c2926] flex items-center justify-center">
+        <div className="max-w-lg w-full bg-white rounded-3xl p-6 sm:p-8 border border-[#e8e2d5] shadow-xl space-y-4 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[#faf7f0] text-[#5a5a40] flex items-center justify-center mx-auto border border-[#e8e2d5]">
+            <Lock className="w-7 h-7" />
+          </div>
+          <h2 className="font-serif font-bold text-xl">
+            Compte guide vérifié, profil non rattaché
+          </h2>
+          <p className="text-xs text-[#6b665e] leading-relaxed">
+            Votre rôle de médiateur est bien présent dans votre jeton, mais aucune fiche de médiateur
+            n'est encore associée à votre identifiant ({user.id.slice(0, 8)}…). Sans ce rattachement,
+            aucun voyageur ne peut vous être attribué et aucune réservation ne vous est visible.
+          </p>
+          <p className="text-[11px] text-[#8c867c]">
+            Un administrateur effectue le rattachement après vérification du dossier d'agrément.
+          </p>
+          {onBackToPublic && (
+            <button
+              onClick={onBackToPublic}
+              className="w-full py-2.5 rounded-xl bg-[#5a5a40] text-white font-bold text-xs hover:bg-[#484833] transition-all"
+            >
+              Retourner à la Découverte du Patrimoine
+            </button>
           )}
         </div>
       </div>
@@ -293,6 +368,12 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
               <span>Demandes de Visites & Immersions ({guideBookings.length})</span>
             </h3>
           </div>
+
+          {statusError && (
+            <div className="bg-[#fceee9] border border-[#e8e2d5] rounded-xl px-3 py-2.5 text-[11px] font-semibold text-[#c14e2f]">
+              {statusError}
+            </div>
+          )}
 
           {loading ? (
             <div className="text-center py-6 text-xs text-[#8c867c]">Chargement de vos réservations...</div>
