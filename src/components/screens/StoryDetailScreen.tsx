@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, 
-  Share2, 
-  Bookmark, 
+  Share2,
   Clock, 
   Volume2, 
   Play, 
@@ -31,7 +30,6 @@ export const StoryDetailScreen: React.FC<StoryDetailScreenProps> = ({
 }) => {
   const [activeSymbolId, setActiveSymbolId] = useState<string>('lion');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
 
   const selectedSymbol = story.symbols?.find((s) => s.id === activeSymbolId) || story.symbols?.[0];
 
@@ -50,22 +48,14 @@ export const StoryDetailScreen: React.FC<StoryDetailScreenProps> = ({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsSaved(!isSaved)}
-              className={`p-2 rounded-full transition-colors ${
-                isSaved ? 'text-[#c14e2f] bg-[#fceee9]' : 'text-[#6b665e] hover:bg-[#e8e2d5]'
-              }`}
-              title="Save Article"
-            >
-              <Bookmark className="w-5 h-5" />
-            </button>
-            <button
               onClick={() => {
                 if (navigator.share) {
                   navigator.share({ title: story.title, text: story.subtitle, url: window.location.href });
                 }
               }}
               className="p-2 rounded-full text-[#6b665e] hover:bg-[#e8e2d5] transition-colors"
-              title="Share"
+              title="Partager"
+              aria-label="Partager"
             >
               <Share2 className="w-5 h-5" />
             </button>

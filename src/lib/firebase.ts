@@ -23,8 +23,7 @@ import {
   where,
   getDocs,
   serverTimestamp,
-  orderBy,
-  onSnapshot
+  orderBy
 } from 'firebase/firestore';
 import { UserProfile, ItineraryStop, Place, UserRole, GuideApplication } from '../types';
 
@@ -144,13 +143,43 @@ function travelerProfile(fbUser: FirebaseUser): UserProfile {
 }
 
 /**
+ * The client's only picture of "who is connected". `profile-unavailable` exists because a
+ * verified Firebase identity can still have an unreadable profile document: reporting it as
+ * signed-out used to render the anonymous shell while auth.currentUser stayed live.
+ */
+export type SessionStatus = 'signed-out' | 'ready' | 'profile-unavailable';
+
+export interface VerifiedSession {
+  status: SessionStatus;
+  profile: UserProfile | null;
+  uid: string;
+  email: string;
+}
+
+export const SIGNED_OUT_SESSION: VerifiedSession = {
+  status: 'signed-out',
+  profile: null,
+  uid: '',
+  email: ''
+};
+
+/**
  * Authentication. Sign-in and sign-up can only ever produce a traveler session:
  * guide and admin access require a Firebase custom claim granted by an operator or an admin.
  */
+async function sessionOrShell(fbUser: FirebaseUser, displayName?: string): Promise<UserProfile> {
+  try {
+    return await establishSession(fbUser, displayName);
+  } catch (error) {
+    console.warn('Profile document unreadable right after sign-in:', error);
+    return { ...travelerProfile(fbUser), role: await getVerifiedRole() };
+  }
+}
+
 export async function loginWithGoogle(): Promise<{ user: UserProfile | null; error?: string }> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return { user: await establishSession(result.user) };
+    return { user: await sessionOrShell(result.user) };
   } catch (error: any) {
     return { user: null, error: error?.message || 'Erreur lors de la connexion Google' };
   }
@@ -159,7 +188,7 @@ export async function loginWithGoogle(): Promise<{ user: UserProfile | null; err
 export async function loginWithEmail(email: string, pass: string): Promise<{ user: UserProfile | null; error?: string }> {
   try {
     const result = await signInWithEmailAndPassword(auth, email, pass);
-    return { user: await establishSession(result.user) };
+    return { user: await sessionOrShell(result.user) };
   } catch (error: any) {
     return { user: null, error: error?.message };
   }
@@ -172,7 +201,7 @@ export async function registerWithEmail(
 ): Promise<{ user: UserProfile | null; error?: string }> {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, pass);
-    return { user: await establishSession(result.user, name) };
+    return { user: await sessionOrShell(result.user, name) };
   } catch (error: any) {
     return { user: null, error: error?.message };
   }
@@ -180,15 +209,15 @@ export async function registerWithEmail(
 
 export async function establishSession(fbUser: FirebaseUser, displayName?: string): Promise<UserProfile> {
   const role = await getVerifiedRole();
-  const existing = await loadUserProfileFromFirestore(fbUser.uid);
+  const stored = await readProfileDoc(fbUser.uid);
 
-  if (existing) {
+  if (stored.state === 'found') {
     return {
-      ...existing,
+      ...stored.profile,
       id: fbUser.uid,
-      email: fbUser.email || existing.email,
-      name: existing.name || displayName || fbUser.displayName || 'Explorateur Culturel',
-      avatar: fbUser.photoURL || existing.avatar,
+      email: fbUser.email || stored.profile.email,
+      name: stored.profile.name || displayName || fbUser.displayName || 'Explorateur Culturel',
+      avatar: fbUser.photoURL || stored.profile.avatar,
       role
     };
   }
@@ -211,30 +240,25 @@ export async function logoutUser() {
   }
 }
 
-export function onAuthStateChange(callback: (user: UserProfile | null) => void) {
-  return onIdTokenChanged(auth, async (fbUser) => {
-    if (!fbUser) {
-      callback(null);
-      return;
-    }
+export async function restoreSession(): Promise<VerifiedSession> {
+  const fbUser = auth.currentUser;
+  if (!fbUser) {
+    return SIGNED_OUT_SESSION;
+  }
 
-    try {
-      const existing = await loadUserProfileFromFirestore(fbUser.uid);
-      if (existing) {
-        callback({
-          ...existing,
-          id: fbUser.uid,
-          email: fbUser.email || existing.email,
-          role: await getVerifiedRole()
-        });
-        return;
-      }
+  const { uid, email = '' } = fbUser;
 
-      callback(await establishSession(fbUser));
-    } catch (error) {
-      console.warn('Session restore error:', error);
-      callback(null);
-    }
+  try {
+    return { status: 'ready', profile: await establishSession(fbUser), uid, email };
+  } catch (error) {
+    console.warn('Session restore error:', error);
+    return { status: 'profile-unavailable', profile: null, uid, email };
+  }
+}
+
+export function onAuthStateChange(callback: (session: VerifiedSession) => void) {
+  return onIdTokenChanged(auth, async () => {
+    callback(await restoreSession());
   });
 }
 
@@ -281,47 +305,26 @@ export async function syncUserProfileToFirestore(user: UserProfile): Promise<boo
 }
 
 /**
- * Load user profile from Firestore
+ * Resolves the signed-in user's profile document. A missing document is reported as
+ * `missing`; a rejected or failed read propagates, because "no profile yet" and "the profile
+ * is unreadable" must not end up looking the same to the UI.
  */
-export async function loadUserProfileFromFirestore(userId: string): Promise<UserProfile | null> {
-  try {
-    const uid = userId || getVerifiedUid();
-    if (!uid) {
-      return null;
-    }
-
-    const userRef = doc(db, 'users', uid);
-    const docSnap = await getDoc(userRef);
-    if (docSnap.exists()) {
-      return {
-        ...(docSnap.data() as UserProfile),
-        id: uid,
-        role: await getVerifiedRole()
-      };
-    }
-    return null;
-  } catch (error) {
-    console.warn('Firestore load profile error:', error);
-    return null;
+async function readProfileDoc(uid: string): Promise<
+  { state: 'found'; profile: UserProfile } | { state: 'missing' }
+> {
+  const docSnap = await getDoc(doc(db, 'users', uid));
+  if (!docSnap.exists()) {
+    return { state: 'missing' };
   }
-}
 
-/**
- * Real-time listener for user profile
- */
-export function subscribeToUserProfile(userId: string, callback: (user: UserProfile) => void) {
-  const userRef = doc(db, 'users', userId || getVerifiedUid());
-  return onSnapshot(userRef, async (snapshot) => {
-    if (snapshot.exists()) {
-      callback({
-        ...(snapshot.data() as UserProfile),
-        id: userId || getVerifiedUid(),
-        role: await getVerifiedRole()
-      });
+  return {
+    state: 'found',
+    profile: {
+      ...(docSnap.data() as UserProfile),
+      id: uid,
+      role: await getVerifiedRole()
     }
-  }, (err) => {
-    console.warn('User profile snapshot error:', err);
-  });
+  };
 }
 
 /**
@@ -419,16 +422,6 @@ export async function getAllBookingsForAdmin(): Promise<BookingRecord[]> {
   } catch (error) {
     console.warn('Firestore admin get bookings error:', error);
     return [];
-  }
-}
-
-export async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'completed' | 'cancelled') {
-  try {
-    await updateDoc(doc(db, 'bookings', bookingId), { status });
-    return true;
-  } catch (e) {
-    console.warn('Update booking error:', e);
-    return false;
   }
 }
 

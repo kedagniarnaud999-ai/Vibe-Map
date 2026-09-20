@@ -19,7 +19,7 @@ import {
   Check
 } from 'lucide-react';
 import { UserProfile, Actor, AppLanguage, UserRole } from '../../types';
-import { getGuideBookingsFromFirestore, updateBookingStatus, submitGuideApplication, BookingRecord } from '../../lib/firebase';
+import { getGuideBookingsFromFirestore, submitGuideApplication, BookingRecord } from '../../lib/firebase';
 import { TRANSLATIONS } from '../../lib/i18n';
 
 interface GuidePortalScreenProps {
@@ -40,7 +40,6 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
   const [guideBookings, setGuideBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusError, setStatusError] = useState('');
   const [applicationError, setApplicationError] = useState('');
 
   // Application form state if not accredited
@@ -75,20 +74,6 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
       })
       .finally(() => setLoading(false));
   }, [currentActor, isGuide]);
-
-  const handleStatusChange = async (bookingId: string, status: 'confirmed' | 'completed' | 'cancelled') => {
-    setStatusError('');
-    const updated = await updateBookingStatus(bookingId, status);
-
-    if (!updated) {
-      setStatusError('Mise à jour impossible : cette réservation ne dépend pas de votre compte.');
-      return;
-    }
-
-    setGuideBookings((prev) =>
-      prev.map((b) => (b.id === bookingId ? { ...b, status } : b))
-    );
-  };
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -369,12 +354,6 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
             </h3>
           </div>
 
-          {statusError && (
-            <div className="bg-[#fceee9] border border-[#e8e2d5] rounded-xl px-3 py-2.5 text-[11px] font-semibold text-[#c14e2f]">
-              {statusError}
-            </div>
-          )}
-
           {loading ? (
             <div className="text-center py-6 text-xs text-[#8c867c]">Chargement de vos réservations...</div>
           ) : guideBookings.length === 0 ? (
@@ -418,17 +397,13 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                       {b.status.toUpperCase()}
                     </span>
 
-                    {b.id && b.status !== 'completed' && (
-                      <button
-                        onClick={() => handleStatusChange(b.id!, 'completed')}
-                        className="px-3 py-1.5 bg-[#2e5a44] text-white text-[11px] font-semibold rounded-xl hover:bg-[#204030] cursor-pointer"
-                      >
-                        Marquer Réalisée
-                      </button>
-                    )}
                   </div>
                 </div>
               ))}
+              <p className="text-[11px] text-[#8c867c] pt-1">
+                L'état d'une réservation se confirme depuis la console d'administration : le portail médiateur
+                reste en lecture tant qu'aucun compte n'est rattaché à une fiche médiateur.
+              </p>
             </div>
           )}
         </div>

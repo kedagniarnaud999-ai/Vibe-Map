@@ -15,14 +15,15 @@ import {
   X
 } from 'lucide-react';
 import { Actor } from '../../types';
-import { createBookingInFirestore, getVerifiedEmail, getVerifiedUid } from '../../lib/firebase';
+import { createBookingInFirestore } from '../../lib/firebase';
 
 interface ActorProfileScreenProps {
   actor: Actor;
   onBack: () => void;
+  requireSession: () => boolean;
 }
 
-export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, onBack }) => {
+export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, onBack, requireSession }) => {
   const [selectedExperience, setSelectedExperience] = useState<any | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState('');
@@ -31,6 +32,9 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
 
   const openBookingDrawer = (exp: any) => {
     setBookingError('');
+    if (!requireSession()) {
+      return;
+    }
     setSelectedExperience(exp);
   };
 
@@ -42,8 +46,8 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
   const handleBook = async () => {
     if (!selectedExperience) return;
 
-    if (!getVerifiedUid() || !getVerifiedEmail()) {
-      setBookingError('Connectez-vous avec un compte verifie pour demander une introduction.');
+    if (!requireSession()) {
+      setBookingError('Connectez-vous avec un compte vérifié pour demander une introduction.');
       return;
     }
 
@@ -61,7 +65,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
     setIsSubmitting(false);
 
     if (!bookingId) {
-      setBookingError('La reservation na pas pu etre enregistree. Verifiez que votre session est toujours active.');
+      setBookingError("La réservation n’a pas pu être enregistrée. Vérifiez que votre session est toujours active.");
       return;
     }
 
@@ -231,7 +235,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                   onClick={() => openBookingDrawer(exp)}
                   className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
                 >
-                  Book Experience
+                  Réserver cette expérience
                 </button>
               </div>
             ))}

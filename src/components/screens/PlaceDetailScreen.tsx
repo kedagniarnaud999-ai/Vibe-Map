@@ -10,6 +10,7 @@ import {
   Volume2, 
   CheckCircle2, 
   MessageCircle, 
+  AlertTriangle, 
   Info, 
   Eye, 
   VolumeX,
@@ -25,7 +26,7 @@ interface PlaceDetailScreenProps {
   onBack: () => void;
   onSelectActor: (actor: Actor) => void;
   isSaved?: boolean;
-  onToggleSave?: (placeId: string) => void;
+  onToggleSave?: (placeId: string) => Promise<boolean>;
 }
 
 export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
@@ -40,7 +41,8 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
   const [audioProgress, setAudioProgress] = useState(25);
   const [expandedSection, setExpandedSection] = useState<'history' | 'etiquette' | 'visuals'>('history');
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false);
+  const [toast, setToast] = useState<{ message: string; tone: 'ok' | 'warn' } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const verifiedGuides = actors.filter((a) =>
     place.verifiedGuideIds.includes(a.id)
@@ -50,12 +52,24 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
     setIsPlayingAudio(!isPlayingAudio);
   };
 
-  const handleSave = () => {
-    if (onToggleSave) {
-      onToggleSave(place.id);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2500);
+  const notify = (message: string, tone: 'ok' | 'warn' = 'ok') => {
+    setToast({ message, tone });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleSave = async () => {
+    if (!onToggleSave || isSaving) {
+      return;
     }
+
+    setIsSaving(true);
+    const saved = await onToggleSave(place.id);
+    setIsSaving(false);
+    if (!saved) {
+      notify('Enregistrement impossible : vérifiez votre session.', 'warn');
+      return;
+    }
+    notify(isSaved ? 'Site retiré de votre carnet.' : 'Site enregistré dans votre carnet de voyage !');
   };
 
   return (
@@ -83,24 +97,26 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={handleSave}
-              className={`w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center transition-all shadow-md ${
+              disabled={isSaving}
+              className={`w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center transition-all shadow-md disabled:opacity-60 ${
                 isSaved ? 'bg-[#c14e2f] text-white' : 'bg-white/80 text-[#2c2926] hover:bg-white'
               }`}
-              title="Save Site"
+              title={isSaved ? 'Retirer de mon carnet' : 'Enregistrer dans mon carnet'}
+              aria-label={isSaved ? 'Retirer de mon carnet' : 'Enregistrer dans mon carnet'}
             >
-              <Bookmark className="w-5 h-5" />
+              <Bookmark className={`w-5 h-5 ${isSaving ? 'animate-pulse' : ''}`} />
             </button>
             <button
               onClick={() => {
                 if (navigator.share) {
                   navigator.share({ title: place.name, text: place.description, url: window.location.href });
                 } else {
-                  setShowToast(true);
-                  setTimeout(() => setShowToast(false), 2000);
+                  notify('Partage indisponible sur ce navigateur.', 'warn');
                 }
               }}
               className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-[#2c2926] hover:bg-white transition-all shadow-md"
-              title="Share"
+              title="Partager"
+              aria-label="Partager"
             >
               <Share2 className="w-5 h-5" />
             </button>
@@ -127,10 +143,14 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
       {/* Main Content Area */}
       <div className="max-w-2xl mx-auto px-4 pt-5 space-y-6">
         {/* Toast Notification */}
-        {showToast && (
+        {toast && (
           <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-[#c14e2f] text-white text-xs font-semibold rounded-full shadow-lg flex items-center gap-2 animate-fade-in">
-            <CheckCircle2 className="w-4 h-4 text-[#d9822b]" />
-            <span>Site saved to your Travel Journal!</span>
+            {toast.tone === 'ok' ? (
+              <CheckCircle2 className="w-4 h-4 text-[#d9822b]" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 text-[#f5d0b0]" />
+            )}
+            <span>{toast.message}</span>
           </div>
         )}
 
