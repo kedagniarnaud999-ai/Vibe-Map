@@ -1,5 +1,5 @@
 export type UserRole = 'traveler' | 'guide' | 'admin';
-export type AppLanguage = 'fr' | 'en' | 'fon' | 'goun' | 'yoruba';
+export type AppLanguage = 'fr' | 'en';
 
 export type ScreenId = 
   | 'onboarding'

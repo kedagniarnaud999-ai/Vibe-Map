@@ -18,13 +18,11 @@ import {
   Send,
   Check
 } from 'lucide-react';
-import { UserProfile, Actor, AppLanguage, UserRole } from '../../types';
+import { UserProfile, Actor, UserRole } from '../../types';
 import { getGuideBookingsFromFirestore, submitGuideApplication, BookingRecord } from '../../lib/firebase';
-import { TRANSLATIONS } from '../../lib/i18n';
 
 interface GuidePortalScreenProps {
   user: UserProfile;
-  currentLang: AppLanguage;
   actors: Actor[];
   onOpenAuth?: (targetRole?: UserRole) => void;
   onBackToPublic?: () => void;
@@ -32,12 +30,10 @@ interface GuidePortalScreenProps {
 
 export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
   user,
-  currentLang,
   actors,
   onOpenAuth,
   onBackToPublic
 }) => {
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
   const [guideBookings, setGuideBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [applicationError, setApplicationError] = useState('');

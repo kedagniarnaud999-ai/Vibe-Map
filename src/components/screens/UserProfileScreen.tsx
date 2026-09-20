@@ -23,14 +23,12 @@ import {
   Lock,
   AlertTriangle
 } from 'lucide-react';
-import { UserPreferences, UserRole, AppLanguage, ScreenId } from '../../types';
+import { UserPreferences, UserRole, ScreenId } from '../../types';
 import { logoutUser, submitGuideApplication } from '../../lib/firebase';
-import { TRANSLATIONS } from '../../lib/i18n';
+import { SUPPORTED_LANGUAGES, useI18n } from '../../lib/i18n';
 
 interface UserProfileScreenProps {
   user: UserPreferences;
-  currentLang: AppLanguage;
-  onLanguageChange: (lang: AppLanguage) => void;
   onUpdateUser?: (updated: Partial<UserPreferences>) => Promise<boolean>;
   onOpenAuth: (targetRole?: UserRole) => void;
   onNavigate: (screen: ScreenId) => void;
@@ -38,17 +36,15 @@ interface UserProfileScreenProps {
 
 export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({ 
   user, 
-  currentLang,
-  onLanguageChange,
   onUpdateUser,
   onOpenAuth,
   onNavigate
 }) => {
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
+  const { lang, setLang, t } = useI18n();
   const [travelStyle, setTravelStyle] = useState(user.travelStyle);
   const [notifications, setNotifications] = useState(user.notificationsEnabled);
   const [saveToast, setSaveToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('Préférences enregistrées avec succès !');
+  const [toastMessage, setToastMessage] = useState(t('Préférences enregistrées avec succès !'));
   const [toastTone, setToastTone] = useState<'ok' | 'error'>('ok');
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
 
@@ -77,7 +73,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
       ...user,
       travelStyle,
       notificationsEnabled: notifications,
-      language: currentLang
+      language: lang
     };
 
     setIsSavingPreferences(true);
@@ -86,8 +82,8 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
 
     flash(
       synced
-        ? 'Préférences synchronisées avec Firestore !'
-        : 'Enregistrement refusé : une session vérifiée est requise.',
+        ? t('Préférences synchronisées avec Firestore !')
+        : t('Enregistrement refusé : une session vérifiée est requise.'),
       synced ? 'ok' : 'error'
     );
   };
@@ -120,14 +116,14 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
         setTimeout(() => {
           setShowGuideModal(false);
           setAppliedSuccess(false);
-          flash('Demande d’agrément guide envoyée pour validation !');
+          flash(t('Demande d’agrément guide envoyée pour validation !'));
         }, 1500);
       } else {
-        setApplicationError(res.error || "Envoi impossible. Vérifiez que votre session est toujours active.");
+        setApplicationError(res.error || t('Envoi impossible. Vérifiez que votre session est toujours active.'));
       }
     } catch (e) {
       console.error(e);
-      setApplicationError("Envoi impossible. Vérifiez que votre session est toujours active.");
+      setApplicationError(t('Envoi impossible. Vérifiez que votre session est toujours active.'));
     } finally {
       setApplyingLoading(false);
     }
@@ -155,10 +151,10 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-[#5a5a40]">
-            Profil & Accréditation
+            {t('Profil & Accréditation')}
           </span>
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#2c2926]">
-            {t.navProfile}
+            {t('Mon Profil')}
           </h2>
         </div>
 
@@ -167,7 +163,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
           className="px-3.5 py-1.5 rounded-xl bg-white border border-[#e8e2d5] text-xs font-semibold text-[#c14e2f] hover:bg-[#faf7f0] flex items-center gap-1.5 shadow-2xs cursor-pointer"
         >
           <LogIn className="w-3.5 h-3.5" />
-          <span>Changer de Compte</span>
+          <span>{t('Changer de Compte')}</span>
         </button>
       </div>
 
@@ -191,17 +187,17 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
               {userRole === 'admin' ? (
                 <>
                   <Shield className="w-3 h-3 text-amber-400" />
-                  <span>👑 Administrateur / Conservateur</span>
+                  <span>👑 {t('Administrateur / Conservateur')}</span>
                 </>
               ) : userRole === 'guide' ? (
                 <>
                   <Award className="w-3 h-3 text-white" />
-                  <span>🎖️ Médiateur Culturel Agréé</span>
+                  <span>🎖️ {t('Médiateur Culturel Agréé')}</span>
                 </>
               ) : (
                 <>
                   <Compass className="w-3 h-3 text-[#c14e2f]" />
-                  <span>🎒 Voyageur du Patrimoine</span>
+                  <span>🎒 {t('Voyageur du Patrimoine')}</span>
                 </>
               )}
             </span>
@@ -210,7 +206,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
           <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
             <span className="inline-flex items-center gap-1 text-[11px] text-[#2e5a44] bg-green-50 px-2 py-0.5 rounded-md border border-green-200">
               <Database className="w-3 h-3" />
-              <span>Base Firestore & PostgreSQL Connectée</span>
+              <span>{t('Base Firestore & PostgreSQL Connectée')}</span>
             </span>
           </div>
         </div>
@@ -223,18 +219,18 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             <div className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-amber-400" />
               <h4 className="font-serif font-bold text-base text-amber-400">
-                Espace Conservateur du Patrimoine
+                {t('Espace Conservateur du Patrimoine')}
               </h4>
             </div>
             <p className="text-xs text-gray-300">
-              Supervision des sanctuaires réels, scraping automatique de données, validation des réservations et gestion des guides agréés.
+              {t('Supervision des sanctuaires réels, scraping automatique de données, validation des réservations et gestion des guides agréés.')}
             </p>
           </div>
           <button
             onClick={() => onNavigate('admin')}
             className="px-5 py-2.5 rounded-xl bg-amber-400 text-[#2c2926] font-bold text-xs hover:bg-amber-300 transition-all flex-shrink-0 cursor-pointer shadow"
           >
-            Accéder à l'Administration →
+            {t("Accéder à l'Administration")} →
           </button>
         </div>
       )}
@@ -245,18 +241,18 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-amber-200" />
               <h4 className="font-serif font-bold text-base text-white">
-                Portail Guide & Médiateur Culturel
+                {t('Portail Guide & Médiateur Culturel')}
               </h4>
             </div>
             <p className="text-xs text-gray-200">
-              Consultez vos demandes d'immersion reçues, mettez à jour votre tarif et gérez vos confirmations de visite.
+              {t("Consultez vos demandes d'immersion reçues, mettez à jour votre tarif et gérez vos confirmations de visite.")}
             </p>
           </div>
           <button
             onClick={() => onNavigate('guide-portal')}
             className="px-5 py-2.5 rounded-xl bg-white text-[#5a5a40] font-bold text-xs hover:bg-[#faf7f0] transition-all flex-shrink-0 cursor-pointer shadow"
           >
-            Ouvrir mon Espace Guide →
+            {t('Ouvrir mon Espace Guide')} →
           </button>
         </div>
       )}
@@ -267,11 +263,11 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             <div className="flex items-center gap-2 text-[#c14e2f]">
               <Award className="w-5 h-5" />
               <h4 className="font-serif font-bold text-base text-[#2c2926]">
-                Vous êtes Guide ou Gardien de Tradition ?
+                {t('Vous êtes Guide ou Gardien de Tradition ?')}
               </h4>
             </div>
             <p className="text-xs text-[#6b665e] max-w-md">
-              Rejoignez le réseau officiel des médiateurs culturels agréés de La Vibe Map pour faire rayonner l'histoire du Bénin et recevoir des réservations de voyageurs.
+              {t("Rejoignez le réseau officiel des médiateurs culturels agréés de La Vibe Map pour faire rayonner l'histoire du Bénin et recevoir des réservations de voyageurs.")}
             </p>
           </div>
           <button
@@ -284,7 +280,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             }}
             className="px-4 py-2.5 rounded-xl bg-[#5a5a40] text-white font-bold text-xs hover:bg-[#484833] transition-all flex-shrink-0 cursor-pointer shadow-sm"
           >
-            {user.id ? 'Postuler comme Guide Agréé' : 'Se connecter pour postuler'}
+            {user.id ? t('Postuler comme Guide Agréé') : t('Se connecter pour postuler')}
           </button>
         </div>
       )}
@@ -292,33 +288,27 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
       {/* Travel Preferences & Language */}
       <div className="bg-white rounded-3xl p-6 border border-[#e8e2d5] shadow-sm space-y-5">
         <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-          Préférences Culturelles & Langue
+          {t('Préférences Culturelles & Langue')}
         </h3>
 
         {/* Language Selection */}
         <div className="space-y-2">
           <label className="text-xs font-bold text-[#6b665e] uppercase tracking-wider block">
-            {t.systemLang} (Synchronisation Temps Réel)
+            {t('Langue du système (synchronisation temps réel)')}
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {[
-              { code: 'fr' as AppLanguage, label: 'Français 🇫🇷' },
-              { code: 'en' as AppLanguage, label: 'English 🇬🇧' },
-              { code: 'fon' as AppLanguage, label: 'Fɔ̀ngbè 🇧🇯' },
-              { code: 'goun' as AppLanguage, label: 'Gungbe 🇧🇯' },
-              { code: 'yoruba' as AppLanguage, label: 'Yorùbá 🇧🇯' },
-            ].map((lang) => (
+          <div className="grid grid-cols-2 gap-2">
+            {SUPPORTED_LANGUAGES.map((option) => (
               <button
-                key={lang.code}
+                key={option.code}
                 type="button"
-                onClick={() => onLanguageChange(lang.code)}
+                onClick={() => setLang(option.code)}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                  currentLang === lang.code
+                  lang === option.code
                     ? 'bg-[#c14e2f] text-white border-[#c14e2f]'
                     : 'bg-[#faf7f0] text-[#2c2926] border-[#e8e2d5] hover:bg-white'
                 }`}
               >
-                {lang.label}
+                {option.label}
               </button>
             ))}
           </div>
@@ -327,13 +317,13 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
         {/* Travel Style */}
         <div className="space-y-2">
           <label className="text-xs font-bold text-[#6b665e] uppercase tracking-wider block">
-            Rythme d'exploration
+            {t("Rythme d'exploration")}
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {[
-              { id: 'Relaxed', label: 'Doux', desc: 'Flâneries, sanctuaires et thé' },
-              { id: 'Explorer', label: 'Explorateur', desc: 'Découverte équilibrée et marchés' },
-              { id: 'Cultural Deep-Dive', label: 'Immersion Profonde', desc: 'Maîtres artisans, rituels et cours royales' }
+              { id: 'Relaxed', label: t('Doux'), desc: t('Flâneries, sanctuaires et thé') },
+              { id: 'Explorer', label: t('Explorateur'), desc: t('Découverte équilibrée et marchés') },
+              { id: 'Cultural Deep-Dive', label: t('Immersion Profonde'), desc: t('Maîtres artisans, rituels et cours royales') }
             ].map((style) => (
               <button
                 key={style.id}
@@ -356,10 +346,10 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
         <div className="flex items-center justify-between pt-2 border-t border-[#f0ece1]">
           <div>
             <h4 className="font-serif font-bold text-sm text-[#2c2926]">
-              Alertes Cérémonies & Rassemblements
+              {t('Alertes Cérémonies & Rassemblements')}
             </h4>
             <p className="text-xs text-[#8c867c]">
-              Notifications pour les Vodun Days, Fête de la Gaani et sorties Egungun
+              {t('Notifications pour les Vodun Days, Fête de la Gaani et sorties Egungun')}
             </p>
           </div>
           <button
@@ -383,14 +373,14 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             disabled={isSavingPreferences}
             className="flex-1 py-3 rounded-xl bg-[#c14e2f] text-white font-bold text-xs shadow hover:bg-[#a83f23] active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
           >
-            {isSavingPreferences ? 'Synchronisation…' : 'Enregistrer les Préférences'}
+            {isSavingPreferences ? t('Synchronisation…') : t('Enregistrer les Préférences')}
           </button>
           <button
             onClick={handleLogout}
             className="px-4 py-3 rounded-xl bg-white border border-[#e8e2d5] text-red-600 font-bold text-xs hover:bg-red-50 transition-all cursor-pointer flex items-center gap-1.5"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Déconnexion</span>
+            <span>{t('Déconnexion')}</span>
           </button>
         </div>
       </div>
@@ -404,7 +394,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             className="text-[11px] text-[#8c867c] hover:text-[#2c2926] hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
           >
             <Lock className="w-3 h-3 text-[#8c867c]" />
-            <span>Accès Réservé au Conservatoire & Administration</span>
+            <span>{t('Accès Réservé au Conservatoire & Administration')}</span>
           </button>
         </div>
       )}
@@ -420,10 +410,10 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                 </div>
                 <div>
                   <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-                    Agrément Médiateur & Guide Culturel
+                    {t('Agrément Médiateur & Guide Culturel')}
                   </h3>
                   <p className="text-[11px] text-[#6b665e]">
-                    Formulaire officiel pour guides et conteurs du Bénin
+                    {t('Formulaire officiel pour guides et conteurs du Bénin')}
                   </p>
                 </div>
               </div>
@@ -441,17 +431,17 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                   <Check className="w-8 h-8" />
                 </div>
                 <h4 className="font-serif font-bold text-lg text-[#2c2926]">
-                  Dossier Transmis avec Succès !
+                  {t('Dossier Transmis avec Succès !')}
                 </h4>
                 <p className="text-xs text-[#6b665e] max-w-xs mx-auto">
-                  Votre demande d'agrément a été transmise aux conservateurs. Vous recevrez une notification dès validation.
+                  {t("Votre demande d'agrément a été transmise aux conservateurs. Vous recevrez une notification dès validation.")}
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmitGuideApplication} className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                    Nom & Prénom du Guide
+                    {t('Nom & Prénom du Guide')}
                   </label>
                   <input
                     type="text"
@@ -465,7 +455,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                      Numéro Téléphone / WhatsApp
+                      {t('Numéro Téléphone / WhatsApp')}
                     </label>
                     <input
                       type="tel"
@@ -479,7 +469,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
 
                   <div>
                     <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                      Années d'Expérience
+                      {t("Années d'Expérience")}
                     </label>
                     <input
                       type="number"
@@ -494,13 +484,13 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
 
                 <div>
                   <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                    Région & Circuits Principaux
+                    {t('Région & Circuits Principaux')}
                   </label>
                   <input
                     type="text"
                     value={applicantRegion}
                     onChange={(e) => setApplicantRegion(e.target.value)}
-                    placeholder="Ex: Ouidah, Grand-Popo, Abomey, Porto-Novo, Dassa..."
+                    placeholder={t('Ex: Ouidah, Grand-Popo, Abomey, Porto-Novo, Dassa...')}
                     required
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                   />
@@ -508,13 +498,13 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
 
                 <div>
                   <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                    Langues Maîtrisées
+                    {t('Langues Maîtrisées')}
                   </label>
                   <input
                     type="text"
                     value={applicantLanguages}
                     onChange={(e) => setApplicantLanguages(e.target.value)}
-                    placeholder="Ex: Français, Fon, Anglais, Yorùbá..."
+                    placeholder={t('Ex: Français, Fon, Anglais, Yorùbá...')}
                     required
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                   />
@@ -522,13 +512,13 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
 
                 <div>
                   <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                    Spécialités Culturelles & Domaines
+                    {t('Spécialités Culturelles & Domaines')}
                   </label>
                   <input
                     type="text"
                     value={applicantSpecialties}
                     onChange={(e) => setApplicantSpecialties(e.target.value)}
-                    placeholder="Ex: Route des Esclaves, Vodun Days, Cités Lacustres Ganvié..."
+                    placeholder={t('Ex: Route des Esclaves, Vodun Days, Cités Lacustres Ganvié...')}
                     required
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                   />
@@ -536,13 +526,13 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
 
                 <div>
                   <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                    Biographie & Démarche de Médiation
+                    {t('Biographie & Démarche de Médiation')}
                   </label>
                   <textarea
                     rows={3}
                     value={applicantBio}
                     onChange={(e) => setApplicantBio(e.target.value)}
-                    placeholder="Décrivez votre parcours, votre attachement aux traditions et la façon dont vous accompagnez les visiteurs..."
+                    placeholder={t("Décrivez votre parcours, votre attachement aux traditions et la façon dont vous accompagnez les visiteurs...")}
                     required
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none resize-none"
                   />
@@ -560,7 +550,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                     onClick={() => setShowGuideModal(false)}
                     className="flex-1 py-2.5 rounded-xl bg-[#faf7f0] text-[#6b665e] font-semibold text-xs border border-[#e8e2d5]"
                   >
-                    Annuler
+                    {t('Annuler')}
                   </button>
                   <button
                     type="submit"
@@ -568,11 +558,11 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                     className="flex-1 py-2.5 rounded-xl bg-[#5a5a40] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow"
                   >
                     {applyingLoading ? (
-                      <span>Envoi en cours...</span>
+                      <span>{t('Envoi en cours...')}</span>
                     ) : (
                       <>
                         <Send className="w-3.5 h-3.5" />
-                        <span>Soumettre mon Dossier</span>
+                        <span>{t('Soumettre mon Dossier')}</span>
                       </>
                     )}
                   </button>

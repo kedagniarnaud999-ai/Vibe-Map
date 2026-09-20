@@ -1,33 +1,31 @@
 import React from 'react';
 import { Compass, Map, BookOpen, Sparkles, User, Users, Shield, Award } from 'lucide-react';
-import { ScreenId, AppLanguage, UserRole } from '../types';
-import { TRANSLATIONS } from '../lib/i18n';
+import { ScreenId, UserRole } from '../types';
+import { useI18n } from '../lib/i18n';
 
 interface BottomNavProps {
   currentScreen: ScreenId;
   onNavigate: (screen: ScreenId) => void;
-  currentLang: AppLanguage;
   userRole?: UserRole;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ 
   currentScreen, 
   onNavigate,
-  currentLang,
   userRole
 }) => {
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
+  const { t } = useI18n();
 
   const navItems: { id: ScreenId; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'home', label: t.navDiscover || 'Récits', icon: Compass },
-    { id: 'map', label: t.navMap || 'Carte', icon: Map },
-    { id: 'actors', label: t.navActors || 'Guides', icon: Users },
-    { id: 'itinerary-builder', label: 'Itinéraire', icon: Sparkles },
+    { id: 'home', label: t('Récits'), icon: Compass },
+    { id: 'map', label: t('Carte Vivante'), icon: Map },
+    { id: 'actors', label: t('Guides & Artisans'), icon: Users },
+    { id: 'itinerary-builder', label: t('Itinéraire'), icon: Sparkles },
     ...(userRole === 'admin' 
-      ? [{ id: 'admin' as ScreenId, label: 'Admin', icon: Shield }]
+      ? [{ id: 'admin' as ScreenId, label: t('Espace Admin'), icon: Shield }]
       : userRole === 'guide'
-      ? [{ id: 'guide-portal' as ScreenId, label: 'Espace Guide', icon: Award }]
-      : [{ id: 'profile' as ScreenId, label: t.navProfile || 'Profil', icon: User }]
+      ? [{ id: 'guide-portal' as ScreenId, label: t('Espace Guide'), icon: Award }]
+      : [{ id: 'profile' as ScreenId, label: t('Mon Profil'), icon: User }]
     )
   ];
 

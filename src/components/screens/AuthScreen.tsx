@@ -14,7 +14,7 @@ import {
   Phone,
   MapPin
 } from 'lucide-react';
-import { UserProfile, AppLanguage } from '../../types';
+import { UserProfile } from '../../types';
 import { 
   loginWithGoogle, 
   loginWithEmail, 
@@ -23,7 +23,6 @@ import {
 } from '../../lib/firebase';
 
 interface AuthScreenProps {
-  currentLang: AppLanguage;
   initialPortal?: 'public' | 'admin';
   onAuthSuccess: (user: UserProfile) => void;
   onCancel: () => void;

@@ -1,7 +1,7 @@
 import React, { ComponentType, lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
-import { ScreenId, Place, Story, Actor, AppLanguage, UserProfile } from './types';
+import { ScreenId, Place, Story, Actor, UserProfile } from './types';
 import { PLACES_DATA } from './data/places';
 import { STORIES_DATA } from './data/stories';
 import { ACTORS_DATA } from './data/actors';
@@ -16,7 +16,7 @@ import {
   SIGNED_OUT_SESSION,
   VerifiedSession
 } from './lib/firebase';
-import { TRANSLATIONS } from './lib/i18n';
+import { useI18n } from './lib/i18n';
 
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
@@ -50,9 +50,9 @@ const AdminScreen = lazyScreen(() => import('./components/screens/AdminScreen'),
 const GuidePortalScreen = lazyScreen(() => import('./components/screens/GuidePortalScreen'), 'GuidePortalScreen');
 
 export default function App() {
+  const { lang, t } = useI18n();
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
   const [screenHistory, setScreenHistory] = useState<ScreenId[]>(['home']);
-  const [currentLang, setCurrentLang] = useState<AppLanguage>('fr');
   
   const [places, setPlaces] = useState<Place[]>(PLACES_DATA);
   const [actors, setActors] = useState<Actor[]>(ACTORS_DATA);
@@ -87,15 +87,6 @@ export default function App() {
       setCurrentScreen('onboarding');
     }
 
-    // Default language is French
-    const savedLang = localStorage.getItem('lavibemap_language') as AppLanguage;
-    if (savedLang) {
-      setCurrentLang(savedLang);
-    } else {
-      setCurrentLang('fr');
-      localStorage.setItem('lavibemap_language', 'fr');
-    }
-
     // The session role is resolved from the Firebase ID token claims, never from storage.
     const unsubscribeAuth = onAuthStateChange(applySession);
 
@@ -122,12 +113,6 @@ export default function App() {
       if (unsubscribeAuth) unsubscribeAuth();
     };
   }, []);
-
-  const handleLanguageChange = (lang: AppLanguage) => {
-    setCurrentLang(lang);
-    localStorage.setItem('lavibemap_language', lang);
-    handleUpdateUser({ language: lang });
-  };
 
   const openAuth = (portal: 'public' | 'admin') => {
     setAuthPortal(portal);
@@ -258,7 +243,12 @@ export default function App() {
     setPlaces((prev) => prev.filter((p) => p.id !== placeId));
   };
 
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
+  // L'interface suit le provider ; le profil n'en garde qu'une copie pour les autres appareils.
+  useEffect(() => {
+    if (session.status !== 'ready') return;
+    if (user.language === lang) return;
+    handleUpdateUser({ language: lang });
+  }, [lang, session.status, user.language]);
 
   // Header configuration per screen
   const getHeaderConfig = () => {
@@ -272,70 +262,70 @@ export default function App() {
       case 'map':
         return {
           show: true,
-          title: t.navMap || 'Carte Vivante',
-          subtitle: 'Sites et sanctuaires réels du Bénin',
+          title: t('Carte Vivante'),
+          subtitle: t('Sites et sanctuaires réels du Bénin'),
           showBack: true
         };
       case 'library':
         return {
           show: true,
-          title: 'Bibliothèque Culturelle',
-          subtitle: 'Récits, proverbes et symboles royaux',
+          title: t('Bibliothèque Culturelle'),
+          subtitle: t('Récits, proverbes et symboles royaux'),
           showBack: true
         };
       case 'actors':
         return {
           show: true,
-          title: t.navActors || 'Médiateurs Culturels Vérifiés',
-          subtitle: 'Guides et maîtres de tradition agréés',
+          title: t('Guides & Artisans'),
+          subtitle: t('Guides et maîtres de tradition agréés'),
           showBack: true
         };
       case 'itinerary-builder':
         return {
           show: true,
-          title: 'Tissez Votre Immersion',
-          subtitle: 'Séquencement culturel et réservations',
+          title: t('Tissez Votre Immersion'),
+          subtitle: t('Séquencement culturel et réservations'),
           showBack: true
         };
       case 'journal':
         return {
           show: true,
-          title: 'Passeport Culturel',
-          subtitle: 'Sites visités et badges initiatiques',
+          title: t('Passeport Culturel'),
+          subtitle: t('Sites visités et badges initiatiques'),
           showBack: true
         };
       case 'events':
         return {
           show: true,
-          title: 'Célébrations & Fêtes Traditionnelles',
-          subtitle: 'Vodun Days, Gaani et rituels sacrés',
+          title: t('Célébrations & Fêtes Traditionnelles'),
+          subtitle: t('Vodun Days, Gaani et rituels sacrés'),
           showBack: true
         };
       case 'assistant':
         return {
           show: true,
-          title: t.askAiCompanion || 'Compagnon Culturel IA',
+          title: t('Compagnon Culturel IA'),
           subtitle: 'Gemini 3.5 Flash & Search Grounding',
           showBack: true
         };
       case 'admin':
         return {
           show: true,
-          title: 'Espace Administration du Patrimoine',
-          subtitle: 'Supervision des bases, scraping et validation',
+          title: t('Espace Administration du Patrimoine'),
+          subtitle: t('Supervision des bases, scraping et validation'),
           showBack: true
         };
       case 'guide-portal':
         return {
           show: true,
-          title: 'Portail Médiateur & Guide',
-          subtitle: 'Réservations et catalogue d’expériences',
+          title: t('Portail Médiateur & Guide'),
+          subtitle: t('Réservations et catalogue d’expériences'),
           showBack: true
         };
       case 'profile':
         return {
           show: true,
-          title: t.navProfile || 'Mon Sanctuaire',
+          title: t('Mon Profil'),
           subtitle: user.name,
           showBack: true
         };
@@ -343,7 +333,7 @@ export default function App() {
         return {
           show: true,
           title: 'La Vibe Map',
-          subtitle: 'Patrimoine & Sanctuaires du Bénin',
+          subtitle: t('Patrimoine & Sanctuaires du Bénin'),
           showBack: false
         };
     }
@@ -370,8 +360,6 @@ export default function App() {
           title={headerConfig.title}
           subtitle={headerConfig.subtitle}
           showBack={headerConfig.showBack}
-          currentLang={currentLang}
-          onLanguageChange={handleLanguageChange}
           user={user}
         />
       )}
@@ -382,11 +370,9 @@ export default function App() {
           <div className="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-[#c14e2f] flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-[13px] font-bold text-[#2c2926]">Profil non rattaché</p>
+              <p className="text-[13px] font-bold text-[#2c2926]">{t('Profil non rattaché')}</p>
               <p className="text-[12px] text-[#5a5a40]">
-                Connecté comme <span className="font-semibold">{session.email || session.uid}</span> :
-                l’identité Firebase est valide mais le profil est illisible. Les réservations, RSVP et
-                enregistrements restent bloqués jusqu’à la relecture du profil.
+                {t('Connecté comme {who} : l’identité Firebase est valide mais le profil est illisible. Les réservations, RSVP et enregistrements restent bloqués jusqu’à la relecture du profil.', { who: session.email || session.uid })}
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -394,13 +380,13 @@ export default function App() {
                 onClick={retrySession}
                 className="px-3 py-1.5 rounded-full bg-[#c14e2f] text-white text-[12px] font-bold hover:bg-[#a83f24] transition-colors"
               >
-                Réessayer
+                {t('Réessayer')}
               </button>
               <button
                 onClick={handleSignOut}
                 className="px-3 py-1.5 rounded-full border border-[#5a5a40]/30 text-[#5a5a40] text-[12px] font-semibold hover:bg-white/60 transition-colors"
               >
-                Se déconnecter
+                {t('Se déconnecter')}
               </button>
             </div>
           </div>
@@ -413,7 +399,7 @@ export default function App() {
           fallback={
             <div className="min-h-[60vh] flex items-center justify-center gap-2 text-xs font-semibold text-[#8c867c]">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Chargement de l’espace…
+              {t('Chargement de l’espace…')}
             </div>
           }
         >
@@ -432,7 +418,6 @@ export default function App() {
 
             {currentScreen === 'auth' && (
               <AuthScreen
-                currentLang={currentLang}
                 initialPortal={authPortal}
                 onAuthSuccess={(authenticatedUser) => {
                   setUser((prev) => ({ ...prev, ...authenticatedUser }));
@@ -537,13 +522,10 @@ export default function App() {
               <EventsScreen events={EVENTS_DATA} requireSession={requireVerifiedIntent} />
             )}
 
-            {currentScreen === 'assistant' && (
-              <AssistantScreen currentLang={currentLang} />
-            )}
+            {currentScreen === 'assistant' && <AssistantScreen />}
 
             {currentScreen === 'admin' && (
               <AdminScreen
-                currentLang={currentLang}
                 userRole={user.role}
                 places={places}
                 actors={actors}
@@ -558,7 +540,6 @@ export default function App() {
             {currentScreen === 'guide-portal' && (
               <GuidePortalScreen
                 user={user}
-                currentLang={currentLang}
                 actors={actors}
                 onOpenAuth={(role) => openAuth(role === 'admin' ? 'admin' : 'public')}
                 onBackToPublic={() => navigateTo('home')}
@@ -568,8 +549,6 @@ export default function App() {
             {currentScreen === 'profile' && (
               <UserProfileScreen
                 user={user}
-                currentLang={currentLang}
-                onLanguageChange={handleLanguageChange}
                 onUpdateUser={handleUpdateUser}
                 onOpenAuth={(role) => openAuth(role === 'admin' ? 'admin' : 'public')}
                 onNavigate={navigateTo}
@@ -585,7 +564,6 @@ export default function App() {
         <BottomNav
           currentScreen={currentScreen}
           onNavigate={navigateTo}
-          currentLang={currentLang}
           userRole={user.role}
         />
       )}

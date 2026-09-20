@@ -21,7 +21,7 @@ import {
   X,
   UserCheck
 } from 'lucide-react';
-import { Place, Category, Actor, CulturalEvent, AppLanguage, UserRole, GuideApplication } from '../../types';
+import { Place, Category, Actor, CulturalEvent, UserRole, GuideApplication } from '../../types';
 import { 
   savePlaceToFirestore, 
   deletePlaceFromFirestore, 
@@ -32,11 +32,9 @@ import {
   apiFetch,
   BookingRecord 
 } from '../../lib/firebase';
-import { TRANSLATIONS } from '../../lib/i18n';
 import { PLACES_DATA } from '../../data/places';
 
 interface AdminScreenProps {
-  currentLang: AppLanguage;
   userRole?: UserRole;
   places: Place[];
   actors: Actor[];
@@ -48,7 +46,6 @@ interface AdminScreenProps {
 }
 
 export const AdminScreen: React.FC<AdminScreenProps> = ({
-  currentLang,
   userRole,
   places,
   actors,
