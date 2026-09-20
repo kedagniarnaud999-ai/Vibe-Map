@@ -426,7 +426,6 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             selectedPlace={activePlace}
             userPosition={userPosition}
             onSelectPlace={onSelectPlace}
-            onOpenPlaceDetail={onOpenPlaceDetail}
             layerType={layerType}
           />
         ) : viewEngine === 'google-maps' ? (

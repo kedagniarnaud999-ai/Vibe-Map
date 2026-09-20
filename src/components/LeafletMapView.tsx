@@ -9,7 +9,6 @@ interface LeafletMapViewProps {
   selectedPlace: Place | null;
   userPosition: UserCoordinates | null;
   onSelectPlace: (place: Place) => void;
-  onOpenPlaceDetail: (place: Place) => void;
   layerType: 'street' | 'satellite' | 'terrain' | 'voyager';
   onPanToUser?: () => void;
 }
@@ -19,7 +18,6 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
   selectedPlace,
   userPosition,
   onSelectPlace,
-  onOpenPlaceDetail,
   layerType
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -228,33 +226,6 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
           onSelectPlace(place);
         });
 
-      // Bind popup
-      const popupContent = document.createElement('div');
-      popupContent.className = 'p-1 font-sans text-[#2c2926] max-w-[240px]';
-      popupContent.innerHTML = `
-        <div class="relative h-20 w-full rounded-lg overflow-hidden mb-1.5 bg-[#e8e2d5]">
-          <img src="${place.image}" alt="${place.name}" class="w-full h-full object-cover" />
-          <span class="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">
-            ${place.category}
-          </span>
-          ${(place as any).calculatedDistanceKm !== undefined ? `
-            <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-blue-600/90 text-white text-[9px] font-bold shadow">
-              📍 ${(place as any).calculatedDistanceKm} km
-            </span>
-          ` : ''}
-        </div>
-        <h4 class="font-bold text-xs text-[#2c2926] leading-snug">${place.name}</h4>
-        <p class="text-[11px] text-[#6b665e] line-clamp-2 mt-0.5">${place.description}</p>
-        <button id="btn-explore-${place.id}" class="w-full mt-2 py-1 px-2 rounded-lg bg-[#c14e2f] text-white text-[11px] font-semibold flex items-center justify-center gap-1 shadow-sm hover:bg-[#a83f23]">
-          Explorer le lieu &rarr;
-        </button>
-      `;
-
-      popupContent.querySelector(`#btn-explore-${place.id}`)?.addEventListener('click', () => {
-        onOpenPlaceDetail(place);
-      });
-
-      marker.bindPopup(popupContent, { offset: [0, -10] });
       markersRef.current[place.id] = marker;
     });
   }, [places, selectedPlace]);
@@ -268,11 +239,6 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
       duration: 1.2,
       easeLinearity: 0.25
     });
-
-    const marker = markersRef.current[selectedPlace.id];
-    if (marker) {
-      marker.openPopup();
-    }
   }, [selectedPlace]);
 
   return (
