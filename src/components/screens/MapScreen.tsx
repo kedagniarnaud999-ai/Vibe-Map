@@ -653,9 +653,9 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               <div className="text-xs text-[#6b665e]">
                 <span className="font-semibold text-[#c14e2f]">
                   {activePlace.verifiedGuideIds.length}{' '}
-                  {activePlace.verifiedGuideIds.length > 1 ? 'Guides Certifiés' : 'Guide Certifié'}
+                  {activePlace.verifiedGuideIds.length === 1 ? 'Guide Certifié' : 'Guides Certifiés'}
                 </span>{' '}
-                disponibles
+                {activePlace.verifiedGuideIds.length === 1 ? 'disponible' : 'disponibles'}
               </div>
 
               <button
