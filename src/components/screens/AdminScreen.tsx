@@ -33,6 +33,8 @@ import {
   BookingRecord 
 } from '../../lib/firebase';
 import { PLACES_DATA } from '../../data/places';
+import { useI18n } from '../../lib/i18n';
+import { useCategoryLabel } from '../../lib/labels';
 
 interface AdminScreenProps {
   userRole?: UserRole;
@@ -55,6 +57,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   onOpenAuth,
   onBackToPublic
 }) => {
+  const { t } = useI18n();
+  const categoryLabel = useCategoryLabel();
   const [activeTab, setActiveTab] = useState<'scraper' | 'places' | 'guides' | 'bookings' | 'applications'>('scraper');
   const [isCatalogPublishing, setIsCatalogPublishing] = useState(false);
   const [searchSiteQuery, setSearchSiteQuery] = useState('');
@@ -97,13 +101,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
           <div className="space-y-2">
             <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
-              Zone Sécurisée & Dissociée
+              {t('Zone Sécurisée & Dissociée')}
             </span>
             <h2 className="font-serif text-2xl font-bold text-white">
-              Espace Administration du Patrimoine
+              {t('Espace Administration du Patrimoine')}
             </h2>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Cet espace exige le rôle administrateur vérifié dans Firebase. Un compte sans ce rôle reste visiteur, quelle que soit son adresse email.
+              {t('Cet espace exige le rôle administrateur vérifié dans Firebase. Un compte sans ce rôle reste visiteur, quelle que soit son adresse email.')}
             </p>
           </div>
 
@@ -114,7 +118,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 className="w-full py-3 px-4 rounded-xl bg-amber-400 text-black font-bold text-xs hover:bg-amber-300 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
               >
                 <Shield className="w-4 h-4" />
-                <span>Connexion Conservateur</span>
+                <span>{t('Connexion Conservateur')}</span>
               </button>
             )}
 
@@ -124,7 +128,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 className="w-full py-2.5 px-4 rounded-xl bg-[#3c3836] text-gray-300 font-semibold text-xs hover:bg-[#4a4542] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Retourner à l'Espace Public</span>
+                <span>{t("Retourner à l'Espace Public")}</span>
               </button>
             )}
           </div>
@@ -154,7 +158,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         });
       }
     } catch (e: any) {
-      setScrapeError(e?.message || 'Le scraping est indisponible (accès refusé ou serveur d’administration indisponible).');
+      setScrapeError(e?.message || t('Le scraping est indisponible (accès refusé ou serveur d’administration indisponible).'));
     } finally {
       setScrapeLoading(false);
     }
@@ -171,8 +175,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     const failed = outcomes.filter((outcome) => !outcome.saved).length;
     setIsCatalogPublishing(false);
     alert(failed === 0
-      ? `${outcomes.length} sites du catalogue embarqué sont publiés dans Firestore : ils sont désormais modifiables ici.`
-      : `${outcomes.length - failed} sites publiés, ${failed} refusés. Un refus veut dire que le compte connecté ne porte pas le rôle admin.`);
+      ? t('{n} sites du catalogue embarqué sont publiés dans Firestore : ils sont désormais modifiables ici.', { n: outcomes.length })
+      : t('{published} sites publiés, {failed} refusés. Un refus veut dire que le compte connecté ne porte pas le rôle admin.', { published: outcomes.length - failed, failed }));
   };
 
   const handleSaveScrapedAsPlace = async () => {
@@ -205,14 +209,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
     const saved = await savePlaceToFirestore(newPlace);
     if (!saved) {
-      alert(`Échec de l'enregistrement de « ${newPlace.name} ». Un refus signifie que le compte connecté ne porte pas le rôle admin.`);
+      alert(t("Échec de l'enregistrement de « {name} ». Un refus signifie que le compte connecté ne porte pas le rôle admin.", { name: newPlace.name }));
       return;
     }
 
     onPlaceAddedOrUpdated(newPlace);
     setScrapedResult(null);
     setSearchSiteQuery('');
-    alert(`Le site "${newPlace.name}" (${newPlace.category}) a été enregistré dans le catalogue !`);
+    alert(t('Le site "{name}" ({category}) a été enregistré dans le catalogue !', { name: newPlace.name, category: categoryLabel(newPlace.category) }));
   };
 
   const handleCreateOrUpdatePlace = async (e: React.FormEvent) => {
@@ -244,7 +248,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
     const saved = await savePlaceToFirestore(placeToSave);
     if (!saved) {
-      alert(`Échec de l'enregistrement de « ${placeToSave.name} ». Un refus signifie que le compte connecté ne porte pas le rôle admin.`);
+      alert(t("Échec de l'enregistrement de « {name} ». Un refus signifie que le compte connecté ne porte pas le rôle admin.", { name: placeToSave.name }));
       return;
     }
 
@@ -252,17 +256,17 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setShowAddModal(false);
     setEditingPlace(null);
     resetPlaceForm();
-    alert(`Site "${placeToSave.name}" sauvegardé avec succès !`);
+    alert(t('Site "{name}" sauvegardé avec succès !', { name: placeToSave.name }));
   };
 
   const handleDeletePlace = async (id: string, name: string) => {
-    if (!confirm(`Confirmez-vous la suppression définitive du site "${name}" ?`)) {
+    if (!confirm(t('Confirmez-vous la suppression définitive du site "{name}" ?', { name }))) {
       return;
     }
 
     const deleted = await deletePlaceFromFirestore(id);
     if (!deleted) {
-      alert(`Suppression refusée pour « ${name} ». Vérifiez que le compte connecté porte le rôle admin.`);
+      alert(t('Suppression refusée pour « {name} ». Vérifiez que le compte connecté porte le rôle admin.', { name }));
       return;
     }
 
@@ -275,13 +279,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     const result = await decideGuideApplication(appId, status);
 
     if (!result.success) {
-      setDecisionError(result.error || 'Décision impossible : vérifiez les droits administrateur et la disponibilité du serveur.');
+      setDecisionError(result.error || t('Décision impossible : vérifiez les droits administrateur et la disponibilité du serveur.'));
       return;
     }
 
     setGuideApps((prev) => prev.map((a) => (a.id === appId ? { ...a, status } : a)));
     if (status === 'approved') {
-      alert('Guide agréé. Son rôle a été accordé et ses sessions précédentes ont été révoquées.');
+      alert(t('Guide agréé. Son rôle a été accordé et ses sessions précédentes ont été révoquées.'));
     }
   };
 
@@ -321,24 +325,24 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               </div>
               <div>
                 <h1 className="font-serif font-bold text-xl sm:text-2xl text-white">
-                  Panneau de Contrôle du Conservateur
+                  {t('Panneau de Contrôle du Conservateur')}
                 </h1>
                 <p className="text-xs text-gray-300 mt-0.5">
-                  Supervision Cloud Firestore & PostgreSQL • Scraping Grounding • Validation Guides
+                  {t('Supervision Cloud Firestore & PostgreSQL • Scraping Grounding • Validation Guides')}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full text-xs font-mono">
-                ● Rôle Vérifié
+                ● {t('Rôle Vérifié')}
               </span>
               {onBackToPublic && (
                 <button
                   onClick={onBackToPublic}
                   className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-gray-200 transition-all cursor-pointer"
                 >
-                  Vue Visiteur
+                  {t('Vue Visiteur')}
                 </button>
               )}
             </div>
@@ -355,7 +359,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Scraper & Grounding IA</span>
+              <span>{t('Scraper & Grounding IA')}</span>
             </button>
             <button
               onClick={() => setActiveTab('places')}
@@ -366,7 +370,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               }`}
             >
               <MapPin className="w-3.5 h-3.5" />
-              <span>Gestion des Sanctuaires ({places.length})</span>
+              <span>{t('Gestion des Sanctuaires ({n})', { n: places.length })}</span>
             </button>
             <button
               onClick={() => setActiveTab('applications')}
@@ -377,7 +381,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               }`}
             >
               <UserCheck className="w-3.5 h-3.5" />
-              <span>Agrément Guides ({guideApps.length})</span>
+              <span>{t('Agrément Guides ({n})', { n: guideApps.length })}</span>
             </button>
             <button
               onClick={() => setActiveTab('bookings')}
@@ -388,7 +392,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span>Réservations Visiteurs ({bookings.length})</span>
+              <span>{t('Réservations Visiteurs ({n})', { n: bookings.length })}</span>
             </button>
           </div>
         </div>
@@ -399,10 +403,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             <div>
               <h3 className="font-serif font-bold text-lg text-[#2c2926] flex items-center gap-2">
                 <Globe className="w-5 h-5 text-[#c14e2f]" />
-                <span>Scraping Automatique de Données Réelles du Patrimoine</span>
+                <span>{t('Scraping Automatique de Données Réelles du Patrimoine')}</span>
               </h3>
               <p className="text-xs text-[#6b665e] mt-1">
-                Interrogez le web et les répertoires officiels via Gemini Grounding pour extraire automatiquement les horaires, tarifs réels, étiquettes sacrées et résumés historiques vérifiés.
+                {t('Interrogez le web et les répertoires officiels via Gemini Grounding pour extraire automatiquement les horaires, tarifs réels, étiquettes sacrées et résumés historiques vérifiés.')}
               </p>
             </div>
 
@@ -410,7 +414,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             <div className="space-y-1.5">
               <span className="text-[11px] font-semibold text-[#8c867c] flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-[#c14e2f]" />
-                Suggestions rapides de sites du Bénin :
+                {t('Suggestions rapides de sites du Bénin :')}
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {[
@@ -440,7 +444,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   type="text"
                   value={searchSiteQuery}
                   onChange={(e) => setSearchSiteQuery(e.target.value)}
-                  placeholder="Ex: Forêt Sacrée de Kpassè, Temple des Pythons, Palais Royal d'Abomey..."
+                  placeholder={t("Ex: Forêt Sacrée de Kpassè, Temple des Pythons, Palais Royal d'Abomey...")}
                   className="w-full pl-10 pr-4 py-3 bg-[#faf7f0] border border-[#e8e2d5] rounded-2xl text-xs sm:text-sm text-[#2c2926] focus:border-[#c14e2f] focus:outline-none"
                   onKeyDown={(e) => e.key === 'Enter' && handleScrape()}
                 />
@@ -453,12 +457,12 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 {scrapeLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Scraping...</span>
+                    <span>{t('Scraping...')}</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    <span>Scraper le Web</span>
+                    <span>{t('Scraper le Web')}</span>
                   </>
                 )}
               </button>
@@ -478,10 +482,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   <div>
                     <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold inline-flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Données Authentiques Récupérées</span>
+                      <span>{t('Données Authentiques Récupérées')}</span>
                     </span>
                     <p className="text-xs text-[#6b665e] mt-1">
-                      Vérifiez la catégorie et les photos avant d'enregistrer.
+                      {t("Vérifiez la catégorie et les photos avant d'enregistrer.")}
                     </p>
                   </div>
                   <button
@@ -489,21 +493,21 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     className="px-5 py-2.5 bg-[#2e5a44] text-white rounded-xl text-xs font-bold hover:bg-[#204030] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
-                    <span>Enregistrer dans le Catalogue</span>
+                    <span>{t('Enregistrer dans le Catalogue')}</span>
                   </button>
                 </div>
 
                 {/* Category Selector */}
                 <div>
                   <label className="block text-xs font-bold text-[#2c2926] mb-1.5">
-                    Catégorie du Site :
+                    {t('Catégorie du Site :')}
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { id: 'Spiritual', label: '🕊️ Sanctuaire & Spirituel' },
-                      { id: 'Historical', label: '🏛️ Palais & Histoire' },
-                      { id: 'Nature', label: '🌿 Nature & Cité Lacustre' },
-                      { id: 'Arts', label: '🎨 Arts & Artisanat' }
+                      { id: 'Spiritual', label: t('🕊️ Sanctuaire & Spirituel') },
+                      { id: 'Historical', label: t('🏛️ Palais & Histoire') },
+                      { id: 'Nature', label: t('🌿 Nature & Cité Lacustre') },
+                      { id: 'Arts', label: t('🎨 Arts & Artisanat') }
                     ].map((c) => (
                       <button
                         key={c.id}
@@ -525,7 +529,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 {scrapedResult.realImages && scrapedResult.realImages.length > 0 && (
                   <div>
                     <label className="block text-xs font-bold text-[#2c2926] mb-1.5">
-                      Photo Réelle Associée :
+                      {t('Photo Réelle Associée :')}
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {scrapedResult.realImages.map((imgUrl: string, i: number) => (
@@ -538,7 +542,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                               : 'border-transparent opacity-70 hover:opacity-100'
                           }`}
                         >
-                          <img src={imgUrl} alt="Photo" className="w-full h-full object-cover" />
+                          <img src={imgUrl} alt={t('Photo')} className="w-full h-full object-cover" />
                           {(scrapedResult.selectedImage || scrapedResult.realImages[0]) === imgUrl && (
                             <div className="absolute top-1 right-1 bg-[#c14e2f] text-white p-1 rounded-full">
                               <Check className="w-3 h-3" />
@@ -553,7 +557,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 {/* Info Fields Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="font-bold text-[#2c2926] block mb-1">Nom & Résumé</label>
+                    <label className="font-bold text-[#2c2926] block mb-1">{t('Nom & Résumé')}</label>
                     <input
                       type="text"
                       value={scrapedResult.name || ''}
@@ -568,11 +572,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-[#2c2926] block mb-1">Détails Pratiques & Coordonnées</label>
+                    <label className="font-bold text-[#2c2926] block mb-1">{t('Détails Pratiques & Coordonnées')}</label>
                     <div className="space-y-2">
                       <input
                         type="text"
-                        placeholder="Localisation (ex: Ouidah, Bénin)"
+                        placeholder={t('Localisation (ex: Ouidah, Bénin)')}
                         value={scrapedResult.location || ''}
                         onChange={(e) => setScrapedResult({ ...scrapedResult, location: e.target.value })}
                         className="w-full px-3 py-2 bg-white border border-[#e8e2d5] rounded-xl text-xs"
@@ -580,14 +584,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                       <div className="grid grid-cols-2 gap-2">
                         <input
                           type="text"
-                          placeholder="Horaires"
+                          placeholder={t('Horaires')}
                           value={scrapedResult.openingHours || ''}
                           onChange={(e) => setScrapedResult({ ...scrapedResult, openingHours: e.target.value })}
                           className="w-full px-3 py-2 bg-white border border-[#e8e2d5] rounded-xl text-xs"
                         />
                         <input
                           type="text"
-                          placeholder="Tarifs"
+                          placeholder={t('Tarifs')}
                           value={scrapedResult.admissionFee || ''}
                           onChange={(e) => setScrapedResult({ ...scrapedResult, admissionFee: e.target.value })}
                           className="w-full px-3 py-2 bg-white border border-[#e8e2d5] rounded-xl text-xs"
@@ -607,11 +611,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-                  Catalogue des Sanctuaires et Sites ({places.length})
+                  {t('Catalogue des Sanctuaires et Sites ({n})', { n: places.length })}
                 </h3>
                 <p className="text-xs text-[#6b665e] flex items-center gap-1">
                   <Database className="w-3 h-3" />
-                  Synchronisé avec Firestore et Cloud SQL
+                  {t('Synchronisé avec Firestore et Cloud SQL')}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -621,7 +625,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   className="px-4 py-2 rounded-xl border border-[#c14e2f] text-[#c14e2f] text-xs font-bold flex items-center gap-1.5 hover:bg-[#fdf3ef] disabled:opacity-60 cursor-pointer"
                 >
                   <RefreshCw className={`w-4 h-4 ${isCatalogPublishing ? 'animate-spin' : ''}`} />
-                  <span>{isCatalogPublishing ? 'Publication…' : 'Publier le catalogue embarqué'}</span>
+                  <span>{isCatalogPublishing ? t('Publication…') : t('Publier le catalogue embarqué')}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -632,7 +636,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   className="px-4 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold flex items-center gap-1.5 shadow hover:bg-[#a83f23] cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Ajouter un Sanctuaire</span>
+                  <span>{t('Ajouter un Sanctuaire')}</span>
                 </button>
               </div>
             </div>
@@ -655,7 +659,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                         {place.name}
                       </h4>
                       <span className="text-[10px] px-2 py-0.5 rounded bg-white font-bold text-[#c14e2f] border border-[#e8e2d5]">
-                        {place.category}
+                        {categoryLabel(place.category)}
                       </span>
                     </div>
                     <p className="text-[11px] text-[#6b665e] flex items-center gap-1">
@@ -671,14 +675,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                       className="text-xs font-bold text-[#5a5a40] hover:text-[#2c2926] flex items-center gap-1"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
-                      <span>Modifier</span>
+                      <span>{t('Modifier')}</span>
                     </button>
                     <button
                       onClick={() => handleDeletePlace(place.id, place.name)}
                       className="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Supprimer</span>
+                      <span>{t('Supprimer')}</span>
                     </button>
                   </div>
                 </div>
@@ -693,10 +697,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             <div>
               <h3 className="font-serif font-bold text-lg text-[#2c2926] flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#5a5a40]" />
-                <span>Demandes d'Agrément des Guides & Médiateurs ({guideApps.length})</span>
+                <span>{t("Demandes d'Agrément des Guides & Médiateurs ({n})", { n: guideApps.length })}</span>
               </h3>
               <p className="text-xs text-[#6b665e] mt-0.5">
-                Validez les compétences des guides locaux postulant pour accompagner des visiteurs.
+                {t('Validez les compétences des guides locaux postulant pour accompagner des visiteurs.')}
               </p>
             </div>
 
@@ -709,7 +713,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
             {guideApps.length === 0 ? (
               <div className="p-8 text-center bg-[#faf7f0] rounded-2xl border border-[#e8e2d5] text-xs text-[#6b665e]">
-                Aucune demande d'agrément en attente.
+                {t("Aucune demande d'agrément en attente.")}
               </div>
             ) : (
               <div className="space-y-3">
@@ -734,10 +738,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                         <span>📧 {app.email}</span>
                         <span>📱 {app.phone}</span>
                         <span>📍 {app.region}</span>
-                        <span>⭐ {app.experienceYears} ans d'expérience</span>
+                        <span>⭐ {t("{n} ans d'expérience", { n: app.experienceYears })}</span>
                       </div>
                       <p className="text-[11px] text-[#5a5a40]">
-                        🗣️ Langues : {app.languages?.join(', ')} • Spécialités : {app.specialties?.join(', ')}
+                        🗣️ {t('Langues')} : {app.languages?.join(', ')} • {t('Spécialités')} : {app.specialties?.join(', ')}
                       </p>
                       {app.bio && (
                         <p className="text-[11px] text-[#8c867c] italic mt-1 bg-white p-2 rounded-lg border border-[#e8e2d5]">
@@ -753,14 +757,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                           className="px-3 py-1.5 rounded-xl bg-[#2e5a44] text-white text-xs font-bold hover:bg-[#204030] flex items-center gap-1 shadow cursor-pointer"
                         >
                           <Check className="w-3.5 h-3.5" />
-                          <span>Agréer Guide</span>
+                          <span>{t('Agréer Guide')}</span>
                         </button>
                         <button
                           onClick={() => decide(app.id!, 'rejected')}
                           className="px-3 py-1.5 rounded-xl bg-red-100 text-red-700 text-xs font-bold hover:bg-red-200 flex items-center gap-1 cursor-pointer"
                         >
                           <X className="w-3.5 h-3.5" />
-                          <span>Rejeter</span>
+                          <span>{t('Rejeter')}</span>
                         </button>
                       </div>
                     )}
@@ -775,12 +779,12 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         {activeTab === 'bookings' && (
           <div className="bg-white rounded-3xl p-6 border border-[#e8e2d5] shadow-sm space-y-4">
             <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-              Réservations d'Immersions et Visites ({bookings.length})
+              {t("Réservations d'Immersions et Visites ({n})", { n: bookings.length })}
             </h3>
 
             {bookings.length === 0 ? (
               <div className="p-8 text-center bg-[#faf7f0] rounded-2xl border border-[#e8e2d5] text-xs text-[#6b665e]">
-                Aucune réservation enregistrée pour le moment.
+                {t('Aucune réservation enregistrée pour le moment.')}
               </div>
             ) : (
               <div className="space-y-3">
@@ -794,10 +798,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                         {b.experienceTitle}
                       </div>
                       <div className="text-[#6b665e] mt-0.5">
-                        Voyageur : {b.travelerName} ({b.travelerEmail}) • Date : {b.dateTime}
+                        {t('Voyageur')} : {b.travelerName} ({b.travelerEmail}) • {t('Date')} : {b.dateTime}
                       </div>
                       <div className="text-[#c14e2f] font-bold mt-1">
-                        Montant : {b.price}
+                        {t('Montant')} : {b.price}
                       </div>
                     </div>
                     <span className="px-2.5 py-1 bg-green-100 text-green-800 rounded-full font-bold text-[10px]">
@@ -815,12 +819,12 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#e8e2d5] max-h-[90vh] overflow-y-auto">
               <h3 className="font-serif font-bold text-lg text-[#2c2926] mb-4">
-                {editingPlace ? 'Modifier le Sanctuaire' : 'Ajouter un Nouveau Sanctuaire'}
+                {editingPlace ? t('Modifier le Sanctuaire') : t('Ajouter un Nouveau Sanctuaire')}
               </h3>
 
               <form onSubmit={handleCreateOrUpdatePlace} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">Nom du Site</label>
+                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Nom du Site')}</label>
                   <input
                     type="text"
                     value={newPlaceName}
@@ -832,7 +836,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs font-semibold text-[#2c2926] mb-1">Localisation</label>
+                    <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Localisation')}</label>
                     <input
                       type="text"
                       value={newPlaceLocation}
@@ -844,22 +848,22 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#2c2926] mb-1">Catégorie</label>
+                    <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Catégorie')}</label>
                     <select
                       value={newPlaceCategory}
                       onChange={(e) => setNewPlaceCategory(e.target.value as Category)}
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
                     >
-                      <option value="Spiritual">Spirituel (Vodun)</option>
-                      <option value="Historical">Historique & Royal</option>
-                      <option value="Nature">Nature & Écotourisme</option>
-                      <option value="Arts">Arts & Artisanat</option>
+                      <option value="Spiritual">{t('Spirituel (Vodun)')}</option>
+                      <option value="Historical">{t('Historique & Royal')}</option>
+                      <option value="Nature">{t('Nature & Écotourisme')}</option>
+                      <option value="Arts">{t('Arts & Artisanat')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">URL Image</label>
+                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('URL Image')}</label>
                   <input
                     type="url"
                     value={newPlaceImage}
@@ -871,7 +875,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs font-semibold text-[#2c2926] mb-1">Latitude</label>
+                    <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Latitude')}</label>
                     <input
                       type="text"
                       value={newPlaceLat}
@@ -880,7 +884,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#2c2926] mb-1">Longitude</label>
+                    <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Longitude')}</label>
                     <input
                       type="text"
                       value={newPlaceLng}
@@ -891,7 +895,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">Description Courte</label>
+                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Description Courte')}</label>
                   <textarea
                     rows={2}
                     value={newPlaceDesc}
@@ -902,7 +906,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">Histoire Approfondie & Protocole</label>
+                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Histoire Approfondie & Protocole')}</label>
                   <textarea
                     rows={3}
                     value={newPlaceHistory}
@@ -917,13 +921,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     onClick={() => setShowAddModal(false)}
                     className="flex-1 py-2.5 rounded-xl bg-[#faf7f0] text-[#6b665e] font-semibold text-xs border border-[#e8e2d5]"
                   >
-                    Annuler
+                    {t('Annuler')}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 py-2.5 rounded-xl bg-[#c14e2f] text-white font-bold text-xs shadow hover:bg-[#a83f23]"
                   >
-                    {editingPlace ? 'Mettre à Jour' : 'Créer le Sanctuaire'}
+                    {editingPlace ? t('Mettre à Jour') : t('Créer le Sanctuaire')}
                   </button>
                 </div>
               </form>

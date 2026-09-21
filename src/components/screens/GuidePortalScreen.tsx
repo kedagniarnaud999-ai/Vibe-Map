@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { UserProfile, Actor, UserRole } from '../../types';
 import { getGuideBookingsFromFirestore, submitGuideApplication, BookingRecord } from '../../lib/firebase';
+import { useI18n } from '../../lib/i18n';
+import { useRoleLabel } from '../../lib/labels';
 
 interface GuidePortalScreenProps {
   user: UserProfile;
@@ -34,6 +36,8 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
   onOpenAuth,
   onBackToPublic
 }) => {
+  const { t } = useI18n();
+  const roleLabel = useRoleLabel();
   const [guideBookings, setGuideBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [applicationError, setApplicationError] = useState('');
@@ -90,11 +94,11 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
       if (res.success) {
         setSubmittedSuccess(true);
       } else {
-        setApplicationError(res.error || "Envoi impossible. Vérifiez que votre session est toujours active.");
+        setApplicationError(res.error || t('Envoi impossible. Vérifiez que votre session est toujours active.'));
       }
     } catch (e) {
       console.error(e);
-      setApplicationError("Envoi impossible. Vérifiez que votre session est toujours active.");
+      setApplicationError(t('Envoi impossible. Vérifiez que votre session est toujours active.'));
     } finally {
       setSubmittingApp(false);
     }
@@ -110,10 +114,10 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
               <Award className="w-8 h-8" />
             </div>
             <h2 className="font-serif font-bold text-2xl text-[#2c2926]">
-              Portail Réservé aux Médiateurs Agréés
+              {t('Portail Réservé aux Médiateurs Agréés')}
             </h2>
             <p className="text-xs text-[#6b665e] max-w-sm mx-auto">
-              Cet espace est dédié aux guides touristiques, conteurs traditionnels et médiateurs certifiés du Bénin pour gérer leurs réservations de voyageurs.
+              {t('Cet espace est dédié aux guides touristiques, conteurs traditionnels et médiateurs certifiés du Bénin pour gérer leurs réservations de voyageurs.')}
             </p>
           </div>
 
@@ -123,17 +127,17 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                 <Check className="w-6 h-6" />
               </div>
               <h4 className="font-serif font-bold text-base text-green-900">
-                Demande d'Agrément Enregistrée !
+                {t("Demande d'Agrément Enregistrée !")}
               </h4>
               <p className="text-xs text-green-800">
-                Votre dossier a été transmis à la commission des conservateurs. Votre rôle reste <strong>{user.role}</strong> tant qu'un administrateur ne l'a pas validé.
+                {t('Votre dossier a été transmis à la commission des conservateurs. Votre rôle reste')} <strong>{roleLabel(user.role)}</strong> {t("tant qu'un administrateur ne l'a pas validé.")}
               </p>
               {onBackToPublic && (
                 <button
                   onClick={onBackToPublic}
                   className="mt-3 px-4 py-2 bg-green-800 text-white font-bold text-xs rounded-xl hover:bg-green-900 transition-all"
                 >
-                  Retourner à la Découverte du Patrimoine
+                  {t('Retourner à la Découverte du Patrimoine')}
                 </button>
               )}
             </div>
@@ -141,10 +145,10 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
             <div className="space-y-4 pt-2">
               <div className="p-4 bg-[#faf7f0] rounded-2xl border border-[#e8e2d5] space-y-3">
                 <h4 className="font-serif font-bold text-sm text-[#2c2926]">
-                  Vous êtes déjà Guide ou Médiateur Agréé ?
+                  {t('Vous êtes déjà Guide ou Médiateur Agréé ?')}
                 </h4>
                 <p className="text-xs text-[#6b665e]">
-                  Le rôle est attaché à votre compte Firebase par un administrateur. Reconnectez-vous pour renouveler le jeton qui le porte.
+                  {t('Le rôle est attaché à votre compte Firebase par un administrateur. Reconnectez-vous pour renouveler le jeton qui le porte.')}
                 </p>
                 {onOpenAuth && (
                   <button
@@ -152,18 +156,18 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                     className="w-full py-2.5 px-4 bg-[#5a5a40] text-white font-bold text-xs rounded-xl hover:bg-[#484833] transition-all flex items-center justify-center gap-2 cursor-pointer shadow"
                   >
                     <Award className="w-3.5 h-3.5" />
-                    <span>Reconnecter mon Compte</span>
+                    <span>{t('Reconnecter mon Compte')}</span>
                   </button>
                 )}
               </div>
 
               <div className="border-t border-[#f0ece1] pt-4">
                 <h4 className="font-serif font-bold text-sm text-[#2c2926] mb-2">
-                  Postuler pour devenir Médiateur Culturel Agréé :
+                  {t('Postuler pour devenir Médiateur Culturel Agréé :')}
                 </h4>
                 <form onSubmit={handleApply} className="space-y-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">Nom complet</label>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Nom complet')}</label>
                     <input
                       type="text"
                       value={applicantName}
@@ -175,7 +179,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">Téléphone / WhatsApp</label>
+                      <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Téléphone / WhatsApp')}</label>
                       <input
                         type="tel"
                         value={applicantPhone}
@@ -186,7 +190,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">Années de pratique</label>
+                      <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Années de pratique')}</label>
                       <input
                         type="number"
                         min={1}
@@ -199,35 +203,35 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">Régions & Spécialités</label>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Régions & Spécialités')}</label>
                     <input
                       type="text"
                       value={applicantSpecialties}
                       onChange={(e) => setApplicantSpecialties(e.target.value)}
-                      placeholder="Ex: Ouidah, Danxomè, Ganvié..."
+                      placeholder={t('Ex: Ouidah, Danxomè, Ganvié...')}
                       required
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">Langues pratiquées</label>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Langues pratiquées')}</label>
                     <input
                       type="text"
                       value={applicantLanguages}
                       onChange={(e) => setApplicantLanguages(e.target.value)}
-                      placeholder="Français, Fon, English"
+                      placeholder={t('Français, Fon, English')}
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">Présentation</label>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Présentation')}</label>
                     <textarea
                       value={applicantBio}
                       onChange={(e) => setApplicantBio(e.target.value)}
                       rows={3}
-                      placeholder="Votre lien aux lieux et aux traditions que vous transmettez"
+                      placeholder={t('Votre lien aux lieux et aux traditions que vous transmettez')}
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs resize-none"
                     />
                   </div>
@@ -244,7 +248,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                     className="w-full py-2.5 rounded-xl bg-[#c14e2f] text-white font-bold text-xs hover:bg-[#a83f23] transition-all flex items-center justify-center gap-1.5 shadow cursor-pointer disabled:opacity-60"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>{submittingApp ? 'Envoi...' : 'Soumettre ma Demande d’Agrément'}</span>
+                    <span>{submittingApp ? t('Envoi...') : t('Soumettre ma Demande d’Agrément')}</span>
                   </button>
                 </form>
               </div>
@@ -255,7 +259,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                     onClick={onBackToPublic}
                     className="text-xs text-[#8c867c] hover:text-[#2c2926] transition-colors"
                   >
-                    ← Retourner à l'Espace Voyageur
+                    ← {t("Retourner à l'Espace Voyageur")}
                   </button>
                 </div>
               )}
@@ -274,22 +278,20 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
             <Lock className="w-7 h-7" />
           </div>
           <h2 className="font-serif font-bold text-xl">
-            Compte guide vérifié, profil non rattaché
+            {t('Compte guide vérifié, profil non rattaché')}
           </h2>
           <p className="text-xs text-[#6b665e] leading-relaxed">
-            Votre rôle de médiateur est bien présent dans votre jeton, mais aucune fiche de médiateur
-            n'est encore associée à votre identifiant ({user.id.slice(0, 8)}…). Sans ce rattachement,
-            aucun voyageur ne peut vous être attribué et aucune réservation ne vous est visible.
+            {t("Votre rôle de médiateur est bien présent dans votre jeton, mais aucune fiche de médiateur n'est encore associée à votre identifiant ({id}…). Sans ce rattachement, aucun voyageur ne peut vous être attribué et aucune réservation ne vous est visible.", { id: user.id.slice(0, 8) })}
           </p>
           <p className="text-[11px] text-[#8c867c]">
-            Un administrateur effectue le rattachement après vérification du dossier d'agrément.
+            {t("Un administrateur effectue le rattachement après vérification du dossier d'agrément.")}
           </p>
           {onBackToPublic && (
             <button
               onClick={onBackToPublic}
               className="w-full py-2.5 rounded-xl bg-[#5a5a40] text-white font-bold text-xs hover:bg-[#484833] transition-all"
             >
-              Retourner à la Découverte du Patrimoine
+              {t('Retourner à la Découverte du Patrimoine')}
             </button>
           )}
         </div>
@@ -317,14 +319,14 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                   </h1>
                   <span className="px-2.5 py-0.5 rounded-full bg-[#5a5a40] text-white text-[10px] font-bold flex items-center gap-1">
                     <Award className="w-3 h-3" />
-                    <span>Médiateur Agréé</span>
+                    <span>{t('Médiateur Agréé')}</span>
                   </span>
                 </div>
                 <p className="text-xs text-[#6b665e] mt-0.5">
                   {currentActor.role} • {currentActor.location}
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-[11px] text-[#8c867c]">
-                  <span>⭐ {currentActor.rating} ({currentActor.reviewsCount} avis)</span>
+                  <span>⭐ {currentActor.rating} {t('({n} avis)', { n: currentActor.reviewsCount })}</span>
                   <span>•</span>
                   <span>🗣️ {currentActor.languages.join(', ')}</span>
                 </div>
@@ -332,11 +334,11 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
             </div>
 
             <div className="bg-[#faf7f0] p-3 rounded-2xl border border-[#e8e2d5] text-right flex sm:flex-col justify-between w-full sm:w-auto items-center sm:items-end">
-              <span className="text-[10px] uppercase font-bold text-[#8c867c]">Tarif Guide Base</span>
+              <span className="text-[10px] uppercase font-bold text-[#8c867c]">{t('Tarif Guide Base')}</span>
               <span className="font-serif font-bold text-lg text-[#c14e2f]">
                 {user.guideProfile?.pricing || '20 000 FCFA'}
               </span>
-              <span className="text-[10px] text-[#5a5a40]">~30 € / Demi-journée</span>
+              <span className="text-[10px] text-[#5a5a40]">{t('~30 € / Demi-journée')}</span>
             </div>
           </div>
         </div>
@@ -346,18 +348,18 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
           <div className="flex items-center justify-between">
             <h3 className="font-serif font-bold text-lg text-[#2c2926] flex items-center gap-2">
               <Clock className="w-5 h-5 text-[#c14e2f]" />
-              <span>Demandes de Visites & Immersions ({guideBookings.length})</span>
+              <span>{t('Demandes de Visites & Immersions ({n})', { n: guideBookings.length })}</span>
             </h3>
           </div>
 
           {loading ? (
-            <div className="text-center py-6 text-xs text-[#8c867c]">Chargement de vos réservations...</div>
+            <div className="text-center py-6 text-xs text-[#8c867c]">{t('Chargement de vos réservations...')}</div>
           ) : guideBookings.length === 0 ? (
             <div className="p-6 text-center bg-[#faf7f0] rounded-2xl border border-[#e8e2d5] text-xs text-[#6b665e] space-y-2">
               <Calendar className="w-8 h-8 text-[#8c867c] mx-auto opacity-50" />
-              <p className="font-semibold text-[#2c2926]">Aucune réservation directe pour le moment</p>
+              <p className="font-semibold text-[#2c2926]">{t('Aucune réservation directe pour le moment')}</p>
               <p className="text-[11px] text-[#8c867c]">
-                Votre profil est visible par les voyageurs sur la carte et le répertoire des médiateurs. Dès qu'un voyageur réserve une expérience, elle apparaîtra ici.
+                {t("Votre profil est visible par les voyageurs sur la carte et le répertoire des médiateurs. Dès qu'un voyageur réserve une expérience, elle apparaîtra ici.")}
               </p>
             </div>
           ) : (
@@ -397,8 +399,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                 </div>
               ))}
               <p className="text-[11px] text-[#8c867c] pt-1">
-                L'état d'une réservation se confirme depuis la console d'administration : le portail médiateur
-                reste en lecture tant qu'aucun compte n'est rattaché à une fiche médiateur.
+                {t("L'état d'une réservation se confirme depuis la console d'administration : le portail médiateur reste en lecture tant qu'aucun compte n'est rattaché à une fiche médiateur.")}
               </p>
             </div>
           )}
@@ -408,7 +409,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
         <div className="bg-white rounded-3xl p-6 border border-[#e8e2d5] shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-              Mes Expériences & Itinéraires Proposés
+              {t('Mes Expériences & Itinéraires Proposés')}
             </h3>
           </div>
 
@@ -430,8 +431,8 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                   <p className="text-xs text-[#6b665e] mt-1">{exp.description}</p>
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-[#8c867c] pt-2 border-t border-[#e8e2d5]">
-                  <span>Durée : {exp.duration}</span>
-                  <span className="text-green-700 font-semibold">✓ Au catalogue</span>
+                  <span>{t('Durée :')} {exp.duration}</span>
+                  <span className="text-green-700 font-semibold">✓ {t('Au catalogue')}</span>
                 </div>
               </div>
             ))}
