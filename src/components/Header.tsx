@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Compass, ArrowLeft, Globe, Shield, ChevronDown } from 'lucide-react';
 import { ScreenId, UserProfile } from '../types';
 import { SUPPORTED_LANGUAGES, useI18n } from '../lib/i18n';
+import { UserAvatar } from './UserAvatar';
 
 interface HeaderProps {
   currentScreen: ScreenId;
@@ -165,11 +166,11 @@ export const Header: React.FC<HeaderProps> = ({
             className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-[#c14e2f]/30 hover:ring-[#c14e2f] transition-all flex-shrink-0 cursor-pointer"
             title={user.name || t('Mon Profil')}
           >
-            <img
-              src={user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
-              alt="User"
-              referrerPolicy="no-referrer"
+            <UserAvatar
+              src={user.avatar}
+              name={user.name}
               className="w-full h-full object-cover"
+              monogramClassName="text-sm"
             />
           </button>
         </div>

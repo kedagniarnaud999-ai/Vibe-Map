@@ -10,9 +10,9 @@ export async function getOrCreateUser(uid: string, email: string, name?: string,
         uid,
         email,
         name: name || 'Voyageur Curieux',
-        avatar: avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+        avatar: avatar || '',
         vibeTag: vibeTag || 'Immersion & Spiritualité',
-        travelStyle: travelStyle || 'Slow Travel',
+        travelStyle: travelStyle || 'Explorer',
       })
       .onConflictDoUpdate({
         target: users.uid,

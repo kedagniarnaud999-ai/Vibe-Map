@@ -15,6 +15,7 @@ import {
 import confetti from 'canvas-confetti';
 import { UserPreferences, Place, Story } from '../../types';
 import { useI18n } from '../../lib/i18n';
+import { UserAvatar } from '../UserAvatar';
 import { useCategoryLabel } from '../../lib/labels';
 
 // Paliers figes dans la maquette : seuls les compteurs rendus sont localises.
@@ -116,11 +117,11 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       <div className="bg-gradient-to-br from-[#c14e2f] via-[#a83f23] to-[#5a5a40] text-white rounded-2xl p-5 sm:p-6 shadow-md space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img
+            <UserAvatar
               src={user.avatar}
-              alt={user.name}
-              referrerPolicy="no-referrer"
+              name={user.name}
               className="w-12 h-12 rounded-full object-cover border-2 border-[#d9822b]"
+              monogramClassName="text-lg"
             />
             <div>
               <h3 className="font-serif font-bold text-lg leading-tight">

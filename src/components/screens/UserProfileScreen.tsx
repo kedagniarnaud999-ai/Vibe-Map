@@ -26,6 +26,7 @@ import {
 import { UserPreferences, UserRole, ScreenId } from '../../types';
 import { logoutUser, submitGuideApplication } from '../../lib/firebase';
 import { SUPPORTED_LANGUAGES, useI18n } from '../../lib/i18n';
+import { UserAvatar } from '../UserAvatar';
 
 interface UserProfileScreenProps {
   user: UserPreferences;
@@ -169,11 +170,11 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
 
       {/* Profile Card */}
       <div className="bg-white rounded-3xl p-6 border border-[#e8e2d5] shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-5">
-        <img
-          src={user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
-          alt={user.name}
-          referrerPolicy="no-referrer"
+        <UserAvatar
+          src={user.avatar}
+          name={user.name}
           className="w-20 h-20 rounded-2xl object-cover border-4 border-[#fceee9] shadow"
+          monogramClassName="text-2xl"
         />
         <div className="space-y-1 text-center sm:text-left flex-1">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
