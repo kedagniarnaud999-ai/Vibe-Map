@@ -19,7 +19,13 @@ export type ScreenId =
   | 'admin'
   | 'guide-portal';
 
-export type Category = 'Spiritual' | 'Historical' | 'Nature' | 'Food' | 'Arts' | 'Heritage';
+export type Category = 'Spiritual' | 'Historical' | 'Nature' | 'Food' | 'Arts' | 'Heritage' | 'Oral History';
+
+export interface ImageCredit {
+  file: string;
+  author: string;
+  license: string;
+}
 
 export interface Place {
   id: string;
@@ -28,6 +34,7 @@ export interface Place {
   category: Category;
   distanceKm: number;
   image: string;
+  imageCredit?: ImageCredit;
   description: string;
   deepHistory?: string;
   badges: string[];
@@ -46,11 +53,12 @@ export interface Place {
     title: string;
     description: string;
     image: string;
+    credit?: ImageCredit;
   }[];
   verifiedGuideIds: string[];
   vocabulary: {
     term: string;
-    phonetic: string;
+    phonetic?: string;
     meaning: string;
   }[];
   coordinates: {
@@ -65,28 +73,25 @@ export interface SymbolDetail {
   id: string;
   title: string;
   meaning: string;
-  image: string;
-  colorClass: string;
+  image?: string;
+  imageCredit?: ImageCredit;
 }
 
 export interface Story {
   id: string;
   title: string;
   subtitle: string;
-  category: string;
-  readTime: string;
+  category: Category;
+  readMinutes: number;
   heroImage: string;
+  imageCredit?: ImageCredit;
   author: {
     name: string;
     title: string;
-    avatar: string;
+    avatar?: string;
   };
   introduction: string;
   secondParagraph: string;
-  audioTrack?: {
-    title: string;
-    subtitle: string;
-  };
   symbolsTitle?: string;
   symbolsDescription?: string;
   symbols?: SymbolDetail[];
@@ -102,27 +107,31 @@ export interface Story {
   relatedStories: {
     id: string;
     title: string;
-    category: string;
+    category: Category;
     image: string;
   }[];
 }
 
+/** Ressource d'accueil réelle : institution publique, fondation ou guichet de site. */
 export interface Actor {
   id: string;
   name: string;
   role: string;
-  badgeTitle: string;
-  rating: number;
-  reviewsCount: number;
   location: string;
-  experienceYears: number;
-  languages: string[];
-  avatar: string;
+  badgeTitle?: string;
+  avatar?: string;
   heroImage?: string;
   quote?: string;
   bio?: string;
-  isCollective?: boolean;
-  membersCount?: number;
+  languages?: string[];
+  experienceYears?: number;
+  rating?: number;
+  reviewsCount?: number;
+  contact?: {
+    phone?: string;
+    email?: string;
+    url?: string;
+  };
   expertise: {
     title: string;
     description: string;
@@ -132,7 +141,7 @@ export interface Actor {
   experiences: {
     id: string;
     title: string;
-    price: string;
+    price?: string;
     duration: string;
     description: string;
     image?: string;

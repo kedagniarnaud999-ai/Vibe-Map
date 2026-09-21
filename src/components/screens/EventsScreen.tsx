@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, MapPin, Sparkles, ShieldAlert, AlertCircle, Ticket } from 'lucide-react';
 import { CulturalEvent } from '../../types';
 import { saveEventRSVPToFirestore } from '../../lib/firebase';
+import { useI18n } from '../../lib/i18n';
 
 interface EventsScreenProps {
   events: CulturalEvent[];
@@ -9,12 +10,31 @@ interface EventsScreenProps {
 }
 
 export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSession }) => {
+  const { t } = useI18n();
   const [selectedType, setSelectedType] = useState<string>('All');
   const [rsvpPending, setRsvpPending] = useState<string | null>(null);
   const [rsvpSaved, setRsvpSaved] = useState<string | null>(null);
   const [rsvpError, setRsvpError] = useState<string | null>(null);
 
   const types = ['All', 'Festival', 'Workshop', 'Ceremony', 'Concert'];
+
+  // Les valeurs restent les enumerations persistees de CulturalEvent : seuls les libelles passent par t().
+  const eventTypeLabels: Record<string, string> = {
+    All: t('Tous'),
+    Festival: t('Festival'),
+    Workshop: t('Atelier'),
+    Ceremony: t('Cérémonie'),
+    Concert: t('Concert')
+  };
+
+  const accessTypeLabels: Record<string, string> = {
+    'Open to Public': t('Accès Public & Gratuit'),
+    'Invitation Only': t('Sur Invitation'),
+    Ticketed: t('Sur Réservation')
+  };
+
+  const eventTypeLabel = (value: string) => eventTypeLabels[value] ?? value;
+  const accessTypeLabel = (value: string) => accessTypeLabels[value] ?? value;
 
   const filteredEvents = events.filter(
     (e) => selectedType === 'All' || e.type === selectedType
@@ -30,7 +50,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
     }
 
     if (!requireSession()) {
-      setRsvpError('Connectez-vous pour enregistrer votre présence.');
+      setRsvpError(t('Connectez-vous pour enregistrer votre présence.'));
       return;
     }
 
@@ -40,7 +60,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
     setRsvpPending(null);
 
     if (!saved) {
-      setRsvpError("L'enregistrement a échoué. Vérifiez que votre session est toujours active.");
+      setRsvpError(t("L'enregistrement a échoué. Vérifiez que votre session est toujours active."));
       return;
     }
 
@@ -49,20 +69,24 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
   };
 
   const rsvpLabel = (id: string) =>
-    rsvpPending === id ? 'Enregistrement…' : rsvpSaved === id ? 'Ajouté à l’agenda' : 'Confirmer ma présence';
+    rsvpPending === id
+      ? t('Enregistrement…')
+      : rsvpSaved === id
+        ? t('Ajouté à l’agenda')
+        : t('Confirmer ma présence');
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-4 pb-28 space-y-6">
       {/* Header Info */}
       <div className="space-y-1">
         <span className="text-xs font-bold uppercase tracking-wider text-[#5a5a40]">
-          Living Traditions
+          {t('Traditions Vivantes')}
         </span>
         <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#2c2926]">
-          Cultural Gatherings & Rituals
+          {t('Rassemblements Culturels & Rituels')}
         </h2>
         <p className="text-xs text-[#6b665e]">
-          Attend authentic festivals, artisan workshops, and sacred ceremonies with cultural protocols.
+          {t('Participez aux festivals authentiques, aux ateliers d’artisans et aux cérémonies sacrées dans le respect des protocoles culturels.')}
         </p>
       </div>
 
@@ -75,17 +99,17 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
 
       {/* Filter Chips */}
       <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-1">
-        {types.map((t) => (
+        {types.map((typeId) => (
           <button
-            key={t}
-            onClick={() => setSelectedType(t)}
+            key={typeId}
+            onClick={() => setSelectedType(typeId)}
             className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-              selectedType === t
+              selectedType === typeId
                 ? 'bg-[#c14e2f] text-white shadow-sm'
                 : 'bg-[#f0ece1] text-[#6b665e] hover:bg-[#e8e2d5]'
             }`}
           >
-            {t}
+            {eventTypeLabel(typeId)}
           </button>
         ))}
       </div>
@@ -104,11 +128,11 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
             
             <div className="absolute top-3 left-3 flex items-center gap-2">
               <span className="px-2.5 py-1 rounded-full bg-[#c14e2f] text-white text-[10px] font-bold">
-                Featured Gathering
+                {t('Rassemblement à la Une')}
               </span>
               {featured.isHappeningThisWeek && (
                 <span className="px-2.5 py-1 rounded-full bg-[#d9822b] text-white text-[10px] font-bold animate-pulse">
-                  This Week
+                  {t('Cette Semaine')}
                 </span>
               )}
             </div>
@@ -147,7 +171,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
       {/* Events List */}
       <div className="space-y-3">
         <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-          Upcoming Gatherings
+          {t('Prochains Rassemblements')}
         </h3>
 
         <div className="space-y-3">
@@ -169,7 +193,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded bg-[#fceee9] text-[#c14e2f] text-[10px] font-bold">
-                      {evt.type}
+                      {eventTypeLabel(evt.type)}
                     </span>
                     <span className="text-xs text-[#8c867c] flex items-center gap-1">
                       <Calendar className="w-3 h-3" /> {evt.date}
@@ -190,7 +214,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
 
               <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#f0ece1]">
                 <span className="text-[11px] font-semibold text-[#5a5a40] px-2.5 py-1 rounded bg-[#efece2]">
-                  {evt.accessType}
+                  {accessTypeLabel(evt.accessType)}
                 </span>
 
                 <button

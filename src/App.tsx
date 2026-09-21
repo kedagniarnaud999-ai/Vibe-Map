@@ -457,9 +457,7 @@ export default function App() {
             {currentScreen === 'place-detail' && selectedPlace && (
               <PlaceDetailScreen
                 place={selectedPlace}
-                actors={actors}
                 onBack={handleBack}
-                onSelectActor={handleSelectActor}
                 isSaved={Boolean(user.savedPlaces?.includes(selectedPlace.id))}
                 onToggleSave={handleToggleSavePlace}
               />

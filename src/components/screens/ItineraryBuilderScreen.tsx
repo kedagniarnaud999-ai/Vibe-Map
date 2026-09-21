@@ -12,6 +12,7 @@ import {
 import confetti from 'canvas-confetti';
 import { Place, ItineraryStop } from '../../types';
 import { apiFetch, saveItineraryToFirestore } from '../../lib/firebase';
+import { useI18n } from '../../lib/i18n';
 
 interface ItineraryBuilderScreenProps {
   places: Place[];
@@ -26,6 +27,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
   requireSession,
   onSaveItinerary
 }) => {
+  const { t } = useI18n();
   const [duration, setDuration] = useState<'2h' | 'half-day' | 'full-day' | '3-days'>('half-day');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([
     'Spiritual Traditions',
@@ -38,13 +40,14 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Les valeurs restent les enumerations envoyees a l'API : seuls les libelles passent par t().
   const interestOptions = [
-    'Spiritual Traditions',
-    'Royal Architecture',
-    'Textile Arts & Appliqué',
-    'Oral History & Griots',
-    'Lake Villages & Nature',
-    'Culinary & Palm Fermentation'
+    { value: 'Spiritual Traditions', label: t('Traditions Spirituelles') },
+    { value: 'Royal Architecture', label: t('Architecture Royale') },
+    { value: 'Textile Arts & Appliqué', label: t('Arts du Textile & Appliqué') },
+    { value: 'Oral History & Griots', label: t('Histoire Orale & Griots') },
+    { value: 'Lake Villages & Nature', label: t('Villages Lacustres & Nature') },
+    { value: 'Culinary & Palm Fermentation', label: t('Gastronomie & Fermentation de Palm') }
   ];
 
   const toggleInterest = (item: string) => {
@@ -61,7 +64,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
     setSaveError(null);
 
     if (!requireSession()) {
-      setGenerateError('Connectez-vous pour tisser votre itinéraire : la génération est réservée aux comptes vérifiés.');
+      setGenerateError(t('Connectez-vous pour tisser votre itinéraire : la génération est réservée aux comptes vérifiés.'));
       return;
     }
 
@@ -167,7 +170,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
     if (!generatedTimeline) return;
 
     if (!requireSession()) {
-      setSaveError('Connectez-vous pour enregistrer votre itinéraire dans le Passeport Culturel.');
+      setSaveError(t('Connectez-vous pour enregistrer votre itinéraire dans le Passeport Culturel.'));
       return;
     }
 
@@ -180,7 +183,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
     );
 
     if (!savedId) {
-      setSaveError("Enregistrement impossible. Vérifiez que votre session est toujours active.");
+      setSaveError(t("Enregistrement impossible. Vérifiez que votre session est toujours active."));
       return;
     }
 
@@ -205,13 +208,13 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
       {/* Header Info */}
       <div className="space-y-1">
         <span className="text-xs font-bold uppercase tracking-wider text-[#5a5a40]">
-          AI Cultural Curation
+          {t('Curation Culturelle par IA')}
         </span>
         <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#2c2926]">
-          Weave Your Cultural Vibe
+          {t('Tissez Votre Vibe Culturelle')}
         </h2>
         <p className="text-xs text-[#6b665e]">
-          Generate an etiquette-guided, historically sequenced itinerary customized to your rhythm.
+          {t('Générez un itinéraire séquencé historiquement, guidé par les protocoles et adapté à votre rythme.')}
         </p>
       </div>
 
@@ -220,14 +223,14 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
         {/* Duration Selection */}
         <div className="space-y-2">
           <label className="font-serif font-bold text-sm text-[#2c2926] block">
-            How much time do you have?
+            {t('De combien de temps disposez-vous ?')}
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
-              { id: '2h', label: '2 Hours' },
-              { id: 'half-day', label: 'Half Day' },
-              { id: 'full-day', label: 'Full Day' },
-              { id: '3-days', label: '3 Days Immersion' }
+              { id: '2h', label: t('2 Heures') },
+              { id: 'half-day', label: t('Demi-Journée') },
+              { id: 'full-day', label: t('Journée Complète') },
+              { id: '3-days', label: t('3 Jours d’Immersion') }
             ].map((item) => (
               <button
                 key={item.id}
@@ -247,22 +250,22 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
         {/* Interests Selector */}
         <div className="space-y-2">
           <label className="font-serif font-bold text-sm text-[#2c2926] block">
-            What aspects of Beninese culture do you want to understand?
+            {t('Quels aspects de la culture béninoise souhaitez-vous comprendre ?')}
           </label>
           <div className="flex flex-wrap gap-2">
             {interestOptions.map((opt) => {
-              const isSelected = selectedInterests.includes(opt);
+              const isSelected = selectedInterests.includes(opt.value);
               return (
                 <button
-                  key={opt}
-                  onClick={() => toggleInterest(opt)}
+                  key={opt.value}
+                  onClick={() => toggleInterest(opt.value)}
                   className={`py-2 px-3.5 rounded-full text-xs font-semibold border transition-all ${
                     isSelected
                       ? 'bg-[#fceee9] text-[#c14e2f] border-[#c14e2f]/40 shadow-sm'
                       : 'bg-[#f0ece1] text-[#6b665e] border-transparent hover:bg-[#e8e2d5]'
                   }`}
                 >
-                  {opt}
+                  {opt.label}
                 </button>
               );
             })}
@@ -278,12 +281,12 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
           {isGenerating ? (
             <>
               <RefreshCw className="w-4 h-4 animate-spin" />
-              <span>Weaving Cultural Sequence & Transit Routes...</span>
+              <span>{t('Tissage de la séquence culturelle et des trajets')}...</span>
             </>
           ) : (
             <>
               <Sparkles className="w-4 h-4 text-[#d9822b]" />
-              <span>Weave Personalized Itinerary</span>
+              <span>{t('Tisser un Itinéraire Personnalisé')}</span>
             </>
           )}
         </button>
@@ -302,14 +305,14 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#5a5a40]">
-                {timelineSource === 'ai' ? 'Itinéraire généré par l’IA' : 'Itinéraire de référence'}
+                {timelineSource === 'ai' ? t('Itinéraire généré par l’IA') : t('Itinéraire de référence')}
               </span>
               <h3 className="font-serif font-bold text-xl text-[#2c2926]">
-                Votre séquence culturelle
+                {t('Votre séquence culturelle')}
               </h3>
               {timelineSource === 'curated' && (
                 <p className="text-[11px] text-[#8c867c] mt-1">
-                  La génération n’a pas répondu : cette séquence est notre parcours conseillé, pas une réponse du modèle.
+                  {t('La génération n’a pas répondu : cette séquence est notre parcours conseillé, pas une réponse du modèle.')}
                 </p>
               )}
             </div>
@@ -319,7 +322,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
             >
               <Bookmark className="w-3.5 h-3.5" />
-              <span>{savedSuccess ? 'Enregistré !' : 'Enregistrer'}</span>
+              <span>{savedSuccess ? t('Enregistré !') : t('Enregistrer')}</span>
             </button>
           </div>
 
@@ -350,7 +353,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
                       {stop.verified && (
                         <span className="flex items-center gap-1 text-[11px] text-[#c14e2f] font-semibold">
                           <ShieldCheck className="w-3.5 h-3.5" />
-                          Etiquette Verified
+                          {t('Protocole Vérifié')}
                         </span>
                       )}
                     </div>
@@ -375,7 +378,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
                         onClick={() => onSelectPlace(matchedPlace)}
                         className="text-xs font-bold text-[#c14e2f] hover:underline flex items-center gap-1 pt-1"
                       >
-                        <span>View Deep Site Context</span>
+                        <span>{t('Voir le contexte complet du site')}</span>
                         <ArrowRight className="w-3 h-3" />
                       </button>
                     )}

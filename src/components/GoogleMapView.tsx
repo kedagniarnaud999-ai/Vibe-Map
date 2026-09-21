@@ -11,6 +11,8 @@ import { Place, Category } from '../types';
 import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers, AlertCircle, MapPin } from 'lucide-react';
 import { UserCoordinates } from '../lib/geo';
 import { googleMapsApiKey, hasGoogleMapsKey } from '../lib/map-provider-key';
+import { useI18n } from '../lib/i18n';
+import { useCategoryLabel } from '../lib/labels';
 
 interface GoogleMapViewProps {
   places: Place[];
@@ -49,6 +51,8 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
   onOpenPlaceDetail,
   onSwitchToInteractiveMap
 }) => {
+  const { t } = useI18n();
+  const categoryLabel = useCategoryLabel();
   const [activeMarkerPlace, setActiveMarkerPlace] = useState<Place | null>(selectedPlace);
   const [showUserLocationInfo, setShowUserLocationInfo] = useState<boolean>(false);
   const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'terrain' | 'hybrid'>('roadmap');
@@ -100,13 +104,14 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
           <MapPin className="w-7 h-7" />
         </div>
         <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-          Couche Google Maps Platform
+          {t('Couche Google Maps Platform')}
         </h3>
         <p className="text-xs text-[#6b665e] max-w-md mt-1.5 leading-relaxed">
-          Pour activer le calque officiel Google Maps avec Street View, définissez une clé valide dans la variable <code className="bg-white px-1.5 py-0.5 rounded text-[#c14e2f] font-mono">VITE_GOOGLE_MAPS_API_KEY</code>.
+          {t('Pour activer le calque officiel Google Maps avec Street View, définissez une clé valide dans la variable')}{' '}
+          <code className="bg-white px-1.5 py-0.5 rounded text-[#c14e2f] font-mono">VITE_GOOGLE_MAPS_API_KEY</code>.
         </p>
         <p className="text-xs text-[#5a5a40] max-w-md mt-1.5 font-medium">
-          La Carte Interactive Haute Définition (Leaflet / OpenStreetMap & Satellite) fonctionne immédiatement sans aucune clé requise.
+          {t('La Carte Interactive Haute Définition (Leaflet / OpenStreetMap & Satellite) fonctionne immédiatement sans aucune clé requise.')}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
           {onSwitchToInteractiveMap && (
@@ -114,7 +119,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
               onClick={onSwitchToInteractiveMap}
               className="px-4 py-2 bg-[#c14e2f] text-white text-xs font-semibold rounded-xl hover:bg-[#a83f23] transition-all shadow-sm"
             >
-              Afficher la Carte Interactive (Plan / Satellite)
+              {t('Afficher la Carte Interactive (Plan / Satellite)')}
             </button>
           )}
           {hasGoogleMapsKey && (
@@ -122,7 +127,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
               onClick={() => setHasError(false)}
               className="px-3.5 py-2 bg-white text-[#2c2926] border border-[#e8e2d5] text-xs font-semibold rounded-xl hover:bg-[#efece2] transition-all"
             >
-              Réessayer la connexion Google Maps
+              {t('Réessayer la connexion Google Maps')}
             </button>
           )}
         </div>
@@ -154,7 +159,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
           {userPosition && (
             <AdvancedMarker
               position={{ lat: userPosition.lat, lng: userPosition.lng }}
-              title="Votre position actuelle"
+              title={t('Votre position actuelle')}
               zIndex={999}
               onClick={() => setShowUserLocationInfo(true)}
             >
@@ -176,10 +181,10 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
               <div className="p-1 font-sans text-center text-[#2c2926]">
                 <div className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mb-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                  Vous êtes ici
+                  {t('Vous êtes ici')}
                 </div>
                 <p className="text-[10px] text-[#6b665e]">
-                  Précision GPS: ~{Math.round(userPosition.accuracy || 20)}m
+                  {t('Précision GPS: ~{distance}m', { distance: Math.round(userPosition.accuracy || 20) })}
                 </p>
               </div>
             </InfoWindow>
@@ -232,11 +237,11 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-black/70 text-white text-[10px] font-bold">
-                    {activeMarkerPlace.category}
+                    {categoryLabel(activeMarkerPlace.category)}
                   </span>
                   {(activeMarkerPlace as any).calculatedDistanceKm !== undefined && (
                     <span className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded bg-blue-600 text-white text-[10px] font-bold shadow">
-                      📍 {(activeMarkerPlace as any).calculatedDistanceKm} km de vous
+                      📍 {t('{distance} km de vous', { distance: (activeMarkerPlace as any).calculatedDistanceKm })}
                     </span>
                   )}
                 </div>
@@ -259,7 +264,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
                   onClick={() => onOpenPlaceDetail(activeMarkerPlace)}
                   className="w-full mt-2.5 py-1.5 px-3 rounded-lg bg-[#c14e2f] text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-sm hover:bg-[#a83f23] transition-all cursor-pointer"
                 >
-                  <span>Explorer le lieu</span>
+                  <span>{t('Explorer le lieu')}</span>
                   <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
@@ -276,7 +281,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
             mapType === 'roadmap' ? 'bg-[#c14e2f] text-white shadow-sm' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
           }`}
         >
-          Plan
+          {t('Plan')}
         </button>
         <button
           onClick={() => setMapType('satellite')}
@@ -284,7 +289,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
             mapType === 'satellite' ? 'bg-[#c14e2f] text-white shadow-sm' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
           }`}
         >
-          Satellite
+          {t('Satellite')}
         </button>
         <button
           onClick={() => setMapType('terrain')}
@@ -292,7 +297,7 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
             mapType === 'terrain' ? 'bg-[#c14e2f] text-white shadow-sm' : 'text-[#6b665e] hover:bg-[#f5f1e8]'
           }`}
         >
-          Relief
+          {t('Relief')}
         </button>
       </div>
     </div>

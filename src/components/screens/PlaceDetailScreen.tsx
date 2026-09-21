@@ -18,35 +18,32 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { Place, Actor } from '../../types';
+import { Place } from '../../types';
+import { commonsPage, creditLine } from '../../lib/media';
+import { useI18n } from '../../lib/i18n';
+import { useCategoryLabel } from '../../lib/labels';
 
 interface PlaceDetailScreenProps {
   place: Place;
-  actors: Actor[];
   onBack: () => void;
-  onSelectActor: (actor: Actor) => void;
   isSaved?: boolean;
   onToggleSave?: (placeId: string) => Promise<boolean>;
 }
 
 export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
   place,
-  actors,
   onBack,
-  onSelectActor,
   isSaved = false,
   onToggleSave
 }) => {
+  const { t } = useI18n();
+  const categoryLabel = useCategoryLabel();
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [audioProgress, setAudioProgress] = useState(25);
   const [expandedSection, setExpandedSection] = useState<'history' | 'etiquette' | 'visuals'>('history');
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; tone: 'ok' | 'warn' } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
-  const verifiedGuides = actors.filter((a) =>
-    place.verifiedGuideIds.includes(a.id)
-  );
 
   const handleToggleAudio = () => {
     setIsPlayingAudio(!isPlayingAudio);
@@ -66,10 +63,14 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
     const saved = await onToggleSave(place.id);
     setIsSaving(false);
     if (!saved) {
-      notify('Enregistrement impossible : vérifiez votre session.', 'warn');
+      notify(t('Enregistrement impossible : vérifiez votre session.'), 'warn');
       return;
     }
-    notify(isSaved ? 'Site retiré de votre carnet.' : 'Site enregistré dans votre carnet de voyage !');
+    notify(
+      isSaved
+        ? t('Site retiré de votre carnet.')
+        : t('Site enregistré dans votre carnet de voyage !')
+    );
   };
 
   return (
@@ -89,7 +90,7 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
           <button
             onClick={onBack}
             className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-[#2c2926] hover:bg-white transition-all shadow-md"
-            aria-label="Back"
+            aria-label={t('Retour')}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -101,8 +102,8 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
               className={`w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center transition-all shadow-md disabled:opacity-60 ${
                 isSaved ? 'bg-[#c14e2f] text-white' : 'bg-white/80 text-[#2c2926] hover:bg-white'
               }`}
-              title={isSaved ? 'Retirer de mon carnet' : 'Enregistrer dans mon carnet'}
-              aria-label={isSaved ? 'Retirer de mon carnet' : 'Enregistrer dans mon carnet'}
+              title={isSaved ? t('Retirer de mon carnet') : t('Enregistrer dans mon carnet')}
+              aria-label={isSaved ? t('Retirer de mon carnet') : t('Enregistrer dans mon carnet')}
             >
               <Bookmark className={`w-5 h-5 ${isSaving ? 'animate-pulse' : ''}`} />
             </button>
@@ -111,12 +112,12 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
                 if (navigator.share) {
                   navigator.share({ title: place.name, text: place.description, url: window.location.href });
                 } else {
-                  notify('Partage indisponible sur ce navigateur.', 'warn');
+                  notify(t('Partage indisponible sur ce navigateur.'), 'warn');
                 }
               }}
               className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-[#2c2926] hover:bg-white transition-all shadow-md"
-              title="Partager"
-              aria-label="Partager"
+              title={t('Partager')}
+              aria-label={t('Partager')}
             >
               <Share2 className="w-5 h-5" />
             </button>
@@ -127,7 +128,7 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
         <div className="absolute bottom-4 left-4 right-4 text-white space-y-1.5 max-w-2xl mx-auto">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-[#c14e2f] text-white text-[11px] font-bold">
-              {place.category}
+              {categoryLabel(place.category)}
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-white text-[11px] font-medium flex items-center gap-1">
               <MapPin className="w-3 h-3 text-[#d9822b]" />
@@ -137,6 +138,16 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
           <h1 className="font-serif text-2xl sm:text-3xl font-bold leading-tight">
             {place.name}
           </h1>
+          {place.imageCredit && (
+            <a
+              href={commonsPage(place.imageCredit.file)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block pt-1 text-[10px] leading-tight text-white/70 hover:text-white"
+            >
+              {t('Photo : {credit}', { credit: creditLine(place.imageCredit) })}
+            </a>
+          )}
         </div>
       </div>
 
@@ -159,11 +170,11 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
           <div className="flex items-center gap-2 text-[#3a3a28]">
             <ShieldAlert className="w-5 h-5 text-[#5a5a40] flex-shrink-0" />
             <h3 className="font-serif font-bold text-base">
-              Before You Enter: Respectful Protocol
+              {t('Protocole & Éthique du Sanctuaire')}
             </h3>
           </div>
           <p className="text-xs text-[#6b665e] leading-relaxed">
-            This is a living sacred and historical sanctuary. Observing local customs ensures deep respect for the community and custodians.
+            {t('Ce sanctuaire est un lieu sacré et historique toujours vivant. Observer les coutumes locales témoigne d’un profond respect pour la communauté et ses gardiens.')}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
@@ -194,7 +205,7 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#5a5a40] block">
-                    Curated Audio Story
+                    {t('Récit Audio Sélectionné')}
                   </span>
                   <h4 className="font-serif font-bold text-sm text-[#2c2926]">
                     {place.audioGuide.title}
@@ -253,10 +264,10 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
         <div className="bg-white rounded-2xl p-5 border border-[#e8e2d5] shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-              Cultural & Historical Context
+              {t('Histoire Ancestrale & Symboles')}
             </h3>
             <span className="text-xs font-semibold text-[#5a5a40] bg-[#efece2] px-2.5 py-0.5 rounded-full">
-              Heritage Archive
+              {t('Archive du Patrimoine')}
             </span>
           </div>
 
@@ -270,10 +281,10 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
           <div className="space-y-3">
             <div>
               <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-                Words to Know
+                {t('Mots à Connaître')}
               </h3>
               <p className="text-xs text-[#6b665e]">
-                Key Fon terminology to unlock local understanding
+                {t('Le vocabulaire Fon essentiel pour comprendre le lieu')}
               </p>
             </div>
 
@@ -288,9 +299,11 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
                     <span className="font-serif font-bold text-base text-[#c14e2f]">
                       {vocab.term}
                     </span>
-                    <span className="text-[11px] font-mono text-[#8c867c]">
-                      {vocab.phonetic}
-                    </span>
+                    {vocab.phonetic && (
+                      <span className="text-[11px] font-mono text-[#8c867c]">
+                        {vocab.phonetic}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-[#6b665e] leading-relaxed">
                     {vocab.meaning}
@@ -306,10 +319,10 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
           <div className="space-y-3">
             <div>
               <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-                Visual Guide & Sacred Elements
+                {t('Guide Visuel & Éléments Sacrés')}
               </h3>
               <p className="text-xs text-[#6b665e]">
-                What to observe when walking the sacred compound
+                {t('À observer lors de la marche dans l’enceinte sacrée')}
               </p>
             </div>
 
@@ -334,6 +347,16 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
                     <p className="text-[11px] text-[#6b665e] leading-tight">
                       {guide.description}
                     </p>
+                    {guide.credit && (
+                      <a
+                        href={commonsPage(guide.credit.file)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-[10px] leading-tight text-[#8c867c] hover:text-[#c14e2f]"
+                      >
+                        {t('Photo : {credit}', { credit: creditLine(guide.credit) })}
+                      </a>
+                    )}
                   </div>
                 </div>
               ))}
@@ -341,57 +364,6 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
           </div>
         )}
 
-        {/* Verified Guides Section */}
-        {verifiedGuides.length > 0 && (
-          <div className="space-y-3 pt-2">
-            <div>
-              <h3 className="font-serif font-bold text-lg text-[#2c2926]">
-                Recommended Verified Guides
-              </h3>
-              <p className="text-xs text-[#6b665e]">
-                Local custodians who can facilitate sacred introductions
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              {verifiedGuides.map((guide) => (
-                <div
-                  key={guide.id}
-                  onClick={() => onSelectActor(guide)}
-                  className="bg-white rounded-2xl p-4 border border-[#e8e2d5] hover:border-[#c14e2f]/40 transition-all cursor-pointer shadow-sm flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={guide.avatar}
-                      alt={guide.name}
-                      referrerPolicy="no-referrer"
-                      className="w-12 h-12 rounded-full object-cover border-2 border-[#c14e2f]/30"
-                    />
-                    <div>
-                      <h4 className="font-serif font-bold text-sm text-[#2c2926]">
-                        {guide.name}
-                      </h4>
-                      <p className="text-xs text-[#5a5a40] font-medium">{guide.role}</p>
-                      <p className="text-[11px] text-[#8c867c]">
-                        Languages: {guide.languages.join(', ')}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectActor(guide);
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-[#fceee9] text-[#c14e2f] text-xs font-bold hover:bg-[#f2c8bd] transition-colors"
-                  >
-                    Profile
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

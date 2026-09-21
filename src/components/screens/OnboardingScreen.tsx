@@ -1,44 +1,46 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Compass, BookOpen, Users, Sparkles, ArrowRight, Check } from 'lucide-react';
+import { useI18n } from '../../lib/i18n';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
 }
 
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
+  const { t } = useI18n();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
     {
-      badge: 'DISCOVER & EXPLORE',
-      title: 'Don’t just see Benin. Understand where you are.',
+      badge: t('DÉCOUVRIR & EXPLORER'),
+      title: t('Ne vous contentez pas de voir le Bénin, comprenez où vous êtes.'),
       description:
-        'La Vibe Map guides independent travelers through the living heritage, sacred sanctuaries, and historic kingdoms of Benin.',
+        t('La Vibe Map accompagne les voyageurs indépendants à travers le patrimoine vivant, les sanctuaires sacrés et les royaumes historiques du Bénin.'),
       icon: Compass,
       image:
         'https://lh3.googleusercontent.com/aida-public/AB6AXuAYRkhFIC1UIMj-wtR3I2XflFdCO4hl5uPhcPGbvRkTjpiupKomSdzy3oo91TkhEp5znDF7GUsnzhwI1Tb3NaXMkqsJpLYV7I4ht9-mR8hdPlIbBKMe2JQ8mEUNWM_VqEKLJZn28-7BRg28B58wrYmEjfM2yLwgCOdEzi83Z1eBW09qhceR6NiPLnTaZigYp1YysTL60qKBmJsfMLygRB5nMeKXu2BgAdXiqv4xsLXwyTumG8egnF91',
-      tag: 'Sacred Ouidah & Beyond'
+      tag: t('Ouidah Sacrée & Au-delà')
     },
     {
-      badge: 'DIGITAL CULTURAL LIBRARY',
-      title: 'Decode symbols, proverbs & sacred rituals.',
+      badge: t('BIBLIOTHÈQUE CULTURELLE NUMÉRIQUE'),
+      title: t('Décodez les symboles, les proverbes et les rituels sacrés.'),
       description:
-        'Explore curated stories written by historians, decode royal Dahomey appliqué textiles, and master cultural etiquette before every visit.',
+        t('Explorez des récits choisis par des historiens, décryptez les tentures appliquées royales du Dahomey et maîtrisez l’étiquette culturelle avant chaque visite.'),
       icon: BookOpen,
       image:
         'https://lh3.googleusercontent.com/aida-public/AB6AXuAvlDb0XuU_Cb4imwPnzeB5ynevor-y5iP5Ob-77rRPkwOCWMh5kUN8L-gIrdee1M7fawU7VYx8VhPOwlmbwQyGyJJOf-40SRG_4v_xTuuMTrgbofWxd2KMJHsmTLPUgUu1lslm4B3ASn8mGGR5af1UbDPZe3c4EWfLtfseDFwxLxmkiHy4B0frryKq-jHLmhWUa_a3FXcOFAZUB5Vwk669z_H1978s5UfhHpK3s0QdK-IAiGvCJu_N',
-      tag: 'Fon Appliqué & Oral History'
+      tag: t('Tentures Fon & Histoire Orale')
     },
     {
-      badge: 'VERIFIED MEDIATORS & AI VIBE',
-      title: 'Connect with certified keepers of tradition.',
+      badge: t('MÉDIATEURS VÉRIFIÉS & VIBE IA'),
+      title: t('Échangez avec les gardiens de tradition certifiés.'),
       description:
-        'Book verified cultural mediators, weave custom day itineraries, and access an AI cultural companion grounded in respect and nuance.',
+        t('Réservez des médiateurs culturels vérifiés, tissez vos itinéraires d’un jour et accédez à un compagnon culturel IA ancré dans le respect et la nuance.'),
       icon: Users,
       image:
         'https://lh3.googleusercontent.com/aida-public/AB6AXuCOBwAO2hQQWAA9OHvGDKO4mWxpsFow-PevNyma39HaHhFrKO8upgdHcjhEjZep2cPMYofRNVXMhPuW3k6WB0N7O11q3jHzj5uOlb8pNAA_wMpPn7gSrpXnt39vxgzkJafdn8NA_XNHiun7EJlgO3z0S99C7WkzOlTnnjulIpxhSFZ4tGVu0kudyd4U_Q7IyPsp_dqgH2We7YnyGUa-IMNb1ju7fi8tvpuembDT0ri5mMrNwkbDUT4W',
-      tag: 'Authentic Human Connections'
+      tag: t('Liens humains authentiques')
     }
   ];
 
@@ -67,7 +69,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           onClick={onComplete}
           className="text-xs font-semibold uppercase tracking-wider text-[#8c867c] hover:text-[#c14e2f] transition-colors px-3 py-1.5 rounded-full hover:bg-[#e8e2d5]"
         >
-          Passer
+          {t('Passer')}
         </button>
       </div>
 
@@ -127,7 +129,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                   ? 'w-8 bg-[#c14e2f]'
                   : 'w-2 bg-[#dedad0]'
               }`}
-              aria-label={`Step ${index + 1}`}
+              aria-label={t('Étape {n}', { n: index + 1 })}
             />
           ))}
         </div>
@@ -139,12 +141,12 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         >
           {currentStep === steps.length - 1 ? (
             <>
-              <span>Commencer l’Expérience</span>
+              <span>{t('Commencer l’Expérience')}</span>
               <Check className="w-4 h-4" />
             </>
           ) : (
             <>
-              <span>Continuer</span>
+              <span>{t('Continuer')}</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}

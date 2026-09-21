@@ -21,6 +21,8 @@ import {
   registerWithEmail, 
   submitGuideApplication
 } from '../../lib/firebase';
+import { useI18n } from '../../lib/i18n';
+import { useRoleLabel } from '../../lib/labels';
 
 interface AuthScreenProps {
   initialPortal?: 'public' | 'admin';
@@ -39,6 +41,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   onAuthSuccess,
   onCancel
 }) => {
+  const { t } = useI18n();
+  const roleLabel = useRoleLabel();
   // View state: 'public' (Travelers and Guide applicants) vs 'admin' (dissociated portal)
   const [portalMode, setPortalMode] = useState<'public' | 'admin'>(initialPortal);
 
@@ -83,13 +87,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     setLoading(false);
 
     if (!result.user) {
-      setErrorMessage(result.error || 'Connexion impossible. Vérifiez votre email et votre mot de passe.');
+      setErrorMessage(result.error || t('Connexion impossible. Vérifiez votre email et votre mot de passe.'));
       return;
     }
 
     if (portalMode === 'admin' && result.user.role !== 'admin') {
       setErrorMessage(
-        'Identifiants corrects, mais ce compte ne détient pas le rôle administrateur. Seul un opérateur peut le lui accorder côté Firebase.'
+        t('Identifiants corrects, mais ce compte ne détient pas le rôle administrateur. Seul un opérateur peut le lui accorder côté Firebase.')
       );
       return;
     }
@@ -108,11 +112,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     resetNotices();
 
     if (!email || !password) {
-      setErrorMessage('Veuillez renseigner votre email et un mot de passe.');
+      setErrorMessage(t('Veuillez renseigner votre email et un mot de passe.'));
       return;
     }
     if (isSignUp && !fullName.trim()) {
-      setErrorMessage('Veuillez indiquer votre nom complet.');
+      setErrorMessage(t('Veuillez indiquer votre nom complet.'));
       return;
     }
 
@@ -124,7 +128,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         setLoading(false);
 
         if (!res.user) {
-          setErrorMessage(res.error || 'Erreur lors de la création de compte');
+          setErrorMessage(res.error || t('Erreur lors de la création de compte'));
           return;
         }
 
@@ -142,8 +146,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           finishWithSession(
             res.user,
             application.success
-              ? 'Compte voyageur créé et demande d’agrément déposée. Un conservateur validera votre dossier ; l’accès Guide s’activera à ce moment-là.'
-              : `Compte voyageur créé. La demande d’agrément n’a pas pu être enregistrée : ${application.error || 'erreur inconnue'}`
+              ? t('Compte voyageur créé et demande d’agrément déposée. Un conservateur validera votre dossier ; l’accès Guide s’activera à ce moment-là.')
+              : t('Compte voyageur créé. La demande d’agrément n’a pas pu être enregistrée : {error}', { error: application.error || t('erreur inconnue') })
           );
           return;
         }
@@ -154,11 +158,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
       await handleAuthResult(
         await loginWithEmail(email, password),
-        'Connexion réussie. Votre accès Guide s’ouvrira dès qu’un administrateur aura validé votre demande d’agrément.'
+        t('Connexion réussie. Votre accès Guide s’ouvrira dès qu’un administrateur aura validé votre demande d’agrément.')
       );
     } catch (err: any) {
       setLoading(false);
-      setErrorMessage(err?.message || 'Erreur d’authentification');
+      setErrorMessage(err?.message || t('Erreur d’authentification'));
     }
   };
 
@@ -169,11 +173,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     try {
       await handleAuthResult(
         await loginWithGoogle(),
-        'Connexion réussie. Déposez une demande d’agrément pour accéder à l’espace Guide.'
+        t('Connexion réussie. Déposez une demande d’agrément pour accéder à l’espace Guide.')
       );
     } catch (err: any) {
       setLoading(false);
-      setErrorMessage(err?.message || 'Erreur de connexion Google');
+      setErrorMessage(err?.message || t('Erreur de connexion Google'));
     }
   };
 
@@ -183,7 +187,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     resetNotices();
 
     if (!email || !password) {
-      setErrorMessage('Identifiant administrateur et mot de passe requis.');
+      setErrorMessage(t('Identifiant administrateur et mot de passe requis.'));
       return;
     }
 
@@ -192,7 +196,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       await handleAuthResult(await loginWithEmail(email, password));
     } catch (err: any) {
       setLoading(false);
-      setErrorMessage(err?.message || "Erreur de connexion à l'administration.");
+      setErrorMessage(err?.message || t("Erreur de connexion à l'administration."));
     }
   };
 
@@ -203,17 +207,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <div className="w-14 h-14 rounded-2xl bg-green-50 text-green-700 border border-green-200 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-7 h-7" />
           </div>
-          <h2 className="font-serif font-bold text-xl text-[#2c2926]">Session vérifiée ouverte</h2>
+          <h2 className="font-serif font-bold text-xl text-[#2c2926]">{t('Session vérifiée ouverte')}</h2>
           <p className="text-xs text-[#6b665e] leading-relaxed">{confirmation}</p>
           <p className="text-[11px] text-[#8c867c]">
-            Rôle accordé par Firebase : <span className="font-bold text-[#2c2926]">{pendingUser.role}</span>
+            {t('Rôle accordé par Firebase : {role}', { role: roleLabel(pendingUser.role) })}
           </p>
           <button
             type="button"
             onClick={() => onAuthSuccess(pendingUser)}
             className="w-full py-2.5 px-4 rounded-xl bg-[#c14e2f] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 hover:bg-[#a83f23] transition-all cursor-pointer"
           >
-            <span>Continuer</span>
+            <span>{t('Continuer')}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -231,13 +235,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <Shield className="w-7 h-7" />
             </div>
             <span className="text-[10px] uppercase font-bold tracking-widest text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/20">
-              Espace Restreint
+              {t('Espace Restreint')}
             </span>
             <h2 className="font-serif font-bold text-2xl text-white mt-2">
-              Portail Conservateur & Admin
+              {t('Portail Conservateur & Admin')}
             </h2>
             <p className="text-xs text-[#a8a29e] mt-1 max-w-xs mx-auto">
-              Réservé aux comptes titulaires du rôle administrateur. La connexion seule ne suffit pas : le rôle est vérifié dans Firebase.
+              {t('Réservé aux comptes titulaires du rôle administrateur. La connexion seule ne suffit pas : le rôle est vérifié dans Firebase.')}
             </p>
           </div>
 
@@ -251,7 +255,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <form onSubmit={handleAdminSubmit} className="space-y-3.5">
             <div>
               <label className="block text-xs font-semibold text-[#e7e5e4] mb-1">
-                Email du compte administrateur
+                {t('Email du compte administrateur')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a8a29e]" />
@@ -259,7 +263,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vous@exemple.bj"
+                  placeholder={t('vous@exemple.bj')}
                   autoComplete="username"
                   className="w-full pl-10 pr-4 py-2.5 bg-[#2a2723] border border-[#44403c] rounded-xl text-xs sm:text-sm text-white placeholder-[#78716c] focus:border-amber-400 focus:outline-none transition-all"
                   required
@@ -269,7 +273,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-[#e7e5e4] mb-1">
-                Mot de passe
+                {t('Mot de passe')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a8a29e]" />
@@ -298,10 +302,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               className="w-full mt-3 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg active:scale-[0.99] transition-all cursor-pointer"
             >
               {loading ? (
-                <span>Vérification des droits...</span>
+                <span>{t('Vérification des droits...')}</span>
               ) : (
                 <>
-                  <span>Ouvrir l'Espace Administrateur</span>
+                  <span>{t("Ouvrir l'Espace Administrateur")}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -317,14 +321,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               }}
               className="text-xs text-amber-400 hover:underline flex items-center gap-1"
             >
-              ← Retour aux espaces Voyageur & Guide
+              ← {t('Retour aux espaces Voyageur & Guide')}
             </button>
             <button
               type="button"
               onClick={onCancel}
               className="text-xs text-[#a8a29e] hover:text-white"
             >
-              Mode invité
+              {t('Mode invité')}
             </button>
           </div>
         </div>
@@ -342,20 +346,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
             <h2 className="font-serif font-bold text-2xl text-[#2c2926]">
               {selectedRole === 'guide'
-                ? (isSignUp ? 'Demander un Agrément Médiateur' : 'Connexion Guide')
-                : (isSignUp ? 'Créer un Compte Voyageur' : 'Connexion Voyageur')}
+                ? (isSignUp ? t('Demander un Agrément Médiateur') : t('Connexion Guide'))
+                : (isSignUp ? t('Créer un Compte Voyageur') : t('Connexion Voyageur'))}
             </h2>
             <p className="text-xs text-[#6b665e] mt-1 max-w-xs mx-auto">
               {selectedRole === 'guide'
-                ? 'Votre demande est examinée par un conservateur ; l’accès Guide est accordé après vérification.'
-                : 'Explorez les sanctuaires sacrés, sauvez vos favoris et réservez vos visites.'}
+                ? t('Votre demande est examinée par un conservateur ; l’accès Guide est accordé après vérification.')
+                : t('Explorez les sanctuaires sacrés, sauvez vos favoris et réservez vos visites.')}
             </p>
           </div>
 
           {/* Intent Selection */}
           <div className="mb-5 bg-[#faf7f0] p-1.5 rounded-2xl border border-[#e8e2d5]">
             <div className="text-[10px] font-bold uppercase tracking-wider text-[#8c867c] px-2 py-1 mb-1">
-              Choisir votre profil d'accès
+              {t("Choisir votre profil d'accès")}
             </div>
             <div className="grid grid-cols-2 gap-1.5">
               <button
@@ -372,10 +376,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               >
                 <div className="flex items-center gap-1.5">
                   <Compass className={`w-4 h-4 ${selectedRole === 'traveler' ? 'text-[#c14e2f]' : 'text-[#8c867c]'}`} />
-                  <span className="text-xs font-bold">Voyageur</span>
+                  <span className="text-xs font-bold">{t('Voyageur')}</span>
                 </div>
                 <span className="text-[10px] text-[#8c867c] leading-tight">
-                  Découverte & visites
+                  {t('Découverte & visites')}
                 </span>
               </button>
 
@@ -393,10 +397,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               >
                 <div className="flex items-center gap-1.5">
                   <Award className={`w-4 h-4 ${selectedRole === 'guide' ? 'text-[#5a5a40]' : 'text-[#8c867c]'}`} />
-                  <span className="text-xs font-bold">Guide / Médiateur</span>
+                  <span className="text-xs font-bold">{t('Guide / Médiateur')}</span>
                 </div>
                 <span className="text-[10px] text-[#8c867c] leading-tight">
-                  Demande d’agrément
+                  {t('Demande d’agrément')}
                 </span>
               </button>
             </div>
@@ -413,12 +417,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
             </svg>
-            <span>Continuer avec Google</span>
+            <span>{t('Continuer avec Google')}</span>
           </button>
 
           <div className="flex items-center gap-3 my-3">
             <div className="flex-1 h-[1px] bg-[#e8e2d5]" />
-            <span className="text-[10px] text-[#8c867c] font-bold uppercase tracking-wider">ou avec email</span>
+            <span className="text-[10px] text-[#8c867c] font-bold uppercase tracking-wider">{t('ou avec email')}</span>
             <div className="flex-1 h-[1px] bg-[#e8e2d5]" />
           </div>
 
@@ -433,7 +437,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             {isSignUp && (
               <div>
                 <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                  {selectedRole === 'guide' ? 'Nom complet & Titre de Guide' : 'Nom complet'}
+                  {selectedRole === 'guide' ? t('Nom complet & Titre de Guide') : t('Nom complet')}
                 </label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c867c]" />
@@ -441,7 +445,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder={selectedRole === 'guide' ? 'Ex: Maître Dossou Houndégnon' : 'Ex: Alexandre Morel'}
+                    placeholder={selectedRole === 'guide' ? t('Ex: Maître Dossou Houndégnon') : t('Ex: Alexandre Morel')}
                     className="w-full pl-10 pr-4 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs sm:text-sm text-[#2c2926] focus:border-[#c14e2f] focus:outline-none transition-all"
                     required
                   />
@@ -454,7 +458,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">
-                      Téléphone WhatsApp
+                      {t('Téléphone WhatsApp')}
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8c867c]" />
@@ -470,7 +474,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                   <div>
                     <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">
-                      Zone d'intervention
+                      {t("Zone d'intervention")}
                     </label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8c867c]" />
@@ -488,7 +492,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">
-                      Années d'expérience
+                      {t("Années d'Expérience")}
                     </label>
                     <input
                       type="number"
@@ -502,13 +506,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                   <div>
                     <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">
-                      Langues (séparées par des virgules)
+                      {t('Langues (séparées par des virgules)')}
                     </label>
                     <input
                       type="text"
                       value={guideLanguages}
                       onChange={(e) => setGuideLanguages(e.target.value)}
-                      placeholder="Français, Fon, English"
+                      placeholder={t('Français, Fon, English')}
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                     />
                   </div>
@@ -516,13 +520,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                 <div>
                   <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">
-                    Spécialités culturelles (séparées par des virgules)
+                    {t('Spécialités culturelles (séparées par des virgules)')}
                   </label>
                   <input
                     type="text"
                     value={guideSpecialties}
                     onChange={(e) => setGuideSpecialties(e.target.value)}
-                    placeholder="Ex: Rituels Vodun, Histoire Royale, Écotourisme..."
+                    placeholder={t('Ex: Rituels Vodun, Histoire Royale, Écotourisme...')}
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                   />
                 </div>
@@ -531,7 +535,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                Adresse Email
+                {t('Adresse Email')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c867c]" />
@@ -539,7 +543,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nom@exemple.bj"
+                  placeholder={t('nom@exemple.bj')}
                   autoComplete="username"
                   className="w-full pl-10 pr-4 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs sm:text-sm text-[#2c2926] focus:border-[#c14e2f] focus:outline-none transition-all"
                   required
@@ -549,7 +553,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-[#2c2926] mb-1">
-                Mot de passe
+                {t('Mot de passe')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8c867c]" />
@@ -582,13 +586,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               }`}
             >
               {loading ? (
-                <span>Connexion en cours...</span>
+                <span>{t('Connexion en cours...')}</span>
               ) : (
                 <>
                   <span>
                     {isSignUp
-                      ? (selectedRole === 'guide' ? 'Déposer ma demande d’agrément' : 'Créer mon Compte Voyageur')
-                      : 'Se Connecter'}
+                      ? (selectedRole === 'guide' ? t('Déposer ma demande d’agrément') : t('Créer mon Compte Voyageur'))
+                      : t('Se connecter')}
                   </span>
                   <ArrowRight className="w-4 h-4" />
                 </>
@@ -606,8 +610,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               className="text-xs text-[#c14e2f] font-semibold hover:underline block mx-auto cursor-pointer"
             >
               {isSignUp 
-                ? 'Vous avez déjà un compte ? Se connecter' 
-                : (selectedRole === 'guide' ? 'Nouveau médiateur ? Déposer une demande d’agrément' : 'Nouveau voyageur ? Créer un compte')}
+                ? t('Vous avez déjà un compte ? Se connecter') 
+                : (selectedRole === 'guide' ? t('Nouveau médiateur ? Déposer une demande d’agrément') : t('Nouveau voyageur ? Créer un compte'))}
             </button>
 
             <div className="flex items-center justify-between pt-1">
@@ -616,7 +620,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 onClick={onCancel}
                 className="text-xs text-[#8c867c] hover:text-[#2c2926] cursor-pointer"
               >
-                ← Continuer en invité
+                ← {t('Continuer en invité')}
               </button>
 
               <button
@@ -628,7 +632,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 className="text-[11px] text-[#8c867c] hover:text-[#2c2926] flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-[#faf7f0] border border-transparent hover:border-[#e8e2d5] transition-all cursor-pointer"
               >
                 <Shield className="w-3.5 h-3.5 text-amber-600" />
-                <span className="font-semibold text-[#5a5a40]">Portail Conservateur & Admin</span>
+                <span className="font-semibold text-[#5a5a40]">{t('Portail Conservateur & Admin')}</span>
               </button>
             </div>
           </div>

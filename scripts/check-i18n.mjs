@@ -79,7 +79,7 @@ if (missing.size) {
     console.log(`  ${JSON.stringify(key)}  ${where.join(', ')}`);
   }
 } else {
-  console.log('\nChaine francaise referencee a une entree anglaise.');
+  console.log('\nToutes les chaines referencees ont une entree anglaise.');
 }
 
 if (dynamicKeys.length) {

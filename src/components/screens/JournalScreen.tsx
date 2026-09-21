@@ -14,6 +14,12 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { UserPreferences, Place, Story } from '../../types';
+import { useI18n } from '../../lib/i18n';
+import { useCategoryLabel } from '../../lib/labels';
+
+// Paliers figes dans la maquette : seuls les compteurs rendus sont localises.
+const CULTURAL_DEPTH_LEVEL = 2;
+const CULTURAL_DEPTH_PERCENT = 65;
 
 interface JournalScreenProps {
   user: UserPreferences;
@@ -30,11 +36,20 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
   onSelectPlace,
   onSelectStory
 }) => {
+  const { lang, t } = useI18n();
   const [activeTab, setActiveTab] = useState<'stamps' | 'stories' | 'badges'>('stamps');
   const [shareNote, setShareNote] = useState<string | null>(null);
 
+  const categoryLabel = useCategoryLabel();
+
+  const formatCount = (value: number) => new Intl.NumberFormat(lang).format(value);
+
   const handleSharePassport = async () => {
-    const summary = `Mon passeport culturel La Vibe Map : ${user.savedPlaces.length} site${user.savedPlaces.length > 1 ? 's' : ''} sacré${user.savedPlaces.length > 1 ? 's' : ''} enregistré${user.savedPlaces.length > 1 ? 's' : ''}.`;
+    const sacredSitesCount = user.savedPlaces.length;
+    const summary =
+      sacredSitesCount > 1
+        ? t('Mon passeport culturel La Vibe Map : {n} sites sacrés enregistrés.', { n: sacredSitesCount })
+        : t('Mon passeport culturel La Vibe Map : {n} site sacré enregistré.', { n: sacredSitesCount });
     let shared = false;
 
     if (navigator.share) {
@@ -49,14 +64,14 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
         await navigator.clipboard.writeText(`${summary} ${window.location.href}`);
         shared = true;
       } catch (e) {
-        setShareNote('Copie impossible');
+        setShareNote(t('Copie impossible'));
         setTimeout(() => setShareNote(null), 2500);
         return;
       }
     }
 
     if (!shared) {
-      setShareNote('Partage indisponible');
+      setShareNote(t('Partage indisponible'));
       setTimeout(() => setShareNote(null), 2500);
       return;
     }
@@ -69,7 +84,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       });
     } catch (e) {}
 
-    setShareNote(navigator.share ? 'Passeport partagé !' : 'Lien copié !');
+    setShareNote(navigator.share ? t('Passeport partagé !') : t('Lien copié !'));
     setTimeout(() => setShareNote(null), 2500);
   };
 
@@ -81,10 +96,10 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <span className="text-xs font-bold uppercase tracking-wider text-[#5a5a40]">
-            Travel Memory & Scrapbook
+            {t('Carnet de Mémoire & Scrapbook de Voyage')}
           </span>
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#2c2926]">
-            My Cultural Passport
+            {t('Mon Passeport Culturel')}
           </h2>
         </div>
 
@@ -93,7 +108,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
         >
           <Share2 className="w-3.5 h-3.5" />
-          <span>{shareNote ?? 'Partager mon passeport'}</span>
+          <span>{shareNote ?? t('Partager mon passeport')}</span>
         </button>
       </div>
 
@@ -116,15 +131,15 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           </div>
 
           <span className="px-3 py-1 rounded-full bg-white/20 text-xs font-bold">
-            Level 2
+            {t('Niveau {n}', { n: formatCount(CULTURAL_DEPTH_LEVEL) })}
           </span>
         </div>
 
         {/* Level Progress */}
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-white/90">
-            <span>Cultural Depth Progress</span>
-            <span className="font-bold">65% to Scholar</span>
+            <span>{t('Progression en Profondeur Culturelle')}</span>
+            <span className="font-bold">{t('{pct} % avant Érudit', { pct: formatCount(CULTURAL_DEPTH_PERCENT) })}</span>
           </div>
           <div className="w-full h-2.5 bg-black/20 rounded-full overflow-hidden">
             <div className="h-full bg-[#d9822b] rounded-full w-[65%]" />
@@ -134,16 +149,16 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20 text-center">
           <div>
-            <span className="font-serif font-bold text-lg block">{user.placesCount}</span>
-            <span className="text-[10px] text-white/80 uppercase">Sanctuaries Visited</span>
+            <span className="font-serif font-bold text-lg block">{formatCount(user.placesCount)}</span>
+            <span className="text-[10px] text-white/80 uppercase">{t('Sanctuaires Visités')}</span>
           </div>
           <div>
-            <span className="font-serif font-bold text-lg block">{user.storiesCount}</span>
-            <span className="text-[10px] text-white/80 uppercase">Stories Decoded</span>
+            <span className="font-serif font-bold text-lg block">{formatCount(user.storiesCount)}</span>
+            <span className="text-[10px] text-white/80 uppercase">{t('Récits Décodés')}</span>
           </div>
           <div>
-            <span className="font-serif font-bold text-lg block">{user.connectionsCount}</span>
-            <span className="text-[10px] text-white/80 uppercase">Guardians Met</span>
+            <span className="font-serif font-bold text-lg block">{formatCount(user.connectionsCount)}</span>
+            <span className="text-[10px] text-white/80 uppercase">{t('Gardiens Rencontrés')}</span>
           </div>
         </div>
       </div>
@@ -151,9 +166,9 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       {/* Tabs */}
       <div className="flex border-b border-[#e8e2d5] gap-6">
         {[
-          { id: 'stamps', label: 'Visited Sanctuaries', icon: MapPin },
-          { id: 'stories', label: 'Saved Stories', icon: BookOpen },
-          { id: 'badges', label: 'Earned Badges', icon: Award }
+          { id: 'stamps', label: t('Sanctuaires Visités'), icon: MapPin },
+          { id: 'stories', label: t('Récits Enregistrés'), icon: BookOpen },
+          { id: 'badges', label: t('Badges Obtenus'), icon: Award }
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -190,13 +205,13 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                   className="w-full h-full object-cover"
                 />
                 <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-[#c14e2f] text-white text-[8px] font-bold">
-                  Visited
+                  {t('Visité')}
                 </span>
               </div>
 
               <div className="flex-1 flex flex-col justify-center space-y-1">
                 <span className="text-[10px] font-bold uppercase text-[#5a5a40]">
-                  {place.category}
+                  {categoryLabel(place.category)}
                 </span>
                 <h4 className="font-serif font-bold text-sm text-[#2c2926] line-clamp-1">
                   {place.name}
@@ -228,12 +243,12 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               </div>
               <div className="flex-1 flex flex-col justify-center space-y-1">
                 <span className="text-[10px] font-bold uppercase text-[#c14e2f]">
-                  {story.category}
+                  {categoryLabel(story.category)}
                 </span>
                 <h4 className="font-serif font-bold text-xs text-[#2c2926] line-clamp-2">
                   {story.title}
                 </h4>
-                <span className="text-[10px] text-[#8c867c]">{story.readTime}</span>
+                <span className="text-[10px] text-[#8c867c]">{t('{n} min de lecture', { n: story.readMinutes })}</span>
               </div>
             </div>
           ))}
@@ -263,7 +278,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                   {badge.title}
                 </h5>
                 <span className="text-[10px] text-[#8c867c] block">
-                  {badge.unlocked ? 'Unlocked' : 'Locked'}
+                  {badge.unlocked ? t('Débloqué') : t('Verrouillé')}
                 </span>
               </div>
             </div>
