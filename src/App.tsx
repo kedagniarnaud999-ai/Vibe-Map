@@ -1,4 +1,4 @@
-import React, { ComponentType, lazy, Suspense, useEffect, useState } from 'react';
+import React, { ComponentType, lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { ScreenId, Place, Story, Actor, UserProfile } from './types';
@@ -17,6 +17,12 @@ import {
   VerifiedSession
 } from './lib/firebase';
 import { useI18n } from './lib/i18n';
+import {
+  localizeActors,
+  localizeEvents,
+  localizePlaces,
+  localizeStories
+} from './lib/content';
 
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
@@ -69,6 +75,28 @@ export default function App() {
   // Cosmetic only: which sign-in card AuthScreen opens on. Never a privilege.
   const [authPortal, setAuthPortal] = useState<'public' | 'admin'>('public');
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(true);
+
+  // Editorial content is served to public screens through strict English overrides:
+  // an entry with a missing or partial English record falls back to the whole French object,
+  // so a visitor never sees a mixed-language card. AdminScreen and GuidePortalScreen keep
+  // the raw French sources below because they edit them.
+  const localizedPlaces = useMemo(() => localizePlaces(places, lang), [places, lang]);
+  const localizedStories = useMemo(() => localizeStories(STORIES_DATA, lang), [lang]);
+  const localizedActors = useMemo(() => localizeActors(actors, lang), [actors, lang]);
+  const localizedEvents = useMemo(() => localizeEvents(EVENTS_DATA, lang), [lang]);
+
+  const displayedPlace =
+    selectedPlace === null
+      ? null
+      : localizedPlaces.find((p) => p.id === selectedPlace.id) ?? selectedPlace;
+  const displayedStory =
+    selectedStory === null
+      ? null
+      : localizedStories.find((s) => s.id === selectedStory.id) ?? selectedStory;
+  const displayedActor =
+    selectedActor === null
+      ? null
+      : localizedActors.find((a) => a.id === selectedActor.id) ?? selectedActor;
 
   const applySession = (next: VerifiedSession) => {
     setSession(next);
@@ -435,9 +463,9 @@ export default function App() {
 
             {currentScreen === 'home' && (
               <HomeScreen
-                places={places}
-                stories={STORIES_DATA}
-                actors={actors}
+                places={localizedPlaces}
+                stories={localizedStories}
+                actors={localizedActors}
                 onSelectPlace={handleSelectPlace}
                 onSelectStory={handleSelectStory}
                 onSelectActor={handleSelectActor}
@@ -447,33 +475,33 @@ export default function App() {
 
             {currentScreen === 'map' && (
               <MapScreen
-                places={places}
-                selectedPlace={selectedPlace}
+                places={localizedPlaces}
+                selectedPlace={displayedPlace}
                 onSelectPlace={(p) => setSelectedPlace(p)}
                 onOpenPlaceDetail={handleSelectPlace}
               />
             )}
 
-            {currentScreen === 'place-detail' && selectedPlace && (
+            {currentScreen === 'place-detail' && displayedPlace && (
               <PlaceDetailScreen
-                place={selectedPlace}
+                place={displayedPlace}
                 onBack={handleBack}
-                isSaved={Boolean(user.savedPlaces?.includes(selectedPlace.id))}
+                isSaved={Boolean(user.savedPlaces?.includes(displayedPlace.id))}
                 onToggleSave={handleToggleSavePlace}
               />
             )}
 
             {currentScreen === 'library' && (
               <LibraryScreen
-                stories={STORIES_DATA}
+                stories={localizedStories}
                 onSelectStory={handleSelectStory}
               />
             )}
 
-            {currentScreen === 'story-detail' && selectedStory && (
+            {currentScreen === 'story-detail' && displayedStory && (
               <StoryDetailScreen
-                story={selectedStory}
-                allStories={STORIES_DATA}
+                story={displayedStory}
+                allStories={localizedStories}
                 onBack={handleBack}
                 onSelectStory={handleSelectStory}
                 onNavigate={navigateTo}
@@ -482,14 +510,14 @@ export default function App() {
 
             {currentScreen === 'actors' && (
               <ActorDirectoryScreen
-                actors={actors}
+                actors={localizedActors}
                 onSelectActor={handleSelectActor}
               />
             )}
 
-            {currentScreen === 'actor-profile' && selectedActor && (
+            {currentScreen === 'actor-profile' && displayedActor && (
               <ActorProfileScreen
-                actor={selectedActor}
+                actor={displayedActor}
                 onBack={handleBack}
                 requireSession={requireVerifiedIntent}
               />
@@ -497,7 +525,7 @@ export default function App() {
 
             {currentScreen === 'itinerary-builder' && (
               <ItineraryBuilderScreen
-                places={places}
+                places={localizedPlaces}
                 onSelectPlace={handleSelectPlace}
                 requireSession={requireVerifiedIntent}
                 onSaveItinerary={() => {
@@ -509,15 +537,15 @@ export default function App() {
             {currentScreen === 'journal' && (
               <JournalScreen
                 user={user}
-                places={places}
-                stories={STORIES_DATA}
+                places={localizedPlaces}
+                stories={localizedStories}
                 onSelectPlace={handleSelectPlace}
                 onSelectStory={handleSelectStory}
               />
             )}
 
             {currentScreen === 'events' && (
-              <EventsScreen events={EVENTS_DATA} requireSession={requireVerifiedIntent} />
+              <EventsScreen events={localizedEvents} requireSession={requireVerifiedIntent} />
             )}
 
             {currentScreen === 'assistant' && <AssistantScreen />}
