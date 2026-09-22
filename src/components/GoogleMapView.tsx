@@ -21,13 +21,16 @@ interface GoogleMapViewProps {
   onSelectPlace: (place: Place) => void;
   onOpenPlaceDetail: (place: Place) => void;
   onSwitchToInteractiveMap?: () => void;
+  focusToken: number;
 }
 
 // Sub-component to handle programmatically controlling camera pan
 const MapController: React.FC<{ 
   selectedPlace: Place | null; 
   userPosition: UserCoordinates | null;
-}> = ({ selectedPlace, userPosition }) => {
+  places: Place[];
+  focusToken: number;
+}> = ({ selectedPlace, userPosition, places, focusToken }) => {
   const map = useMap();
 
   useEffect(() => {
@@ -40,6 +43,36 @@ const MapController: React.FC<{
     }
   }, [map, selectedPlace]);
 
+  // Même canal que la vue Leaflet : un clic sur une puce de catégorie doit amener la caméra sur
+  // les lieux concernés, sinon les sites du Nord restent hors champ après le filtrage.
+  useEffect(() => {
+    if (!map || focusToken === 0) return;
+
+    const points = places
+      .filter((p) => p.coordinates?.lat && p.coordinates?.lng)
+      .map((p) => ({ lat: p.coordinates.lat, lng: p.coordinates.lng }));
+
+    if (points.length === 0) return;
+
+    if (points.length === 1) {
+      map.panTo(points[0]);
+      map.setZoom(13);
+      return;
+    }
+
+    const lats = points.map((p) => p.lat);
+    const lngs = points.map((p) => p.lng);
+    map.fitBounds(
+      {
+        north: Math.max(...lats),
+        south: Math.min(...lats),
+        east: Math.max(...lngs),
+        west: Math.min(...lngs)
+      },
+      { top: 116, bottom: 224, left: 40, right: 40 }
+    );
+  }, [map, focusToken, places]);
+
   return null;
 };
 
@@ -49,7 +82,8 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
   userPosition,
   onSelectPlace,
   onOpenPlaceDetail,
-  onSwitchToInteractiveMap
+  onSwitchToInteractiveMap,
+  focusToken
 }) => {
   const { t } = useI18n();
   const categoryLabel = useCategoryLabel();
@@ -153,7 +187,12 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
           disableDefaultUI={false}
           className="w-full h-full"
         >
-          <MapController selectedPlace={selectedPlace} userPosition={userPosition} />
+          <MapController
+            selectedPlace={selectedPlace}
+            userPosition={userPosition}
+            places={places}
+            focusToken={focusToken}
+          />
 
           {/* User Location Marker */}
           {userPosition && (

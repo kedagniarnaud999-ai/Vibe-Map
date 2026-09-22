@@ -55,6 +55,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   const { t } = useI18n();
   const categoryLabel = useCategoryLabel();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [focusToken, setFocusToken] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [layerType, setLayerType] = useState<'voyager' | 'satellite' | 'terrain' | 'street'>('voyager');
   const [viewEngine, setViewEngine] = useState<'interactive-map' | 'google-maps' | 'heritage-canvas'>('interactive-map');
@@ -221,7 +222,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
     return result;
   }, [enrichedPlaces, selectedCategory, searchQuery, maxDistanceFilter, sortByProximity, userPosition]);
 
-  const activePlace = selectedPlace || filteredPlaces[0] || places[0];
+  const activePlace =
+    selectedPlace && filteredPlaces.some((p) => p.id === selectedPlace.id)
+      ? selectedPlace
+      : filteredPlaces[0] || places[0];
 
   const getCategoryColor = (cat: Category) => {
     switch (cat) {
@@ -344,6 +348,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                 if (maxDistanceFilter === null) setMaxDistanceFilter(25);
                 else if (maxDistanceFilter === 25) setMaxDistanceFilter(50);
                 else setMaxDistanceFilter(null);
+                setFocusToken((v) => v + 1);
               }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shadow-sm backdrop-blur-md transition-all ${
                 maxDistanceFilter !== null
@@ -362,7 +367,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             return (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
+                onClick={() => {
+                  setSelectedCategory(cat.id);
+                  setFocusToken((v) => v + 1);
+                }}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shadow-sm backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-[#c14e2f] text-white font-semibold ring-2 ring-[#c14e2f]/30'
@@ -441,6 +449,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             userPosition={userPosition}
             onSelectPlace={onSelectPlace}
             layerType={layerType}
+            focusToken={focusToken}
           />
         ) : viewEngine === 'google-maps' ? (
           <Suspense
@@ -456,6 +465,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               userPosition={userPosition}
               onSelectPlace={onSelectPlace}
               onOpenPlaceDetail={onOpenPlaceDetail}
+              focusToken={focusToken}
               onSwitchToInteractiveMap={() => {
                 setViewEngine('interactive-map');
                 setLayerType('voyager');
