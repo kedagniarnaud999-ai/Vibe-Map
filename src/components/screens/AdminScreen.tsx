@@ -82,8 +82,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [newPlaceImageLicense, setNewPlaceImageLicense] = useState('');
   const [newPlaceDesc, setNewPlaceDesc] = useState('');
   const [newPlaceHistory, setNewPlaceHistory] = useState('');
-  const [newPlaceLat, setNewPlaceLat] = useState('6.3622');
-  const [newPlaceLng, setNewPlaceLng] = useState('2.0864');
+  const [newPlaceLat, setNewPlaceLat] = useState('');
+  const [newPlaceLng, setNewPlaceLng] = useState('');
 
   useEffect(() => {
     if (userRole === 'admin') {
@@ -247,6 +247,19 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       alert(t('Publication refusée : indiquez le fichier Wikimedia Commons, son auteur et sa licence.'));
       return;
     }
+    const latitude = parseFloat(newPlaceLat);
+    const longitude = parseFloat(newPlaceLng);
+    // La position est une donnée géographique, pas un détail de mise en page :
+    // un repli l'épinglerait sur la carte au milieu d'un autre site.
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude) ||
+      Math.abs(latitude) > 90 ||
+      Math.abs(longitude) > 180
+    ) {
+      alert(t('Publication refusée : indiquez une latitude entre -90 et 90 et une longitude entre -180 et 180.'));
+      return;
+    }
     const placeToSave: Place = {
       id: editingPlace ? editingPlace.id : 'site-' + Date.now(),
       name: newPlaceName,
@@ -267,8 +280,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       coordinates: {
         x: 50,
         y: 50,
-        lat: parseFloat(newPlaceLat) || 6.36,
-        lng: parseFloat(newPlaceLng) || 2.08
+        lat: latitude,
+        lng: longitude
       }
     };
 
@@ -324,8 +337,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setNewPlaceImageLicense('');
     setNewPlaceDesc('');
     setNewPlaceHistory('');
-    setNewPlaceLat('6.3622');
-    setNewPlaceLng('2.0864');
+    setNewPlaceLat('');
+    setNewPlaceLng('');
   };
 
   const openEditModal = (p: Place) => {
@@ -338,8 +351,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setNewPlaceImageLicense(p.imageCredit?.license || '');
     setNewPlaceDesc(p.description);
     setNewPlaceHistory(p.deepHistory || '');
-    setNewPlaceLat(String(p.coordinates?.lat || 6.36));
-    setNewPlaceLng(String(p.coordinates?.lng || 2.08));
+    setNewPlaceLat(String(p.coordinates?.lat ?? ''));
+    setNewPlaceLng(String(p.coordinates?.lng ?? ''));
     setShowAddModal(true);
   };
 
@@ -947,6 +960,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Latitude')}</label>
                     <input
                       type="text"
+                      placeholder="6.3622"
                       value={newPlaceLat}
                       onChange={(e) => setNewPlaceLat(e.target.value)}
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
@@ -956,6 +970,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Longitude')}</label>
                     <input
                       type="text"
+                      placeholder="2.0864"
                       value={newPlaceLng}
                       onChange={(e) => setNewPlaceLng(e.target.value)}
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
