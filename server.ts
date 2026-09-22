@@ -60,6 +60,13 @@ function getAI(): GoogleGenAI | null {
   return aiClient;
 }
 
+// Sans cle Gemini, la route repond une erreur explicite : un 200 au texte ecrit a la main
+// se lirait cote client comme une sortie du modele, et l'archive etiquetee de l'ecran ne
+// serait jamais atteinte.
+function aiUnavailable(res: Response) {
+  return res.status(503).json({ error: "ai_unavailable" });
+}
+
 // Timeout wrapper to ensure responsive UI even if API is slow or throttled
 function withTimeout<T>(promise: Promise<T>, ms: number = 7000, fallbackMessage = "Timeout"): Promise<T> {
   let timer: any;
@@ -175,6 +182,7 @@ async function startServer() {
       status: "ok",
       service: "La Vibe Map Cultural & Cloud SQL API",
       cloudSqlRegion: "europe-west1",
+      ai: Boolean(process.env.GEMINI_API_KEY),
       timestamp: new Date().toISOString()
     });
   });
@@ -458,15 +466,7 @@ async function startServer() {
 
       const ai = getAI();
       if (!ai) {
-        return res.json({
-          reply: `Akwaba ! Concernant votre question sur "${message}" : Au Bénin, les traditions vivantes (Vodun, Royauté d'Abomey, Rites Gèlèdé) reposent sur le profond respect des aînés et des sanctuaires. N'hésitez pas à demander la permission aux gardiens avant toute photo.`,
-          fonPhrase: {
-            fon: "Kou do agbé",
-            phonetic: "Kou doh ah-gbeh",
-            meaning: "Bonjour / Paix et longue vie"
-          },
-          etiquetteTip: "Dans les couvents et cours royales, retirez chaussures et couvrez vos épaules par respect."
-        });
+        return aiUnavailable(res);
       }
 
       const systemPrompt = `Tu es le Compagnon Culturel et Médiateur Authentique de "La Vibe Map", l'application de découverte patrimoniale et spirituelle du Bénin (Ouidah, Abomey, Ganvié, Porto-Novo, Allada).
@@ -561,33 +561,7 @@ Format de sortie strict en JSON valide:
       const ai = getAI();
 
       if (!ai) {
-        return res.json({
-          timeline: [
-            {
-              time: '08:30',
-              title: 'Temple des Pythons & Salutation au Chef Traditionnel',
-              description: 'Immersion respectueuse dans le sanctuaire totémique de Ouidah.',
-              insight: 'Demandez la bénédiction du gardien avant d’entrer dans la chambre sacrée.',
-              transitTime: '15 min de marche',
-              placeId: 'ouidah-python'
-            },
-            {
-              time: '11:00',
-              title: 'La Route des Esclaves & Arbre de l’Oubli',
-              description: 'Marche mémorielle commentée par un historien de la communauté.',
-              insight: 'Observer une minute de silence sous l’Arbre du Retour.',
-              transitTime: '20 min en Zémidjan',
-              placeId: 'slave-route'
-            },
-            {
-              time: '14:30',
-              title: 'Porte du Non-Retour & Méditation Littorale',
-              description: 'Arrivée sur la plage atlantique face au monument mémoriel.',
-              insight: 'Les couchers de soleil y sont propices au recueillement.',
-              placeId: 'porte-non-retour'
-            }
-          ]
-        });
+        return aiUnavailable(res);
       }
 
       const prompt = `Génère un itinéraire culturel fluide et séquentiel au Bénin pour une durée de "${duration}" avec les centres d'intérêt suivants: ${interests.length > 0 ? interests.join(', ') : 'Patrimoine, Spiritualité Vodun, Histoire'}. Le style du voyageur est "${userVibe}".
@@ -661,13 +635,7 @@ Format de sortie en JSON strict:
       }
       const ai = getAI();
       if (!ai) {
-        return res.json({
-          text: `Le compagnon culturel en temps réel est indisponible : aucune réponse vérifiée ne peut être apportée ici pour « ${searchQuery} ». Les horaires et les tarifs se confirment auprès des portails officiels listés ci-dessous.`,
-          sources: [
-            { title: "Bénin Tourisme Officiel", url: "https://benin.travel" },
-            { title: "Patrimoine Mondial UNESCO Bénin", url: "https://whc.unesco.org" }
-          ]
-        });
+        return aiUnavailable(res);
       }
 
       const prompt = `Recherche les informations en temps réel et vérifiées sur le web concernant cette demande sur le tourisme, la culture, les guides ou le patrimoine au Bénin : "${searchQuery}".

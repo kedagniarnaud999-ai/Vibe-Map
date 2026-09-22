@@ -33,6 +33,10 @@ export const EN: Record<string, string> = {
   'Célébrations & Fêtes Traditionnelles': 'Celebrations & Traditional Festivals',
   'Vodun Days, Gaani et rituels sacrés': 'Vodun Days, Gaani and sacred rituals',
   'Compagnon Culturel IA': 'Cultural AI Companion',
+  'Compagnon IA hors ligne.': 'AI companion offline.',
+  'Réponses issues de l’archive culturelle écrite': 'Answers drawn from the written cultural archive',
+  'Le serveur ne tient aucune clé Gemini : ce qui s’affiche ici vient de l’archive culturelle écrite de La Vibe Map, pas d’un modèle.':
+    'The server holds no Gemini key: what appears here comes from La Vibe Map’s written cultural archive, not from a model.',
   'Espace Administration du Patrimoine': 'Heritage Administration Portal',
   'Supervision des bases, scraping et validation': 'Database supervision, scraping and validation',
   'Portail Médiateur & Guide': 'Mediator & Guide Portal',
