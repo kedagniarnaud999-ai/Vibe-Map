@@ -759,7 +759,7 @@ export const EVENT_CONTENT_EN: Record<string, EventContentEn> = {
     title: 'Vodun Days (National Festival of Vodun Arts and Traditions)',
     date: '9 & 10 January (Annual)',
     location: 'Djègbadji Beach & Historic City, Ouidah',
-    accessType: 'Public and free access',
+    accessType: 'Public access',
     description:
       'Benin’s largest cultural and spiritual gathering, bringing together Vodun dignitaries, sacred convents, Zangbéto night guardians and the spectacular dances of Egungun masks facing the Atlantic Ocean.'
   },
@@ -786,13 +786,5 @@ export const EVENT_CONTENT_EN: Record<string, EventContentEn> = {
     accessType: 'By invitation, with protocol observed',
     description:
       'Ancestral spirits embodied in sumptuous costumes of embroidered and sequinned cloth, dancing to the rhythm of the Bata drums under the guidance of the Alagba.'
-  },
-  'atelier-teinture-indigo': {
-    title: 'Master Dyer Workshop & Kanvô Weaving',
-    date: 'Wednesday & Saturday, 10:00',
-    location: 'Adjina historic quarter, Porto-Novo',
-    accessType: 'By booking (18,000 FCFA)',
-    description:
-      'Hands-on introduction to the fermentation of plant indigo in ancestral vats, and the making of Beninese geometric motifs on cotton cloth.'
   }
 };
