@@ -245,7 +245,6 @@ export const EN: Record<string, string> = {
   'La génération n’a pas répondu : cette séquence est notre parcours conseillé, pas une réponse du modèle.': 'Generation did not respond: this sequence is our recommended route, not a model answer.',
   'Enregistré !': 'Saved!',
   'Enregistrer': 'Save',
-  'Protocole Vérifié': 'Etiquette Verified',
   'Voir le contexte complet du site': 'View Deep Site Context',
 
   'Festival': 'Festival',

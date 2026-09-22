@@ -236,5 +236,4 @@ export interface ItineraryStop {
   image?: string;
   icon: string;
   color: string;
-  verified?: boolean;
 }
