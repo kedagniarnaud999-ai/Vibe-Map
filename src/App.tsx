@@ -40,8 +40,10 @@ import { EventsScreen } from './components/screens/EventsScreen';
  * Leaflet, the admin console and guide portal are role-gated, and the confetti screens share a
  * chunk. Everything above is what a first paint genuinely needs.
  */
-const lazyScreen = (load: () => Promise<Record<string, any>>, name: string) =>
-  lazy(() => load().then((mod) => ({ default: mod[name] as ComponentType<any> })));
+const lazyScreen = <M extends Record<string, ComponentType<any>>, K extends keyof M>(
+  load: () => Promise<M>,
+  name: K
+) => lazy(() => load().then((mod) => ({ default: mod[name] })));
 
 const MapScreen = lazyScreen(() => import('./components/screens/MapScreen'), 'MapScreen');
 const ItineraryBuilderScreen = lazyScreen(

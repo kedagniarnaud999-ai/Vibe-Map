@@ -129,7 +129,7 @@ export function localizeStory(
       title: content.symbols[index].title,
       meaning: content.symbols[index].meaning
     })),
-    quote: story.quote === undefined ? undefined : { ...story.quote, text: content.quote },
+    quote: story.quote === undefined ? undefined : { ...story.quote, text: content.quote! },
     conclusion: content.conclusion,
     workshopCTA:
       story.workshopCTA === undefined

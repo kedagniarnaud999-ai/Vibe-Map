@@ -326,9 +326,14 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                   {currentActor.role} • {currentActor.location}
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-[11px] text-[#8c867c]">
-                  <span>⭐ {currentActor.rating} {t('({n} avis)', { n: currentActor.reviewsCount })}</span>
-                  <span>•</span>
-                  <span>🗣️ {currentActor.languages.join(', ')}</span>
+                  {currentActor.rating !== undefined && currentActor.reviewsCount !== undefined && (
+                    <span>
+                      ⭐ {currentActor.rating} {t('({n} avis)', { n: currentActor.reviewsCount })}
+                    </span>
+                  )}
+                  {currentActor.languages?.length ? (
+                    <span>🗣️ {currentActor.languages.join(', ')}</span>
+                  ) : null}
                 </div>
               </div>
             </div>

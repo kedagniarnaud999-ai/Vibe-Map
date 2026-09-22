@@ -146,7 +146,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
             <p className="text-sm font-semibold text-[#5a5a40]">{actor.role}</p>
 
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-[#6b665e]">
-              {actor.rating !== undefined && (
+              {actor.rating !== undefined && actor.reviewsCount !== undefined && (
                 <span className="flex items-center gap-1 text-[#5a5a40] font-bold">
                   <Star className="w-3.5 h-3.5 fill-current text-[#d9822b]" /> {actor.rating} ({actor.reviewsCount === 1 ? t('1 avis') : t('{count} avis', { count: actor.reviewsCount })})
                 </span>

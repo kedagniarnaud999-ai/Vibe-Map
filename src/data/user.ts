@@ -3,6 +3,7 @@ import { UserPreferences } from '../types';
 // Logged-out shell only. Identity fields stay empty: a real name, e-mail and role
 // arrive exclusively from a verified Firebase session.
 export const INITIAL_USER: UserPreferences = {
+  id: '',
   name: 'Explorateur Culturel',
   email: '',
   avatar: '',

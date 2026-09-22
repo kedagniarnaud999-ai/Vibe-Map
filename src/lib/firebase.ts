@@ -246,7 +246,8 @@ export async function restoreSession(): Promise<VerifiedSession> {
     return SIGNED_OUT_SESSION;
   }
 
-  const { uid, email = '' } = fbUser;
+  const { uid } = fbUser;
+  const email = fbUser.email ?? '';
 
   try {
     return { status: 'ready', profile: await establishSession(fbUser), uid, email };

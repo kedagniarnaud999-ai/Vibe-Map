@@ -33,6 +33,8 @@ export interface Place {
   location: string;
   category: Category;
   distanceKm: number;
+  // Dérivée à l'exécution depuis la position GPS réelle du visiteur : absente tant qu'elle n'est pas connue.
+  calculatedDistanceKm?: number;
   image: string;
   imageCredit?: ImageCredit;
   description: string;
@@ -171,14 +173,14 @@ export interface CulturalEvent {
 }
 
 export interface UserPreferences {
-  id?: string;
+  id: string;
   name: string;
   email: string;
   avatar: string;
   vibeTag: string;
   travelStyle: 'Relaxed' | 'Explorer' | 'Cultural Deep-Dive';
   language: string;
-  role?: UserRole;
+  role: UserRole;
   guideProfile?: {
     phone?: string;
     certified?: boolean;
