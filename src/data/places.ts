@@ -946,5 +946,156 @@ export const PLACES_DATA: Place[] = [
       lat: 6.49791,
       lng: 1.979
     }
+  },
+  {
+    id: 'azalai-plage-cotonou',
+    name: 'Azalaï Hôtel de la Plage',
+    location: 'Rue 651 A, Ganhi, Zongo, Placodji, 5ème Arrondissement, Cotonou, Littoral, Bénin',
+    category: 'Lodging',
+    image: commonsThumb('Fleur Hôtel Azalaï Cotonou 03.jpg', 960),
+    imageCredit: {
+      file: 'Fleur Hôtel Azalaï Cotonou 03.jpg',
+      author: 'Pulcheria7',
+      license: 'CC BY 4.0'
+    },
+    description:
+      'Établissement du littoral cotonou, entre le lac et l’océan, dans le quartier de Placodji. La fiche reprend la position publiée par la carte ouverte OpenStreetMap et des photos déposées sur Wikimedia Commons : La Vibe Map n’a vérifié ni les chambres, ni les tarifs, ni les horaires d’aucun service.',
+    badges: ['Hébergement', 'Fiche ouverte, non vérifiée sur place'],
+    etiquette: [],
+    visualGuides: [
+      {
+        title: 'Végétation du domaine',
+        description: 'Une plante photographiée dans l’enceinte de l’hôtel.',
+        image: commonsThumb('Plant au sein de Azalaï Hôtel Cotonou 02.jpg', 640),
+        credit: {
+          file: 'Plant au sein de Azalaï Hôtel Cotonou 02.jpg',
+          author: 'Pulcheria7',
+          license: 'CC BY 4.0'
+        }
+      },
+      {
+        title: 'Plantation du domaine',
+        description: 'Un autre plan du jardin intérieur, déposé par le même auteur.',
+        image: commonsThumb('Plant au sein de Azalaï Hôtel Cotonou 11.jpg', 640),
+        credit: {
+          file: 'Plant au sein de Azalaï Hôtel Cotonou 11.jpg',
+          author: 'Pulcheria7',
+          license: 'CC BY 4.0'
+        }
+      }
+    ],
+    verifiedGuideIds: [],
+    vocabulary: [],
+    coordinates: {
+      x: 80,
+      y: 64,
+      lat: 6.35183,
+      lng: 2.43581
+    }
+  },
+  {
+    id: 'sun-beach-cotonou',
+    name: 'Hôtel Sun Beach',
+    location: 'Rue 2147, Hlazounto, 12ème Arrondissement, Cotonou, Littoral, Bénin',
+    category: 'Lodging',
+    image: commonsThumb('Sun Beach Hotel Cotonou, Bénin.jpg', 960),
+    imageCredit: {
+      file: 'Sun Beach Hotel Cotonou, Bénin.jpg',
+      author: 'Adoscam',
+      license: 'CC BY-SA 4.0'
+    },
+    description:
+      'Hôtel du 12ᵉ arrondissement de Cotonou, côté plage, sur la voie qui relie Fidjrossé à la route des pêcheurs. Position publiée par OpenStreetMap, visuel déposé sur Wikimedia Commons : aucun détail de service n’est vérifié par La Vibe Map.',
+    badges: ['Hébergement', 'Fiche ouverte, non vérifiée sur place'],
+    etiquette: [],
+    visualGuides: [],
+    verifiedGuideIds: [],
+    vocabulary: [],
+    coordinates: {
+      x: 74,
+      y: 72,
+      lat: 6.3578,
+      lng: 2.37173
+    }
+  },
+  {
+    id: 'route-des-peches-fidjrosse',
+    name: 'Route des Pêches — Fidjrossé',
+    location: 'Route des Pêches, Fidjrossé, 12ème Arrondissement, Cotonou, Littoral, Bénin',
+    category: 'Food',
+    image: commonsThumb('Pirogue sur la plage de la route des pêcheurs à Cotonou.jpg', 960),
+    imageCredit: {
+      file: 'Pirogue sur la plage de la route des pêcheurs à Cotonou.jpg',
+      author: 'ShirleyDoss',
+      license: 'CC BY-SA 4.0'
+    },
+    description:
+      'Le faubourg de plage de Cotonou : la Route des Pêches y tient les établissements de bord de mer, dont un nœud « Resto plage » référencé par la carte ouverte. Le quartier lui-même est positionné sur le point publié par OpenStreetMap ; les tables, leurs cartes et leurs horaires ne sont pas vérifiés par La Vibe Map.',
+    badges: ['Restauration de plage', 'Fiche ouverte, non vérifiée sur place'],
+    etiquette: [],
+    visualGuides: [
+      {
+        title: 'Voie des pêcheurs',
+        description: 'La circulation sur la Route des Pêches, côté plage.',
+        image: commonsThumb('Pick up sur la route des pêcheurs à Cotonou.jpg', 640),
+        credit: {
+          file: 'Pick up sur la route des pêcheurs à Cotonou.jpg',
+          author: 'ShirleyDoss',
+          license: 'CC BY-SA 4.0'
+        }
+      },
+      {
+        title: 'Océan de Fidjrossé',
+        description: 'Le rivage que longent les établissements de la route des pêches.',
+        image: commonsThumb('Plage Erevan Fidjrosse.jpg', 640),
+        credit: { file: 'Plage Erevan Fidjrosse.jpg', author: 'Bymarcs', license: 'CC BY-SA 4.0' }
+      }
+    ],
+    verifiedGuideIds: [],
+    vocabulary: [],
+    coordinates: {
+      x: 72,
+      y: 76,
+      lat: 6.3525,
+      lng: 2.36755
+    }
+  },
+  {
+    id: 'plage-de-ouidah',
+    name: 'Plage de Ouidah',
+    location: 'Route des Pêches, Hio Houta, Ouidah, Atlantique, Bénin',
+    category: 'Leisure',
+    image: commonsThumb('Plage de Ouidah Benin.jpg', 960),
+    imageCredit: {
+      file: 'Plage de Ouidah Benin.jpg',
+      author: 'jbdodane',
+      license: 'CC BY 2.0'
+    },
+    description:
+      'Le cordon de sable de la route des pêches, entre Ouidah et Avlékété, où les hôtels de plage se succèdent. La position est celle que la page du fichier Wikimedia publie pour la photo ; les activités proposées sur la plage ne sont pas vérifiées par La Vibe Map.',
+    badges: ['Plage', 'Fiche ouverte, non vérifiée sur place'],
+    etiquette: [],
+    visualGuides: [
+      {
+        title: 'Rivage de Ouidah',
+        description: 'La plage prise un peu plus à l’est, le long de la même route.',
+        image: commonsThumb('Plage de Ouidah.jpg', 640),
+        credit: { file: 'Plage de Ouidah.jpg', author: 'jbdodane', license: 'CC BY 2.0' }
+      },
+      {
+        title: 'Tata de la plage',
+        description: 'Une construction de terre dressée sur le sable de Ouidah.',
+        image: commonsThumb('Tata a la Plage de Ouidah.jpg', 640),
+        credit: { file: 'Tata a la Plage de Ouidah.jpg', author: 'Borisghost', license: 'CC0' }
+      }
+    ],
+    verifiedGuideIds: [],
+    vocabulary: [],
+    coordinates: {
+      x: 33,
+      y: 88,
+      lat: 6.32234,
+      lng: 2.08321
+    }
   }
 ];

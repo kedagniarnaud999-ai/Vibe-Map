@@ -778,7 +778,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         const prompt = `Effectue une recherche approfondie sur le patrimoine du Bénin pour le site ou sanctuaire culturel : "${lower}".
 Détermine précisément:
 1. Son nom complet et son type ("Sanctuaire", "Palais Royal", "Musée", "Cité Lacustre", "Forêt Sacrée").
-2. Sa catégorie principale parmi: "Spiritual", "Historical", "Nature", "Arts".
+2. Sa catégorie principale parmi: "Spiritual", "Historical", "Nature", "Arts", "Food", "Heritage", "Oral History", "Lodging", "Leisure".
 3. Sa localisation géographique (Ville, Région, Bénin). Pour la position GPS : uniquement celle que la source consultée publie. Ne la déduis jamais du nom, de la ville voisine ni d'un ordre de grandeur ; à défaut, réponds null.
 4. Un résumé captivant en 2 phrases ("summary").
 5. Son histoire spirituelle et ancestrale approfondie ("deepHistory").
@@ -787,7 +787,7 @@ Détermine précisément:
 Renvoie UNIQUEMENT un JSON valide au format:
 {
   "name": "Nom complet du site",
-  "category": "Spiritual" | "Historical" | "Nature" | "Arts",
+  "category": "Spiritual" | "Historical" | "Nature" | "Arts" | "Food" | "Heritage" | "Oral History" | "Lodging" | "Leisure",
   "location": "Ville, Bénin",
   "coordinates": { "lat": <latitude publiée par la source>, "lng": <longitude publiée par la source> } | null,
   "summary": "Court résumé captivant",
