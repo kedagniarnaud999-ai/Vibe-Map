@@ -103,7 +103,7 @@ export const ActorDirectoryScreen: React.FC<ActorDirectoryScreenProps> = ({
                 </div>
                 <p className="text-xs text-[#5a5a40] font-medium">{actor.role}</p>
                 <div className="flex items-center gap-3 text-xs text-[#6b665e] flex-wrap">
-                  {actor.rating !== undefined && (
+                  {actor.rating !== undefined && actor.reviewsCount !== undefined && (
                     <span className="flex items-center gap-1 text-[#5a5a40] font-semibold">
                       <Star className="w-3.5 h-3.5 fill-current text-[#d9822b]" /> {actor.rating} ({actor.reviewsCount === 1 ? t('1 avis') : t('{count} avis', { count: actor.reviewsCount })})
                     </span>

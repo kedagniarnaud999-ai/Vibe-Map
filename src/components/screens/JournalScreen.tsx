@@ -52,8 +52,9 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
         ? t('Mon passeport culturel La Vibe Map : {n} sites sacrés enregistrés.', { n: sacredSitesCount })
         : t('Mon passeport culturel La Vibe Map : {n} site sacré enregistré.', { n: sacredSitesCount });
     let shared = false;
+    const viaNativeShare = typeof navigator.share === 'function';
 
-    if (navigator.share) {
+    if (viaNativeShare) {
       try {
         await navigator.share({ title: 'La Vibe Map', text: summary, url: window.location.href });
         shared = true;
@@ -85,7 +86,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       });
     } catch (e) {}
 
-    setShareNote(navigator.share ? t('Passeport partagé !') : t('Lien copié !'));
+    setShareNote(viaNativeShare ? t('Passeport partagé !') : t('Lien copié !'));
     setTimeout(() => setShareNote(null), 2500);
   };
 

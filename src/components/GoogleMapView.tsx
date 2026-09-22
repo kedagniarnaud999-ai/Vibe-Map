@@ -239,9 +239,9 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
                   <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-black/70 text-white text-[10px] font-bold">
                     {categoryLabel(activeMarkerPlace.category)}
                   </span>
-                  {(activeMarkerPlace as any).calculatedDistanceKm !== undefined && (
+                  {activeMarkerPlace.calculatedDistanceKm !== undefined && (
                     <span className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded bg-blue-600 text-white text-[10px] font-bold shadow">
-                      📍 {t('{distance} km de vous', { distance: (activeMarkerPlace as any).calculatedDistanceKm })}
+                      📍 {t('{distance} km de vous', { distance: activeMarkerPlace.calculatedDistanceKm })}
                     </span>
                   )}
                 </div>
