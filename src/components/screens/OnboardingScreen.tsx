@@ -26,17 +26,17 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
       badge: t('BIBLIOTHÈQUE CULTURELLE NUMÉRIQUE'),
       title: t('Décodez les symboles, les proverbes et les rituels sacrés.'),
       description:
-        t('Explorez des récits choisis par des historiens, décryptez les tentures appliquées royales du Dahomey et maîtrisez l’étiquette culturelle avant chaque visite.'),
+        t('Explorez des récits documentés par notre rédaction, décryptez les tentures appliquées royales du Dahomey et maîtrisez l’étiquette culturelle avant chaque visite.'),
       icon: BookOpen,
       image:
         'https://lh3.googleusercontent.com/aida-public/AB6AXuAvlDb0XuU_Cb4imwPnzeB5ynevor-y5iP5Ob-77rRPkwOCWMh5kUN8L-gIrdee1M7fawU7VYx8VhPOwlmbwQyGyJJOf-40SRG_4v_xTuuMTrgbofWxd2KMJHsmTLPUgUu1lslm4B3ASn8mGGR5af1UbDPZe3c4EWfLtfseDFwxLxmkiHy4B0frryKq-jHLmhWUa_a3FXcOFAZUB5Vwk669z_H1978s5UfhHpK3s0QdK-IAiGvCJu_N',
       tag: t('Tentures Fon & Histoire Orale')
     },
     {
-      badge: t('MÉDIATEURS VÉRIFIÉS & VIBE IA'),
-      title: t('Échangez avec les gardiens de tradition certifiés.'),
+      badge: t('STRUCTURES RÉELLES & VIBE IA'),
+      title: t('Adressez-vous aux structures qui accueillent les visiteurs.'),
       description:
-        t('Réservez des médiateurs culturels vérifiés, tissez vos itinéraires d’un jour et accédez à un compagnon culturel IA ancré dans le respect et la nuance.'),
+        t('L’annuaire référence des structures existantes du Bénin et leurs coordonnées publiques, pour demander une mise en relation. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission. Tissez vos itinéraires d’un jour et accédez à un compagnon culturel IA ancré dans le respect et la nuance.'),
       icon: Users,
       image:
         'https://lh3.googleusercontent.com/aida-public/AB6AXuCOBwAO2hQQWAA9OHvGDKO4mWxpsFow-PevNyma39HaHhFrKO8upgdHcjhEjZep2cPMYofRNVXMhPuW3k6WB0N7O11q3jHzj5uOlb8pNAA_wMpPn7gSrpXnt39vxgzkJafdn8NA_XNHiun7EJlgO3z0S99C7WkzOlTnnjulIpxhSFZ4tGVu0kudyd4U_Q7IyPsp_dqgH2We7YnyGUa-IMNb1ju7fi8tvpuembDT0ri5mMrNwkbDUT4W',

@@ -117,7 +117,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
               {t('Portail Réservé aux Médiateurs Agréés')}
             </h2>
             <p className="text-xs text-[#6b665e] max-w-sm mx-auto">
-              {t('Cet espace est dédié aux guides touristiques, conteurs traditionnels et médiateurs certifiés du Bénin pour gérer leurs réservations de voyageurs.')}
+              {t('Cet espace est ouvert aux comptes dont un conservateur a validé le rôle guide : guides touristiques, conteurs et médiateurs du Bénin y suivent les réservations reçues.')}
             </p>
           </div>
 

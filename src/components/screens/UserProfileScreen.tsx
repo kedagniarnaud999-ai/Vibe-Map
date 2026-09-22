@@ -224,7 +224,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
               </h4>
             </div>
             <p className="text-xs text-gray-300">
-              {t('Supervision des sanctuaires réels, scraping automatique de données, validation des réservations et gestion des guides agréés.')}
+              {t('Supervision des sites réels, brouillons d’ingestion appuyés sur des sources, décisions d’agrément et suivi des réservations.')}
             </p>
           </div>
           <button
@@ -268,7 +268,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
               </h4>
             </div>
             <p className="text-xs text-[#6b665e] max-w-md">
-              {t("Rejoignez le réseau officiel des médiateurs culturels agréés de La Vibe Map pour faire rayonner l'histoire du Bénin et recevoir des réservations de voyageurs.")}
+              {t("Déposez une demande d’agrément : un conservateur l’examine, et le rôle guide ouvre ensuite le portail où arrivent les demandes des voyageurs.")}
             </p>
           </div>
           <button

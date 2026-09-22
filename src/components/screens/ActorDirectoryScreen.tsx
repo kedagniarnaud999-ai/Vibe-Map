@@ -49,7 +49,7 @@ export const ActorDirectoryScreen: React.FC<ActorDirectoryScreenProps> = ({
             {t('Ce que cet annuaire garantit')}
           </h4>
           <p className="text-[11px] text-[#6b665e] leading-relaxed">
-            {t('Seules des structures existantes, qui publient leurs propres contacts, sont référencées. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission sur une mise en relation.')}
+            {t('Seules des structures existantes du Bénin sont référencées, avec leurs coordonnées publiques. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission sur une mise en relation.')}
           </p>
         </div>
       </div>

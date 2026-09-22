@@ -7,7 +7,7 @@
 export const EN: Record<string, string> = {
   'Carte Vivante': 'Living Map',
   Récits: 'Stories',
-  'Guides & Artisans': 'Guides & Artisans',
+  'Structures d’accueil': 'Reception Structures',
   'Mon Profil': 'My Profile',
   'Espace Admin': 'Admin Portal',
   'Espace Guide': 'Guide Portal',
@@ -25,9 +25,9 @@ export const EN: Record<string, string> = {
   'Sites et sanctuaires réels du Bénin': 'Real sites and sanctuaries of Benin',
   'Bibliothèque Culturelle': 'Cultural Library',
   'Récits, proverbes et symboles royaux': 'Stories, proverbs and royal symbols',
-  'Guides et maîtres de tradition agréés': 'Accredited guides and tradition keepers',
+  'Bureaux publics, musées et fondations du Bénin': 'Public offices, museums and foundations of Benin',
   'Tissez Votre Immersion': 'Weave Your Immersion',
-  'Séquencement culturel et réservations': 'Cultural sequencing and bookings',
+  'Séquencement culturel et enregistrement au Passeport': 'Cultural sequencing, saved to your Passport',
   'Passeport Culturel': 'Cultural Passport',
   'Sites visités et badges initiatiques': 'Sites visited and initiation badges',
   'Célébrations & Fêtes Traditionnelles': 'Celebrations & Traditional Festivals',
@@ -93,7 +93,7 @@ export const EN: Record<string, string> = {
   'Mode Mémoire': 'Memory Mode',
   'Réponse du fonds culturel écrit — génération en ligne indisponible.':
     'Answer from the written cultural archive — online generation unavailable.',
-  'Sources et références web vérifiées :': 'Verified web sources and references:',
+  'Premières sources consultées pour cette réponse :': 'First sources consulted for this answer:',
   'Consultation des archives vivantes et du web...': 'Consulting the living archives and the web...',
 
   'Préférences enregistrées avec succès !': 'Preferences saved successfully!',
@@ -110,16 +110,16 @@ export const EN: Record<string, string> = {
   'Voyageur du Patrimoine': 'Heritage Traveller',
   'Base Firestore & PostgreSQL Connectée': 'Firestore & PostgreSQL database connected',
   'Espace Conservateur du Patrimoine': 'Heritage Curator Portal',
-  'Supervision des sanctuaires réels, scraping automatique de données, validation des réservations et gestion des guides agréés.':
-    'Supervision of real sanctuaries, automated data collection, booking validation and management of accredited guides.',
+  'Supervision des sites réels, brouillons d’ingestion appuyés sur des sources, décisions d’agrément et suivi des réservations.':
+    'Oversight of real sites, ingestion drafts backed by sources, accreditation decisions and booking follow-up.',
   "Accéder à l'Administration": 'Open Administration',
   'Portail Guide & Médiateur Culturel': 'Guide & Cultural Mediator Portal',
   "Consultez vos demandes d'immersion reçues, mettez à jour votre tarif et gérez vos confirmations de visite.":
     'Review the immersion requests you received, update your rate and manage your visit confirmations.',
   'Ouvrir mon Espace Guide': 'Open my Guide Portal',
   'Vous êtes Guide ou Gardien de Tradition ?': 'Are you a guide or a tradition keeper?',
-  "Rejoignez le réseau officiel des médiateurs culturels agréés de La Vibe Map pour faire rayonner l'histoire du Bénin et recevoir des réservations de voyageurs.":
-    'Join the official network of La Vibe Map accredited cultural mediators to showcase the history of Benin and receive traveller bookings.',
+  'Déposez une demande d’agrément : un conservateur l’examine, et le rôle guide ouvre ensuite le portail où arrivent les demandes des voyageurs.':
+    'File an accreditation request: a curator reviews it, and the guide role then opens the portal where traveller requests arrive.',
   'Postuler comme Guide Agréé': 'Apply as an Accredited Guide',
   'Se connecter pour postuler': 'Sign in to apply',
   'Préférences Culturelles & Langue': 'Cultural Preferences & Language',
@@ -358,11 +358,11 @@ export const EN: Record<string, string> = {
   'Ouidah Sacrée & Au-delà': 'Sacred Ouidah & Beyond',
   'BIBLIOTHÈQUE CULTURELLE NUMÉRIQUE': 'DIGITAL CULTURAL LIBRARY',
   'Décodez les symboles, les proverbes et les rituels sacrés.': 'Decode symbols, proverbs & sacred rituals.',
-  'Explorez des récits choisis par des historiens, décryptez les tentures appliquées royales du Dahomey et maîtrisez l’étiquette culturelle avant chaque visite.': 'Explore curated stories written by historians, decode royal Dahomey appliqué textiles, and master cultural etiquette before every visit.',
+  'Explorez des récits documentés par notre rédaction, décryptez les tentures appliquées royales du Dahomey et maîtrisez l’étiquette culturelle avant chaque visite.': 'Explore stories documented by our editorial team, decode royal Dahomey appliqué textiles, and master cultural etiquette before every visit.',
   'Tentures Fon & Histoire Orale': 'Fon Appliqué & Oral History',
-  'MÉDIATEURS VÉRIFIÉS & VIBE IA': 'VERIFIED MEDIATORS & AI VIBE',
-  'Échangez avec les gardiens de tradition certifiés.': 'Connect with certified keepers of tradition.',
-  'Réservez des médiateurs culturels vérifiés, tissez vos itinéraires d’un jour et accédez à un compagnon culturel IA ancré dans le respect et la nuance.': 'Book verified cultural mediators, weave custom day itineraries, and access an AI cultural companion grounded in respect and nuance.',
+  'STRUCTURES RÉELLES & VIBE IA': 'REAL STRUCTURES & AI VIBE',
+  'Adressez-vous aux structures qui accueillent les visiteurs.': 'Reach the structures that actually welcome visitors.',
+  'L’annuaire référence des structures existantes du Bénin et leurs coordonnées publiques, pour demander une mise en relation. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission. Tissez vos itinéraires d’un jour et accédez à un compagnon culturel IA ancré dans le respect et la nuance.': 'The directory lists existing organisations in Benin and their public contact details, so you can ask for an introduction. La Vibe Map certifies no mediator and takes no commission. Weave custom day itineraries and access an AI cultural companion grounded in respect and nuance.',
   'Liens humains authentiques': 'Authentic Human Connections',
   'Passer': 'Skip',
   'Étape {n}': 'Step {n}',
@@ -421,8 +421,8 @@ export const EN: Record<string, string> = {
     'Official addresses to prepare a visit, check access conditions and find your way to recognised guidance.',
   'Adresses officielles et guichets de site': 'Official addresses and site desks',
   'Ce que cet annuaire garantit': 'What this directory guarantees',
-  'Seules des structures existantes, qui publient leurs propres contacts, sont référencées. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission sur une mise en relation.':
-    'Only existing organisations that publish their own contacts are listed. La Vibe Map certifies no mediator and takes no commission on an introduction.',
+  'Seules des structures existantes du Bénin sont référencées, avec leurs coordonnées publiques. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission sur une mise en relation.':
+    'Only existing organisations in Benin are listed, with their public contact details. La Vibe Map certifies no mediator and takes no commission on an introduction.',
   'Rechercher une structure, un secteur ou une ville...': 'Search an organisation, a sector or a city...',
   'Aucune structure ne correspond à cette recherche.': 'No organisation matches this search.',
   'Préparer sa visite': 'Planning your visit',
@@ -459,9 +459,9 @@ export const EN: Record<string, string> = {
   'Gestion des Sanctuaires ({n})': 'Site Management ({n})',
   'Agrément Guides ({n})': 'Guide Approvals ({n})',
   'Réservations Visiteurs ({n})': 'Visitor Bookings ({n})',
-  'Scraping Automatique de Données Réelles du Patrimoine': 'Automatic Extraction of Real Heritage Data',
-  'Interrogez le web et les répertoires officiels via Gemini Grounding pour extraire automatiquement les horaires, tarifs réels, étiquettes sacrées et résumés historiques vérifiés.':
-    'Query the web and the official directories through Gemini Grounding to pull opening hours, real prices, sacred-site etiquette and verified historical summaries.',
+  'Scraping documenté du patrimoine': 'Documented heritage scraping',
+  'Interrogez le web et les répertoires via Gemini Grounding : horaires, tarifs et résumé reviennent en brouillon, avec les sources consultées et des photos sous crédit Wikimedia. Sans correspondance documentée, le brouillon reste vide et la publication est refusée.':
+    'Query the web and the directories through Gemini Grounding: opening hours, prices and the summary come back as a draft, with the sources consulted and Wikimedia-credited photos. Without a documented match the draft stays empty and publication is refused.',
   'Suggestions rapides de sites du Bénin :': 'Quick site suggestions in Benin:',
   "Ex: Forêt Sacrée de Kpassè, Temple des Pythons, Palais Royal d'Abomey...":
     'E.g. Kpassè Sacred Forest, Python Temple, Royal Palaces of Abomey...',
@@ -530,8 +530,8 @@ export const EN: Record<string, string> = {
   'Mettre à Jour': 'Update',
   'Créer le Sanctuaire': 'Create Site',
   'Portail Réservé aux Médiateurs Agréés': 'Mediators Only Portal',
-  'Cet espace est dédié aux guides touristiques, conteurs traditionnels et médiateurs certifiés du Bénin pour gérer leurs réservations de voyageurs.':
-    'This space is for the tour guides, traditional storytellers and certified mediators of Benin who manage their traveller bookings.',
+  'Cet espace est ouvert aux comptes dont un conservateur a validé le rôle guide : guides touristiques, conteurs et médiateurs du Bénin y suivent les réservations reçues.':
+    'This space is open to accounts whose guide role a curator has validated: tour guides, storytellers and mediators in Benin follow the bookings they receive here.',
   "Demande d'Agrément Enregistrée !": 'Approval Request Recorded!',
   'Votre dossier a été transmis à la commission des conservateurs. Votre rôle reste':
     'Your file has been passed to the curators board. Your role remains',
