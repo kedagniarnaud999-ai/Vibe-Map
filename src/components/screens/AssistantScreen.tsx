@@ -275,7 +275,7 @@ export const AssistantScreen: React.FC = () => {
                 <div className="pt-2 border-t border-[#f0ece1] space-y-1">
                   <span className="text-[10px] font-bold text-[#8c867c] flex items-center gap-1">
                     <Globe className="w-3 h-3 text-[#5a5a40]" />
-                    <span>{t('Sources et références web vérifiées :')}</span>
+                    <span>{t('Premières sources consultées pour cette réponse :')}</span>
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {msg.groundingSources.slice(0, 2).map((s, i) => (

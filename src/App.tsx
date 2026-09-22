@@ -306,15 +306,15 @@ export default function App() {
       case 'actors':
         return {
           show: true,
-          title: t('Guides & Artisans'),
-          subtitle: t('Guides et maîtres de tradition agréés'),
+          title: t('Structures d’accueil'),
+          subtitle: t('Bureaux publics, musées et fondations du Bénin'),
           showBack: true
         };
       case 'itinerary-builder':
         return {
           show: true,
           title: t('Tissez Votre Immersion'),
-          subtitle: t('Séquencement culturel et réservations'),
+          subtitle: t('Séquencement culturel et enregistrement au Passeport'),
           showBack: true
         };
       case 'journal':

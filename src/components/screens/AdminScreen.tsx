@@ -435,10 +435,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             <div>
               <h3 className="font-serif font-bold text-lg text-[#2c2926] flex items-center gap-2">
                 <Globe className="w-5 h-5 text-[#c14e2f]" />
-                <span>{t('Scraping Automatique de Données Réelles du Patrimoine')}</span>
+                <span>{t('Scraping documenté du patrimoine')}</span>
               </h3>
               <p className="text-xs text-[#6b665e] mt-1">
-                {t('Interrogez le web et les répertoires officiels via Gemini Grounding pour extraire automatiquement les horaires, tarifs réels, étiquettes sacrées et résumés historiques vérifiés.')}
+                {t('Interrogez le web et les répertoires via Gemini Grounding : horaires, tarifs et résumé reviennent en brouillon, avec les sources consultées et des photos sous crédit Wikimedia. Sans correspondance documentée, le brouillon reste vide et la publication est refusée.')}
               </p>
             </div>
 
