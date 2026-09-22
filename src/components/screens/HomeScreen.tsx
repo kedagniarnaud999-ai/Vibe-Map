@@ -6,7 +6,6 @@ import {
   ArrowRight, 
   Compass, 
   Volume2, 
-  ShieldCheck, 
   Clock, 
   Calendar,
   Layers
@@ -202,11 +201,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-[#f0ece1] flex items-center justify-between text-xs text-[#5a5a40] font-medium">
-                  <div className="flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#c14e2f]" />
-                    <span className="text-[11px]">{t('Protocole Vérifié')}</span>
-                  </div>
+                <div className="pt-2 border-t border-[#f0ece1] flex items-center text-xs text-[#5a5a40] font-medium">
                   <span className="text-[11px] font-semibold text-[#c14e2f] flex items-center gap-0.5">
                     {t('Découvrir le lieu')} <ArrowRight className="w-3 h-3" />
                   </span>

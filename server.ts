@@ -569,8 +569,7 @@ Format de sortie strict en JSON valide:
               description: 'Immersion respectueuse dans le sanctuaire totémique de Ouidah.',
               insight: 'Demandez la bénédiction du gardien avant d’entrer dans la chambre sacrée.',
               transitTime: '15 min de marche',
-              placeId: 'ouidah-python',
-              verified: true
+              placeId: 'ouidah-python'
             },
             {
               time: '11:00',
@@ -578,16 +577,14 @@ Format de sortie strict en JSON valide:
               description: 'Marche mémorielle commentée par un historien de la communauté.',
               insight: 'Observer une minute de silence sous l’Arbre du Retour.',
               transitTime: '20 min en Zémidjan',
-              placeId: 'slave-route',
-              verified: true
+              placeId: 'slave-route'
             },
             {
               time: '14:30',
               title: 'Porte du Non-Retour & Méditation Littorale',
               description: 'Arrivée sur la plage atlantique face au monument mémoriel.',
               insight: 'Les couchers de soleil y sont propices au recueillement.',
-              placeId: 'porte-non-retour',
-              verified: true
+              placeId: 'porte-non-retour'
             }
           ]
         });
@@ -606,8 +603,7 @@ Format de sortie en JSON strict:
       "description": "Courte description évocatrice (2 phrases)",
       "insight": "Conseil d'étiquette ou anecdote culturelle secrète",
       "transitTime": "15 min en Zémidjan",
-      "placeId": "ouidah-python",
-      "verified": true
+      "placeId": "ouidah-python"
     }
   ]
 }`;
@@ -632,8 +628,7 @@ Format de sortie en JSON strict:
             description: 'Immersion respectueuse dans le sanctuaire totémique de Ouidah.',
             insight: 'Retirer chaussures et lunettes de soleil avant d’entrer dans la case sacrée.',
             transitTime: '15 min de marche',
-            placeId: 'ouidah-python',
-            verified: true
+            placeId: 'ouidah-python'
           },
           {
             time: '11:00',
@@ -641,8 +636,7 @@ Format de sortie en JSON strict:
             description: 'Marche mémorielle commentée par un historien de la communauté.',
             insight: 'Observer un moment de recueillement sous l’Arbre du Retour.',
             transitTime: '20 min en Zémidjan',
-            placeId: 'slave-route',
-            verified: true
+            placeId: 'slave-route'
           },
           {
             time: '14:30',
@@ -650,8 +644,7 @@ Format de sortie en JSON strict:
             description: 'Arrivée sur la plage atlantique face au monument mémoriel de bronze.',
             insight: 'Les couchers de soleil y sont particulièrement propices à la méditation historique.',
             transitTime: '25 min en pirogue ou taxi',
-            placeId: 'porte-non-retour',
-            verified: true
+            placeId: 'porte-non-retour'
           }
         ]
       });
@@ -693,7 +686,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
       const webSources = searchChunks
         .filter((c: any) => c.web?.uri)
         .map((c: any) => ({
-          title: c.web.title || "Source vérifiée",
+          title: c.web.title || "Source sans titre",
           url: c.web.uri
         }));
 
@@ -875,7 +868,7 @@ Renvoie UNIQUEMENT un JSON valide au format:
           const grounding = (response.candidates?.[0]?.groundingMetadata as any)?.groundingChunks || [];
           const sources = grounding
             .filter((c: any) => c.web?.uri)
-            .map((c: any) => ({ title: c.web.title || 'Source vérifiée', url: c.web.uri }));
+            .map((c: any) => ({ title: c.web.title || 'Source sans titre', url: c.web.uri }));
           const images = await commonsImages(matchedCatalog?.commonsQuery || parsed.name);
           return res.json({
             success: true,

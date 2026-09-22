@@ -6,7 +6,6 @@ import {
   Bookmark, 
   RefreshCw,
   Navigation,
-  ShieldCheck,
   AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -93,7 +92,6 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
           transitMode: 'walk',
           icon: 'sparkles',
           color: 'bg-primary',
-          verified: true
         }));
 
         setGeneratedTimeline(stops);
@@ -120,7 +118,6 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
           transitMode: 'walk',
           icon: 'sparkles',
           color: 'bg-primary',
-          verified: true
         },
         {
           id: 'stop-2',
@@ -133,7 +130,6 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
           transitMode: 'taxi',
           icon: 'forest',
           color: 'bg-secondary',
-          verified: true
         },
         {
           id: 'stop-3',
@@ -146,7 +142,6 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
           transitMode: 'taxi',
           icon: 'palette',
           color: 'bg-tertiary',
-          verified: true
         },
         {
           id: 'stop-4',
@@ -157,7 +152,6 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
           insight: 'Vibe Tip: Stand beneath the bronze arch as the Atlantic waves break in rhythm with ancestral memory.',
           icon: 'map-pin',
           color: 'bg-primary-container',
-          verified: true
         }
       ];
 
@@ -346,16 +340,10 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
 
                   {/* Stop Card */}
                   <div className="bg-white rounded-2xl p-5 border border-[#e8e2d5] shadow-sm space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <span className="px-2.5 py-0.5 rounded-md bg-[#efece2] text-[#3a3a28] font-mono text-xs font-bold">
                         {stop.time}
                       </span>
-                      {stop.verified && (
-                        <span className="flex items-center gap-1 text-[11px] text-[#c14e2f] font-semibold">
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          {t('Protocole Vérifié')}
-                        </span>
-                      )}
                     </div>
 
                     <div>
