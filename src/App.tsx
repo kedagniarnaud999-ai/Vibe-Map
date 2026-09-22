@@ -466,6 +466,7 @@ export default function App() {
                 places={localizedPlaces}
                 stories={localizedStories}
                 actors={localizedActors}
+                events={localizedEvents}
                 onSelectPlace={handleSelectPlace}
                 onSelectStory={handleSelectStory}
                 onSelectActor={handleSelectActor}

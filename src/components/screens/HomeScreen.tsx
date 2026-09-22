@@ -11,7 +11,7 @@ import {
   Calendar,
   Layers
 } from 'lucide-react';
-import { Place, Story, Actor, Category, ScreenId } from '../../types';
+import { Place, Story, Actor, Category, ScreenId, CulturalEvent } from '../../types';
 import { commonsPage, creditLine, monogram } from '../../lib/media';
 import { useI18n } from '../../lib/i18n';
 import { useCategoryLabel } from '../../lib/labels';
@@ -20,6 +20,7 @@ interface HomeScreenProps {
   places: Place[];
   stories: Story[];
   actors: Actor[];
+  events: CulturalEvent[];
   onSelectPlace: (place: Place) => void;
   onSelectStory: (story: Story) => void;
   onSelectActor: (actor: Actor) => void;
@@ -30,6 +31,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   places,
   stories,
   actors,
+  events,
   onSelectPlace,
   onSelectStory,
   onSelectActor,
@@ -62,6 +64,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const featuredStory = stories[0];
   const featuredPlace = places[0];
+  // Même sélection que le hero de EventsScreen : l'accueil ne promet pas un autre rassemblement.
+  const featuredEvent = events.find((e) => e.isFeatured) || events[0];
 
   return (
     <div className="space-y-6 pb-24 px-4 max-w-3xl mx-auto pt-3">
@@ -212,6 +216,65 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Celebrations entry */}
+      {featuredEvent && (
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#5a5a40] block">
+                {t('Traditions Vivantes')}
+              </span>
+              <h3 className="font-serif text-lg font-bold text-[#2c2926]">
+                {t('Prochains Rassemblements')}
+              </h3>
+            </div>
+            <button
+              onClick={() => onNavigate('events')}
+              className="text-xs font-semibold text-[#c14e2f] hover:underline flex items-center gap-1"
+            >
+              <span>{t('Voir l’agenda')}</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => onNavigate('events')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onNavigate('events');
+              }
+            }}
+            className="group bg-white rounded-2xl p-4 border border-[#e8e2d5] hover:border-[#c14e2f]/40 transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center gap-3.5"
+          >
+            <div
+              aria-hidden="true"
+              className="w-12 h-12 rounded-xl bg-[#fceee9] text-[#c14e2f] flex items-center justify-center flex-shrink-0"
+            >
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-serif font-bold text-sm text-[#2c2926] group-hover:text-[#c14e2f] transition-colors leading-snug">
+                {featuredEvent.title}
+              </h4>
+              <p className="text-[11px] text-[#6b665e] mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-[#8c867c] flex-shrink-0" /> {featuredEvent.date}
+                </span>
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-[#8c867c] flex-shrink-0" /> {featuredEvent.location}
+                </span>
+              </p>
+              <p className="text-[11px] font-semibold text-[#5a5a40] mt-1">
+                {featuredEvent.accessType}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Featured Deep Cultural Story */}
       {featuredStory && (

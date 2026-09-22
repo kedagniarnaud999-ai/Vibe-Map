@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, MapPin, Sparkles, ShieldAlert, AlertCircle, Ticket } from 'lucide-react';
 import { CulturalEvent } from '../../types';
 import { saveEventRSVPToFirestore } from '../../lib/firebase';
+import { commonsPage, creditLine } from '../../lib/media';
 import { useI18n } from '../../lib/i18n';
 
 interface EventsScreenProps {
@@ -18,7 +19,6 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
 
   const types = ['All', 'Festival', 'Workshop', 'Ceremony', 'Concert'];
 
-  // Les valeurs restent les enumerations persistees de CulturalEvent : seuls les libelles passent par t().
   const eventTypeLabels: Record<string, string> = {
     All: t('Tous'),
     Festival: t('Festival'),
@@ -27,14 +27,9 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
     Concert: t('Concert')
   };
 
-  const accessTypeLabels: Record<string, string> = {
-    'Open to Public': t('Accès Public & Gratuit'),
-    'Invitation Only': t('Sur Invitation'),
-    Ticketed: t('Sur Réservation')
-  };
-
+  // `accessType` est une littérale française persistée, déjà rendue dans la langue
+  // active par `localizeEvents` côté App : aucune table de correspondance ici.
   const eventTypeLabel = (value: string) => eventTypeLabels[value] ?? value;
-  const accessTypeLabel = (value: string) => accessTypeLabels[value] ?? value;
 
   const filteredEvents = events.filter(
     (e) => selectedType === 'All' || e.type === selectedType
@@ -117,14 +112,18 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
       {/* Featured Event Hero */}
       {featured && (
         <div className="relative rounded-2xl overflow-hidden shadow-md border border-[#e8e2d5] bg-[#efece2]">
-          <div className="h-64 sm:h-72 w-full relative">
-            <img
-              src={featured.image}
-              alt={featured.title}
-              referrerPolicy="no-referrer"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+          <div className="h-64 sm:h-72 w-full relative bg-[#3f4e4f]">
+            {featured.image && (
+              <>
+                <img
+                  src={featured.image}
+                  alt={featured.title}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+              </>
+            )}
             
             <div className="absolute top-3 left-3 flex items-center gap-2">
               <span className="px-2.5 py-1 rounded-full bg-[#c14e2f] text-white text-[10px] font-bold">
@@ -163,6 +162,17 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
                   <span>{rsvpLabel(featured.id)}</span>
                 </button>
               </div>
+
+              {featured.image && featured.imageCredit && (
+                <a
+                  href={commonsPage(featured.imageCredit.file)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-[9px] leading-tight text-white/70 hover:text-white"
+                >
+                  {t('Photo : {credit}', { credit: creditLine(featured.imageCredit) })}
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -181,13 +191,17 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
               className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e8e2d5] shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center"
             >
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#efece2] flex-shrink-0">
-                  <img
-                    src={evt.image}
-                    alt={evt.title}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#efece2] flex-shrink-0 flex items-center justify-center">
+                  {evt.image ? (
+                    <img
+                      src={evt.image}
+                      alt={evt.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Sparkles aria-hidden="true" className="w-5 h-5 text-[#c14e2f]" />
+                  )}
                 </div>
 
                 <div className="space-y-1">
@@ -214,7 +228,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
 
               <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#f0ece1]">
                 <span className="text-[11px] font-semibold text-[#5a5a40] px-2.5 py-1 rounded bg-[#efece2]">
-                  {accessTypeLabel(evt.accessType)}
+                  {evt.accessType}
                 </span>
 
                 <button

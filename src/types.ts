@@ -162,7 +162,8 @@ export interface CulturalEvent {
   type: 'Festival' | 'Workshop' | 'Ceremony' | 'Concert' | string;
   date: string;
   location: string;
-  image: string;
+  image?: string;
+  imageCredit?: ImageCredit;
   isFeatured?: boolean;
   isHappeningThisWeek?: boolean;
   accessType: 'Open to Public' | 'Invitation Only' | 'Ticketed' | string;
