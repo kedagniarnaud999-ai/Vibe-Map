@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Sparkles, ShieldAlert, AlertCircle, Ticket } from 'lucide-react';
+import { Calendar, MapPin, Sparkles, ShieldAlert, AlertCircle } from 'lucide-react';
 import { CulturalEvent } from '../../types';
 import { saveEventRSVPToFirestore } from '../../lib/firebase';
 import { commonsPage, creditLine } from '../../lib/media';
@@ -17,7 +17,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
   const [rsvpSaved, setRsvpSaved] = useState<string | null>(null);
   const [rsvpError, setRsvpError] = useState<string | null>(null);
 
-  const types = ['All', 'Festival', 'Workshop', 'Ceremony', 'Concert'];
+  const types = ['All', ...Array.from(new Set(events.map((e) => e.type)))];
 
   const eventTypeLabels: Record<string, string> = {
     All: t('Tous'),
@@ -45,7 +45,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
     }
 
     if (!requireSession()) {
-      setRsvpError(t('Connectez-vous pour enregistrer votre présence.'));
+      setRsvpError(t('Connectez-vous pour ajouter un rassemblement à votre agenda.'));
       return;
     }
 
@@ -68,7 +68,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
       ? t('Enregistrement…')
       : rsvpSaved === id
         ? t('Ajouté à l’agenda')
-        : t('Confirmer ma présence');
+        : t('Ajouter à mon agenda');
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-4 pb-28 space-y-6">
@@ -81,7 +81,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
           {t('Rassemblements Culturels & Rituels')}
         </h2>
         <p className="text-xs text-[#6b665e]">
-          {t('Participez aux festivals authentiques, aux ateliers d’artisans et aux cérémonies sacrées dans le respect des protocoles culturels.')}
+          {t('Participez aux festivals et aux cérémonies sacrées du Bénin, dans le respect des protocoles culturels.')}
         </p>
       </div>
 
@@ -125,15 +125,10 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
               </>
             )}
             
-            <div className="absolute top-3 left-3 flex items-center gap-2">
+            <div className="absolute top-3 left-3">
               <span className="px-2.5 py-1 rounded-full bg-[#c14e2f] text-white text-[10px] font-bold">
                 {t('Rassemblement à la Une')}
               </span>
-              {featured.isHappeningThisWeek && (
-                <span className="px-2.5 py-1 rounded-full bg-[#d9822b] text-white text-[10px] font-bold animate-pulse">
-                  {t('Cette Semaine')}
-                </span>
-              )}
             </div>
 
             <div className="absolute bottom-4 left-4 right-4 text-white space-y-2">
@@ -158,7 +153,7 @@ export const EventsScreen: React.FC<EventsScreenProps> = ({ events, requireSessi
                   disabled={rsvpPending !== null}
                   className="px-4 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-60"
                 >
-                  <Ticket className="w-3.5 h-3.5" />
+                  <Calendar className="w-3.5 h-3.5" />
                   <span>{rsvpLabel(featured.id)}</span>
                 </button>
               </div>

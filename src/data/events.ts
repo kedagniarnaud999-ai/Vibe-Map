@@ -4,9 +4,11 @@ import { commonsThumb } from '../lib/media';
 /**
  * Agenda des rassemblements. Les visuels viennent de Wikimedia Commons sous licence
  * libre et sont servis par leur nom de fichier (`Special:FilePath`) avec leur auteur :
- * sans crédit visible, une licence CC BY-SA n'est pas respectée. Une fête dont on
- * n'a pas pu vérifier un visuel libre — comme l'atelier d'indigo de Porto-Novo — sort
- * sans image plutôt que d'emprunter une photo de banque.
+ * sans crédit visible, une licence CC BY-SA n'est pas respectée. N'est listé ici qu'un
+ * rassemblement dont on peut vérifier la date. Des horaires et un tarif qu'aucune
+ * source ne publie ne décrivent pas un événement mais une offre commerciale inventée :
+ * le quartier des tisserands de Porto-Novo mérite une fiche de lieu documentée, pas une
+ * ligne d'agenda.
  */
 export const EVENTS_DATA: CulturalEvent[] = [
   {
@@ -22,8 +24,7 @@ export const EVENTS_DATA: CulturalEvent[] = [
       license: 'CC BY-SA 4.0'
     },
     isFeatured: true,
-    isHappeningThisWeek: false,
-    accessType: 'Accès Public & Gratuit',
+    accessType: 'Accès public',
     description:
       'Le plus grand rassemblement culturel et spirituel du Bénin réunissant dignitaires Vodun, couvents sacrés, gardiens de nuit Zangbéto et danses spectaculaires des masques Egungun face à l’océan Atlantique.'
   },
@@ -40,7 +41,6 @@ export const EVENTS_DATA: CulturalEvent[] = [
       license: 'CC0'
     },
     isFeatured: true,
-    isHappeningThisWeek: false,
     accessType: 'Accès Public & Noblesse Baatonu',
     description:
       'Grande fête équestre et identitaire du peuple Baatonu et des cavaliers du Nord-Bénin. Défilé majestueux des princes à cheval, trompes royales Kakaki et hommage au Sinaboko (Empereur de Nikki).'
@@ -58,7 +58,6 @@ export const EVENTS_DATA: CulturalEvent[] = [
       license: 'CC BY-SA 4.0'
     },
     isFeatured: false,
-    isHappeningThisWeek: false,
     accessType: 'Accès Ouvert à Tous',
     description:
       'Fondée en 1923, la plus ancienne fête d’union et de solidarité d’Afrique de l’Ouest réunissant les peuples Xwla et Xwéla sur les rives du fleuve Mono et de l’océan.'
@@ -76,21 +75,8 @@ export const EVENTS_DATA: CulturalEvent[] = [
       license: 'CC BY-SA 4.0'
     },
     isFeatured: false,
-    isHappeningThisWeek: true,
     accessType: 'Sur Invitation & Respect du Protocole',
     description:
       'Apparition des esprits ancêtres incarnés dans de somptueux costumes de tissus brodés et pailletés, dansant au rythme des tambours Bata sous la conduite des Alagba.'
-  },
-  {
-    id: 'atelier-teinture-indigo',
-    title: 'Atelier Maître Teinturier & Tissage Kanvô',
-    type: 'Workshop',
-    date: 'Mercredi & Samedi, 10h00',
-    location: 'Quartier Historique d’Adjina, Porto-Novo',
-    isFeatured: false,
-    isHappeningThisWeek: true,
-    accessType: 'Sur Réservation (18 000 FCFA)',
-    description:
-      'Initiation pratique à la fermentation de l’indigo végétal dans des cuves ancestrales et création de motifs géométriques béninois sur étoffe de coton.'
   }
 ];
