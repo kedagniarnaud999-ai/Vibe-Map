@@ -762,7 +762,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
       openingHours: 'Accès libre 24h/24, visites guidées 08:30 - 18:30',
       admissionFee: 'Gratuit (Visite commentée Route des Esclaves: 2 500 FCFA)',
       summary: 'Monument mémoriel majeur érigé face à l’Océan Atlantique, commémorant l’ultime étape de la déportation des captifs africains lors de la traite transatlantique.',
-      deepHistory: 'Conçu par l’artiste béninois Fortuné Bandeira en 1995, l’arc monumental en bronze et bas-reliefs honore les ancêtres déportés et symbolise la réconciliation et le retour mémoriel de la diaspora.',
+      deepHistory: 'Érigée en 1995 à l’initiative de l’UNESCO, dans le cadre du projet international « La Route de l’esclave », la Porte du Non-Retour est l’œuvre de l’architecte Yves Ahouen-Gnimon, avec des bas-reliefs de Fortuné Bandeira, des bronzes de Dominique Kouas Gnonnou et des masques egungun sculptés par Yves Kpede. Le monument honore les ancêtres déportés et symbolise la réconciliation et le retour mémoriel de la diaspora.',
       etiquette: [
         'Lieu de recueillement sacré : maintenir une attitude digne',
         'Moment privilégié au coucher du soleil pour les méditations',
