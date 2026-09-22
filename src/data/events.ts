@@ -1,5 +1,13 @@
 import { CulturalEvent } from '../types';
+import { commonsThumb } from '../lib/media';
 
+/**
+ * Agenda des rassemblements. Les visuels viennent de Wikimedia Commons sous licence
+ * libre et sont servis par leur nom de fichier (`Special:FilePath`) avec leur auteur :
+ * sans crédit visible, une licence CC BY-SA n'est pas respectée. Une fête dont on
+ * n'a pas pu vérifier un visuel libre — comme l'atelier d'indigo de Porto-Novo — sort
+ * sans image plutôt que d'emprunter une photo de banque.
+ */
 export const EVENTS_DATA: CulturalEvent[] = [
   {
     id: 'vodun-days-ouidah',
@@ -7,11 +15,17 @@ export const EVENTS_DATA: CulturalEvent[] = [
     type: 'Festival',
     date: '9 & 10 Janvier (Annuel)',
     location: 'Plage de Djègbadji & Cité Historique, Ouidah',
-    image: 'https://images.unsplash.com/photo-1533158307587-828f0a76ef46?auto=format&fit=crop&q=80&w=800',
+    image: commonsThumb('Rituel de Zangbéto au Bénin.jpg', 960),
+    imageCredit: {
+      file: 'Rituel de Zangbéto au Bénin.jpg',
+      author: 'Richmond Dakpogan',
+      license: 'CC BY-SA 4.0'
+    },
     isFeatured: true,
-    isHappeningThisWeek: true,
+    isHappeningThisWeek: false,
     accessType: 'Accès Public & Gratuit',
-    description: 'Le plus grand rassemblement culturel et spirituel du Bénin réunissant dignitaires Vodun, couvents sacrés, gardiens de nuit Zangbéto et danses spectaculaires des masques Egungun face à l’océan Atlantique.'
+    description:
+      'Le plus grand rassemblement culturel et spirituel du Bénin réunissant dignitaires Vodun, couvents sacrés, gardiens de nuit Zangbéto et danses spectaculaires des masques Egungun face à l’océan Atlantique.'
   },
   {
     id: 'fete-de-la-gaani',
@@ -19,11 +33,17 @@ export const EVENTS_DATA: CulturalEvent[] = [
     type: 'Ceremony',
     date: 'Mois Lunaire de Gaani (Nikki)',
     location: 'Palais Impérial du Roi de Nikki, Borgou, Bénin',
-    image: 'https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&q=80&w=800',
+    image: commonsThumb('Fête de la Gaani 2026.jpg', 960),
+    imageCredit: {
+      file: 'Fête de la Gaani 2026.jpg',
+      author: 'Azogbonon',
+      license: 'CC0'
+    },
     isFeatured: true,
     isHappeningThisWeek: false,
     accessType: 'Accès Public & Noblesse Baatonu',
-    description: 'Grande fête équestre et identitaire du peuple Baatonu et des cavaliers du Nord-Bénin. Défilé majestueux des princes à cheval, trompes royales Kakaki et hommage au Sinaboko (Empereur de Nikki).'
+    description:
+      'Grande fête équestre et identitaire du peuple Baatonu et des cavaliers du Nord-Bénin. Défilé majestueux des princes à cheval, trompes royales Kakaki et hommage au Sinaboko (Empereur de Nikki).'
   },
   {
     id: 'fete-du-nonvitcha-grand-popo',
@@ -31,11 +51,17 @@ export const EVENTS_DATA: CulturalEvent[] = [
     type: 'Festival',
     date: 'Week-end de la Pentecôte',
     location: 'Grand-Popo, Mono, Bénin',
-    image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800',
+    image: commonsThumb('Nonvitcha Grand Popo Benin 2017.jpg', 960),
+    imageCredit: {
+      file: 'Nonvitcha Grand Popo Benin 2017.jpg',
+      author: 'Kulttuurinavigaattori',
+      license: 'CC BY-SA 4.0'
+    },
     isFeatured: false,
     isHappeningThisWeek: false,
     accessType: 'Accès Ouvert à Tous',
-    description: 'Fondée en 1923, la plus ancienne fête d’union et de solidarité d’Afrique de l’Ouest réunissant les peuples Xwla et Xwéla sur les rives du fleuve Mono et de l’océan.'
+    description:
+      'Fondée en 1923, la plus ancienne fête d’union et de solidarité d’Afrique de l’Ouest réunissant les peuples Xwla et Xwéla sur les rives du fleuve Mono et de l’océan.'
   },
   {
     id: 'ceremonie-egungun-ouidah',
@@ -43,11 +69,17 @@ export const EVENTS_DATA: CulturalEvent[] = [
     type: 'Ceremony',
     date: 'Chaque Dimanche après-midi',
     location: 'Quartier Zomaï & Cours Royales, Ouidah',
-    image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&q=80&w=800',
+    image: commonsThumb('Benin- Egungun masquerade.jpg', 960),
+    imageCredit: {
+      file: 'Benin- Egungun masquerade.jpg',
+      author: 'Ahmzzywilmakeit',
+      license: 'CC BY-SA 4.0'
+    },
     isFeatured: false,
     isHappeningThisWeek: true,
     accessType: 'Sur Invitation & Respect du Protocole',
-    description: 'Apparition des esprits ancêtres incarnés dans de somptueux costumes de tissus brodés et pailletés, dansant au rythme des tambours Bata sous la conduite des Alagba.'
+    description:
+      'Apparition des esprits ancêtres incarnés dans de somptueux costumes de tissus brodés et pailletés, dansant au rythme des tambours Bata sous la conduite des Alagba.'
   },
   {
     id: 'atelier-teinture-indigo',
@@ -55,10 +87,10 @@ export const EVENTS_DATA: CulturalEvent[] = [
     type: 'Workshop',
     date: 'Mercredi & Samedi, 10h00',
     location: 'Quartier Historique d’Adjina, Porto-Novo',
-    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&q=80&w=800',
     isFeatured: false,
     isHappeningThisWeek: true,
     accessType: 'Sur Réservation (18 000 FCFA)',
-    description: 'Initiation pratique à la fermentation de l’indigo végétal dans des cuves ancestrales et création de motifs géométriques béninois sur étoffe de coton.'
+    description:
+      'Initiation pratique à la fermentation de l’indigo végétal dans des cuves ancestrales et création de motifs géométriques béninois sur étoffe de coton.'
   }
 ];

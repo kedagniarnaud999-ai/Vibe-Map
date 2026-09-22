@@ -5,11 +5,11 @@ import { UserPreferences } from '../types';
 export const INITIAL_USER: UserPreferences = {
   name: 'Explorateur Culturel',
   email: '',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  avatar: '',
   vibeTag: 'Cultural Seeker',
   travelStyle: 'Explorer',
   role: 'traveler',
-  language: 'Français (FR) / English',
+  language: 'fr',
   notificationsEnabled: true,
   interests: ['Spiritual Traditions', 'Royal Architecture', 'Textile Arts', 'Oral History', 'Local Gastronomy'],
   savedPlaces: [],

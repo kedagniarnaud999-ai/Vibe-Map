@@ -14,8 +14,8 @@ import {
   ExternalLink,
   Layers
 } from 'lucide-react';
-import { AppLanguage } from '../../types';
-import { TRANSLATIONS, playCulturalTermAudio } from '../../lib/i18n';
+import { useI18n } from '../../lib/i18n';
+import { playCulturalTermAudio } from '../../lib/audio';
 import { apiFetch } from '../../lib/firebase';
 
 interface Message {
@@ -34,26 +34,24 @@ interface Message {
   etiquetteTip?: string;
 }
 
-interface AssistantScreenProps {
-  currentLang?: AppLanguage;
-}
-
-export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 'fr' }) => {
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS.fr;
+export const AssistantScreen: React.FC = () => {
+  const { lang, t } = useI18n();
+  const nowStamp = () =>
+    new Date().toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   const [useLiveWebSearch, setUseLiveWebSearch] = useState(true);
 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       sender: 'ai',
-      text: 'Akwaba ! Je suis votre guide spirituel et culturel alimenté par Gemini & Search Grounding. Posez-moi des questions sur les sanctuaires sacrés de Ouidah, les palais royaux d’Abomey, les protocoles Vodun, la fête de la Gaani ou apprenez les salutations en Fon et Yoruba.',
-      time: 'Maintenant',
+      text: t('Akwaba ! Je suis votre guide spirituel et culturel alimenté par Gemini & Search Grounding. Posez-moi des questions sur les sanctuaires sacrés de Ouidah, les palais royaux d’Abomey, les protocoles Vodun, la fête de la Gaani ou apprenez les salutations en Fon et Yoruba.'),
+      time: t('Maintenant'),
       fonPhrase: {
         fon: 'Ku abo / Akwaba',
         phonetic: '/koo ah-boh/',
-        meaning: 'Bienvenue chaleureuse pour franchir le seuil d’un sanctuaire ou d’une concession familiale.'
+        meaning: t('Bienvenue chaleureuse pour franchir le seuil d’un sanctuaire ou d’une concession familiale.')
       },
-      etiquetteTip: 'Dans les couvents et cours royales, saluez toujours avec la main droite et le regard bienveillant.'
+      etiquetteTip: t('Dans les couvents et cours royales, saluez toujours avec la main droite et le regard bienveillant.')
     }
   ]);
 
@@ -62,10 +60,10 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedPrompts = [
-    'Quels sont les interdits du Temple des Pythons ?',
-    'Comment saluer un aîné ou un dignitaire en Fon ?',
-    'Quelle est la signification du requin pour le Roi Béhanzin ?',
-    'Pourquoi l’Iroko est-il sacré dans la forêt de Kpassè ?'
+    t('Quels sont les interdits du Temple des Pythons ?'),
+    t('Comment saluer un aîné ou un dignitaire en Fon ?'),
+    t('Quelle est la signification du requin pour le Roi Béhanzin ?'),
+    t('Pourquoi l’Iroko est-il sacré dans la forêt de Kpassè ?')
   ];
 
   const scrollToBottom = () => {
@@ -81,7 +79,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
       id: (Date.now() + 1).toString(),
       sender: 'ai',
       text: withGrounding ? data.text || data.reply : data.reply || data.text,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: nowStamp(),
       groundingSources: withGrounding
         ? data.groundingChunks?.map((c: any) => ({
             title: c.web?.title || 'Patrimoine Bénin',
@@ -98,7 +96,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
       id: Date.now().toString(),
       sender: 'user',
       text: query,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: nowStamp()
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -136,32 +134,32 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
       const lower = query.toLowerCase();
 
       if (lower.includes('salu') || lower.includes('greet') || lower.includes('bonjour') || lower.includes('fon')) {
-        reply = 'Dans la tradition béninoise et la culture Fon, la salutation est un acte sacré qui instaure la paix (Fífá). On salue toujours de la main droite, en s’inclinant légèrement face aux aînés.';
+        reply = t('Dans la tradition béninoise et la culture Fon, la salutation est un acte sacré qui instaure la paix (Fífá). On salue toujours de la main droite, en s’inclinant légèrement face aux aînés.');
         fonPhrase = {
           fon: 'Afon gangji a ?',
           phonetic: '/ah-fon gan-jee ah/',
-          meaning: 'Vous êtes-vous réveillé dans la paix ? (Salutation matinale respectueuse)'
+          meaning: t('Vous êtes-vous réveillé dans la paix ? (Salutation matinale respectueuse)')
         };
-        etiquetteTip = 'Ne tendez jamais la main gauche lors d’un salut ou pour remettre un objet.';
+        etiquetteTip = t('Ne tendez jamais la main gauche lors d’un salut ou pour remettre un objet.');
       } else if (lower.includes('python') || lower.includes('temple') || lower.includes('ouidah')) {
-        reply = 'Au Temple des Pythons de Ouidah, les pythons royaux (Dangbé) incarnent la divinité tutélaire bienveillante qui protégea le roi fondateur Kpassè. Ils sont totalement inoffensifs et sacrés.';
-        etiquetteTip = 'Déchaussez-vous à l’entrée des petits sanctuaires intérieurs et demandez la permission avant de photographier les dignitaires.';
+        reply = t('Au Temple des Pythons de Ouidah, les pythons royaux (Dangbé) sont tenus pour sacrés : le culte du python y est attesté depuis la fin du XVIIe siècle. On les observe sans les déplacer.');
+        etiquetteTip = t('Déchaussez-vous à l’entrée des petits sanctuaires intérieurs et demandez la permission avant de photographier les dignitaires.');
       } else if (lower.includes('requin') || lower.includes('behanzin') || lower.includes('dahomey') || lower.includes('abomey')) {
-        reply = 'Le requin (Gbêhanzin) symbolise le roi résistant : « Je suis le requin téméraire qui n’abandonne pas un pouce de ses eaux territoriales ». Cet emblème royal orne les tentures appliquées d’Abomey.';
-        etiquetteTip = 'Sur les tentures d’Abomey, les coutures en relief découpées à la main attestent de l’authenticité de l’artisan royal.';
+        reply = t('Le requin (Gbêhanzin) symbolise le roi résistant : « Je suis le requin téméraire qui n’abandonne pas un pouce de ses eaux territoriales ». Cet emblème royal orne les tentures appliquées d’Abomey.');
+        etiquetteTip = t('Sur les tentures d’Abomey, les coutures en relief découpées à la main attestent de l’authenticité de l’artisan royal.');
       } else if (lower.includes('iroko') || lower.includes('arbre') || lower.includes('kpasse')) {
-        reply = 'L’Iroko millénaire de la Forêt Sacrée de Kpassè Zoun est considéré comme la métamorphose vivante du roi Kpassè au XIVe siècle pour échapper à ses ennemis.';
-        etiquetteTip = 'Parlez à voix basse dans la forêt sacrée et ne touchez pas les tissus blancs noués autour des troncs.';
+        reply = t("Dans la Forêt Sacrée de Kpassè, l'iroko est tenu pour la métamorphose vivante du roi Kpassè, second souverain de Savi, au milieu du XVIIe siècle.");
+        etiquetteTip = t('Parlez à voix basse dans la forêt sacrée et ne touchez pas les tissus blancs noués autour des troncs.');
       } else {
-        reply = `Au Bénin, chaque sanctuaire et tradition vivante s'appuie sur le respect des ancêtres et de la nature. Concernant votre question sur "${query}", les gardiens recommandent la sincérité, la retenue et l’écoute avant d’immortaliser les cérémonies.`;
-        etiquetteTip = 'La formule « Kou do agbé » (Que la paix soit avec vous) ouvre tous les cœurs.';
+        reply = t('Au Bénin, chaque sanctuaire et tradition vivante s’appuie sur le respect des ancêtres et de la nature. Concernant votre question sur « {query} », les gardiens recommandent la sincérité, la retenue et l’écoute avant d’immortaliser les cérémonies.', { query });
+        etiquetteTip = t('La formule « Kou do agbé » (Que la paix soit avec vous) ouvre tous les cœurs.');
       }
 
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
         text: reply,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        time: nowStamp(),
         fonPhrase,
         etiquetteTip,
         fromArchive: true
@@ -188,10 +186,10 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
           </div>
           <div>
             <h2 className="font-serif text-lg font-bold text-[#2c2926]">
-              {t.askAiCompanion}
+              {t('Compagnon Culturel IA')}
             </h2>
             <p className="text-xs text-[#5a5a40] font-medium">
-              Alimenté par Gemini 3.5 Flash & Données Culturelles du Bénin
+              {t('Alimenté par Gemini 3.5 Flash & Données Culturelles du Bénin')}
             </p>
           </div>
         </div>
@@ -204,10 +202,10 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
               ? 'bg-green-50 text-green-800 border-green-300 shadow-sm'
               : 'bg-gray-100 text-gray-600 border-gray-200'
           }`}
-          title="Activer la recherche Google en direct sur le web"
+          title={t('Activer la recherche Google en direct sur le web')}
         >
           <Globe className={`w-3.5 h-3.5 ${useLiveWebSearch ? 'text-green-600' : 'text-gray-400'}`} />
-          <span>{useLiveWebSearch ? 'Recherche Web Active' : 'Mode Mémoire'}</span>
+          <span>{useLiveWebSearch ? t('Recherche Web Active') : t('Mode Mémoire')}</span>
         </button>
       </div>
 
@@ -237,7 +235,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
 
               {msg.fromArchive && (
                 <p className="text-[10px] text-[#8c867c] italic">
-                  Réponse du fonds culturel écrit — génération en ligne indisponible.
+                  {t('Réponse du fonds culturel écrit — génération en ligne indisponible.')}
                 </p>
               )}
 
@@ -251,7 +249,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
                     <button
                       onClick={() => playCulturalTermAudio(msg.fonPhrase?.fon || '')}
                       className="p-1 rounded-lg bg-white/80 text-[#c14e2f] hover:bg-white transition-all shadow-xs cursor-pointer"
-                      title="Écouter la prononciation phonétique"
+                      title={t('Écouter la prononciation authentique')}
                     >
                       <Volume2 className="w-3.5 h-3.5" />
                     </button>
@@ -278,7 +276,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
                 <div className="pt-2 border-t border-[#f0ece1] space-y-1">
                   <span className="text-[10px] font-bold text-[#8c867c] flex items-center gap-1">
                     <Globe className="w-3 h-3 text-[#5a5a40]" />
-                    <span>Sources et références web vérifiées :</span>
+                    <span>{t('Sources et références web vérifiées :')}</span>
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {msg.groundingSources.slice(0, 2).map((s, i) => (
@@ -317,7 +315,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
         {isLoading && (
           <div className="flex items-center gap-2 text-xs text-[#5a5a40] bg-white p-3 rounded-2xl border border-[#e8e2d5] w-fit shadow-xs">
             <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#c14e2f]" />
-            <span>Consultation des archives vivantes et du web...</span>
+            <span>{t('Consultation des archives vivantes et du web...')}</span>
           </div>
         )}
 
@@ -343,7 +341,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ currentLang = 
           type="text"
           value={inputQuery}
           onChange={(e) => setInputQuery(e.target.value)}
-          placeholder={t.askAiCompanion + "..."}
+          placeholder={t('Poser une question au compagnon culturel')}
           className="w-full pl-4 pr-12 py-3.5 bg-white text-[#2c2926] placeholder-[#8c867c] text-xs sm:text-sm rounded-2xl border border-[#e8e2d5] focus:border-[#c14e2f] focus:outline-none shadow-sm transition-all"
         />
         <button

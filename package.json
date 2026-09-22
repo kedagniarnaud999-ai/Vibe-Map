@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "set-user-role": "tsx scripts/set-user-role.ts"
   },
   "dependencies": {

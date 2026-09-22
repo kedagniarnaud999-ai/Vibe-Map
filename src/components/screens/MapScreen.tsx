@@ -27,12 +27,17 @@ import {
 import { Place, Category } from '../../types';
 import { LeafletMapView } from '../LeafletMapView';
 import { hasGoogleMapsKey } from '../../lib/map-provider-key';
+import { useI18n } from '../../lib/i18n';
+import { useCategoryLabel } from '../../lib/labels';
 
 // Only reached when a Maps key exists, so the Maps library stays out of the default map chunk.
 const GoogleMapView = React.lazy(() =>
   import('../GoogleMapView').then((m) => ({ default: m.GoogleMapView }))
 );
 import { calculateDistanceKm, formatDistance, getProximityBadge, UserCoordinates } from '../../lib/geo';
+
+// Technical fallback bucket for places without a stored category.
+const UNCATEGORIZED_KEY = 'Patrimoine';
 
 interface MapScreenProps {
   places: Place[];
@@ -47,6 +52,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   onSelectPlace,
   onOpenPlaceDetail
 }) => {
+  const { t } = useI18n();
+  const categoryLabel = useCategoryLabel();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [layerType, setLayerType] = useState<'voyager' | 'satellite' | 'terrain' | 'street'>('voyager');
@@ -64,7 +71,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   const handleLocateUser = (showNotification = true) => {
     if (!navigator.geolocation) {
       setGeoStatus('error');
-      setGeoErrorMsg("La géolocalisation n'est pas supportée par votre navigateur.");
+      setGeoErrorMsg(t("La géolocalisation n'est pas supportée par votre navigateur."));
       return;
     }
 
@@ -89,10 +96,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
         console.warn("Geolocation error:", err);
         if (err.code === err.PERMISSION_DENIED) {
           setGeoStatus('denied');
-          setGeoErrorMsg("Autorisation de localisation refusée.");
+          setGeoErrorMsg(t('Autorisation de localisation refusée.'));
         } else {
           setGeoStatus('error');
-          setGeoErrorMsg("Impossible de récupérer votre position actuelle.");
+          setGeoErrorMsg(t('Impossible de récupérer votre position actuelle.'));
         }
       },
       {
@@ -125,28 +132,31 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   const dynamicCategories = useMemo(() => {
     const map = new Map<string, number>();
     places.forEach((p) => {
-      const cat = p.category?.trim() || 'Patrimoine';
+      const cat = p.category?.trim() || UNCATEGORIZED_KEY;
       map.set(cat, (map.get(cat) || 0) + 1);
     });
 
     const getCatVisual = (cat: string) => {
       const lower = cat.toLowerCase();
       if (lower.includes('spirit') || lower.includes('vodun') || lower.includes('sanctuaire')) {
-        return { label: 'Spirituel & Sanctuaires', icon: '🕊️' };
+        return { label: t('Spirituel & Sanctuaires'), icon: '🕊️' };
       }
       if (lower.includes('histor') || lower.includes('palais') || lower.includes('royaume') || lower.includes('monument')) {
-        return { label: 'Histoire & Royaumes', icon: '🏛️' };
+        return { label: t('Histoire & Royaumes'), icon: '🏛️' };
       }
       if (lower.includes('nature') || lower.includes('lac') || lower.includes('forêt') || lower.includes('parc')) {
-        return { label: 'Nature & Écotourisme', icon: '🌿' };
+        return { label: t('Nature & Écotourisme'), icon: '🌿' };
       }
       if (lower.includes('art') || lower.includes('métier') || lower.includes('artisan')) {
-        return { label: 'Arts & Artisanat', icon: '🎨' };
+        return { label: t('Arts & Artisanat'), icon: '🎨' };
       }
       if (lower.includes('food') || lower.includes('gastro') || lower.includes('culinaire')) {
-        return { label: 'Gastronomie & Terroir', icon: '🍲' };
+        return { label: t('Gastronomie & Terroir'), icon: '🍲' };
       }
-      return { label: cat, icon: '📍' };
+      return {
+        label: cat === UNCATEGORIZED_KEY ? t('Patrimoine') : cat,
+        icon: '📍'
+      };
     };
 
     const dynamicItems = Array.from(map.entries()).map(([cat, count]) => {
@@ -162,10 +172,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
     dynamicItems.sort((a, b) => b.count - a.count);
 
     return [
-      { id: 'All', label: 'Tous les sites', icon: '✨', count: places.length },
+      { id: 'All', label: t('Tous les sites'), icon: '✨', count: places.length },
       ...dynamicItems
     ];
-  }, [places]);
+  }, [places, t]);
 
   // Enrich places with calculated distance to user's real GPS position
   const enrichedPlaces = useMemo(() => {
@@ -239,7 +249,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher Ouidah, Abomey, Ganvié, Porto-Novo..."
+              placeholder={t('Rechercher Ouidah, Abomey, Ganvié, Porto-Novo...')}
               className="w-full pl-10 pr-4 py-2 bg-white/95 backdrop-blur-md text-[#2c2926] placeholder-[#8c867c] text-xs sm:text-sm rounded-2xl border border-[#e8e2d5] focus:border-[#c14e2f] focus:outline-none transition-all shadow-sm"
             />
           </div>
@@ -256,10 +266,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                   ? 'bg-[#c14e2f] text-white shadow-sm'
                   : 'text-[#6b665e] hover:text-[#2c2926]'
               }`}
-              title="Carte Détaillée"
+              title={t('Carte Détaillée')}
             >
               <Globe className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Plan</span>
+              <span className="hidden sm:inline">{t('Plan')}</span>
             </button>
 
             <button
@@ -272,10 +282,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                   ? 'bg-[#c14e2f] text-white shadow-sm'
                   : 'text-[#6b665e] hover:text-[#2c2926]'
               }`}
-              title="Vue Satellite"
+              title={t('Vue Satellite')}
             >
               <Satellite className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Satellite</span>
+              <span className="hidden sm:inline">{t('Satellite')}</span>
             </button>
 
             {hasGoogleMapsKey && (
@@ -319,8 +329,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             )}
             <span>
               {userPosition 
-                ? (sortByProximity ? '🎯 Plus proches d’abord' : 'Trier par proximité')
-                : 'Me localiser'
+                ? (sortByProximity 
+                    ? <>🎯 {t('Plus proches d’abord')}</> 
+                    : t('Trier par proximité'))
+                : t('Me localiser')
               }
             </span>
           </button>
@@ -339,7 +351,9 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                   : 'bg-white/90 text-[#6b665e] hover:bg-white'
               }`}
             >
-              {maxDistanceFilter ? `Rayon < ${maxDistanceFilter} km` : 'Tous les rayons'}
+              {maxDistanceFilter
+                ? t('Rayon < {max} km', { max: maxDistanceFilter })
+                : t('Tous les rayons')}
             </button>
           )}
 
@@ -378,7 +392,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               onClick={() => handleSetPresetLocation(6.3622, 2.0864, 'Ouidah')}
               className="underline font-semibold ml-2 text-amber-900"
             >
-              Simuler Ouidah
+              {t('Simuler Ouidah')}
             </button>
           </div>
         )}
@@ -395,7 +409,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95 ring-4 ring-blue-500/20'
               : 'bg-white text-[#2c2926] hover:bg-[#f5f1e8] active:scale-95 border border-[#e8e2d5]'
           }`}
-          title={userPosition ? "Vous êtes localisé" : "Me géolocaliser"}
+          title={userPosition ? t('Vous êtes localisé') : t('Me géolocaliser')}
         >
           {geoStatus === 'locating' ? (
             <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
@@ -412,7 +426,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               ? 'bg-[#c14e2f] text-white'
               : 'bg-white text-[#2c2926] hover:bg-[#f5f1e8] border border-[#e8e2d5]'
           }`}
-          title="Liste des sites à proximité"
+          title={t('Liste des sites à proximité')}
         >
           <ListFilter className="w-5 h-5" />
         </button>
@@ -432,7 +446,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <Suspense
             fallback={
               <div className="w-full h-full flex items-center justify-center bg-[#f5f1e8] text-xs text-[#8c867c]">
-                Chargement de la couche Google Maps…
+                {t('Chargement de la couche Google Maps…')}
               </div>
             }
           >
@@ -503,10 +517,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               </div>
               <div>
                 <h3 className="font-serif font-bold text-sm text-[#2c2926]">
-                  Sites culturels à proximité
+                  {t('Sites culturels à proximité')}
                 </h3>
                 <p className="text-[11px] text-[#8c867c]">
-                  {filteredPlaces.length} sanctuaires & monuments découverts
+                  {t('{n} sanctuaires & monuments découverts', { n: filteredPlaces.length })}
                 </p>
               </div>
             </div>
@@ -521,7 +535,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           {/* Quick preset selector for instant exploration */}
           <div className="px-3.5 py-2 bg-[#f5f1e8]/60 border-b border-[#e8e2d5] flex items-center gap-1.5 overflow-x-auto hide-scrollbar">
             <span className="text-[10px] font-semibold text-[#8c867c] uppercase tracking-wider flex-shrink-0">
-              Explorer depuis :
+              {t('Explorer depuis :')}
             </span>
             <button
               onClick={() => handleSetPresetLocation(6.3622, 2.0864, 'Ouidah')}
@@ -582,7 +596,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                           {badge.label}
                         </span>
                         <span className="text-[10px] text-[#6b665e]">
-                          {place.category}
+                          {categoryLabel(place.category)}
                         </span>
                       </div>
                     </div>
@@ -593,7 +607,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                       {formatDistance(place.calculatedDistanceKm || place.distanceKm)}
                     </span>
                     <span className="text-[10px] text-[#8c867c]">
-                      de vous
+                      {t('de vous')}
                     </span>
                   </div>
                 </div>
@@ -616,7 +630,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                   className="w-full h-full object-cover"
                 />
                 <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold">
-                  {activePlace.category}
+                  {categoryLabel(activePlace.category)}
                 </span>
               </div>
 
@@ -650,18 +664,16 @@ export const MapScreen: React.FC<MapScreenProps> = ({
 
             <div className="mt-3 pt-2.5 border-t border-[#f0ece1] flex items-center justify-between">
               <div className="text-xs text-[#6b665e]">
-                <span className="font-semibold text-[#c14e2f]">
-                  {activePlace.verifiedGuideIds.length}{' '}
-                  {activePlace.verifiedGuideIds.length === 1 ? 'Guide Certifié' : 'Guides Certifiés'}
-                </span>{' '}
-                {activePlace.verifiedGuideIds.length === 1 ? 'disponible' : 'disponibles'}
+                {activePlace.badges[0] && (
+                  <span className="font-semibold text-[#c14e2f]">{t(activePlace.badges[0])}</span>
+                )}
               </div>
 
               <button
                 onClick={() => onOpenPlaceDetail(activePlace)}
                 className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#c14e2f] text-white text-xs font-semibold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
               >
-                <span>Découvrir le lieu</span>
+                <span>{t('Découvrir le lieu')}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

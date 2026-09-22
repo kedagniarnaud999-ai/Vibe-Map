@@ -126,7 +126,7 @@ function travelerProfile(fbUser: FirebaseUser): UserProfile {
     id: fbUser.uid,
     name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Explorateur Culturel',
     email: fbUser.email || '',
-    avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+    avatar: fbUser.photoURL || '',
     vibeTag: 'Explorateur Passionné',
     travelStyle: 'Cultural Deep-Dive',
     language: 'fr',

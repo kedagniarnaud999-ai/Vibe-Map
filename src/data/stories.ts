@@ -1,123 +1,177 @@
 import { Story } from '../types';
+import { commonsThumb } from '../lib/media';
 
+/**
+ * Corpus documentaire. Le français est la langue de référence : c'est lui qui porte
+ * les faits, l'anglais en est dérivé (surcharge côté données, jamais l'inverse).
+ *
+ * Trois règles, héritées de la revue des sources :
+ *  - chaque affirmation engageante (date, règne, technique, institution) vient d'un
+ *    document public ; ce qui relève de l'attribution discutée est écrit avec sa réserve
+ *    (« la littérature muséographique retient… », « dont la réalité historique est discutée ») ;
+ *  - aucune signature inventée : ces récits ne sont pas attribués à un chercheur ou à un
+ *    gardien imaginaire, ils sont signés par le projet, qui en assume les sources ;
+ *  - chaque visuel vient de Wikimedia Commons sous licence libre, est servi par son nom de
+ *    fichier (Special:FilePath) et est accompagné de son auteur : sans crédit visible, une
+ *    licence CC BY-SA n'est pas respectée.
+ */
 export const STORIES_DATA: Story[] = [
   {
     id: 'fon-applique-textiles',
-    title: 'The Hidden Meaning of Fon Appliqué Textiles',
-    subtitle: 'A vibrant tapestry of power, history, and proverb.',
+    title: 'Les tissus appliqués d’Abomey, une histoire cousue',
+    subtitle:
+      'Emblèmes royaux, conquêtes et proverbes de cour : ce que racontent les appliqués fon.',
     category: 'Heritage',
-    readTime: '8 min read',
-    heroImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvlDb0XuU_Cb4imwPnzeB5ynevor-y5iP5Ob-77rRPkwOCWMh5kUN8L-gIrdee1M7fawU7VYx8VhPOwlmbwQyGyJJOf-40SRG_4v_xTuuMTrgbofWxd2KMJHsmTLPUgUu1lslm4B3ASn8mGGR5af1UbDPZe3c4EWfLtfseDFwxLxmkiHy4B0frryKq-jHLmhWUa_a3FXcOFAZUB5Vwk669z_H1978s5UfhHpK3s0QdK-IAiGvCJu_N',
+    readMinutes: 8,
+    heroImage: commonsThumb('Abomey-Tissus appliqués.jpg', 1600),
+    imageCredit: {
+      file: 'Abomey-Tissus appliqués.jpg',
+      author: 'Ji-Elle',
+      license: 'CC BY-SA 4.0'
+    },
     author: {
-      name: 'Dr. Oumiya Kouyaté',
-      title: 'Curator of West African Arts',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAO1ROpJ_SX0gat3q_xj03Qua1-odrpTOPNf8-7VObjXAvzCrdNrt2nzwpck18oZ4M0tBu80BNww4fREy_vouVdsCOH-fuLyZH7Ue-8fJUXzwuaY7BsdBCqaPrpzoGp1qnTg1EpKRoTAX0YvdQpEeB4LS0lRJ335GSfpIlWNqHS9RTw1sC71jz3ZRYpII-YyerJUmm4vyA8RgiVCfaH4PJx9s7p_9Jv7u3JsA1KwMzipQKOdQqDRykZ'
+      name: 'La rédaction de La Vibe Map',
+      title: 'Récit documenté, sources publiques'
     },
-    introduction: 'Long before the written word dominated historical records in the region, the Kingdom of Dahomey (present-day Benin) relied on a striking visual language to document its conquests, celebrate its kings, and convey complex proverbs. This language was sewn, not written.',
-    secondParagraph: 'Fon appliqué, or kpoho, is a specialized textile art where vibrant, solid-colored cutouts of fabric are meticulously stitched onto a contrasting background cloth. These are not merely decorative wall hangings; they are vibrant historical documents.',
-    audioTrack: {
-      title: 'The Sound of the Stitch',
-      subtitle: 'Master Artisan Koffi explains the process (Audio, 2:15)'
-    },
-    symbolsTitle: 'Decoding the Symbols',
-    symbolsDescription: 'Every motif in a traditional appliqué holds specific meaning. A lion might represent a specific monarch (King Glele), while a shark denotes another (King Gbehanzin). The arrangement of these symbols tells a complete story. Tap the patterns below to reveal their meanings.',
+    introduction:
+      'À Abomey, une figure de tissu découpée et cousue sur une toile de fond claire n’est pas un simple ornement. Chaque motif engagé dans une tenture renvoie à un roi, à une victoire, à un proverbe de cour : l’appliqué fon est un compte rendu, et il se lit dans un ordre.',
+    secondParagraph:
+      'La technique est cousue, non tissée. Des pièces de coton aux couleurs franches sont appliquées sur le fond puis surpiquées au fil ; le contour reste net parce que la surpiqûre masque la coupe. Les ateliers d’Abomey produisent toujours ces tentures, pour les cérémonies familiales comme pour les collectionneurs, et le marché en vend aux visiteurs.',
+    symbolsTitle: 'Décoder les emblèmes',
+    symbolsDescription:
+      'Les emblèmes ci-dessous sont ceux que les règnes ont laissés à Abomey, en tenture comme en bas-relief. Les attributions royales sont celles que la littérature muséographique retient le plus souvent : elles éclairent une lecture, elles ne ferment pas un débat. Touchez un emblème pour en lire la signification.',
     symbols: [
       {
         id: 'lion',
-        title: 'The Lion',
-        meaning: 'Represents King Glele (1858–1889). Signifies raw power, courage, fearlessness, and undisputed dominion over the kingdom.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApcHJqjrf9a7UAHSKcdGS2pUd4KZ2z103bOCPOc-EpMRzRk8MmJUwwlEKcgRSajzvZpLA3gkGvlH9PTgPInLZXZrm5XalSWSnz-nZc-QTJ6_gDxoCy8SrinwSSq_7EMiHhTTc6ZCdqFSqBjXE5MBmr0hOhCtzPP08iEwWB818G9sHTU4_yRUNE_KgZSKc6kdshXs50RpULbbH0AmOm-rjuynYUEld12GUD9vD6K-Z3HQ8c0Qsx82fU',
-        colorClass: 'bg-primary'
+        title: 'Le lion',
+        meaning:
+          'Emblème retenu pour le règne de Glèlè (1858-1889) : force assumée et primauté sur le royaume. Une statue mi-homme mi-lion, aujourd’hui conservée au musée du quai Branly, lui est associée.',
+        image: commonsThumb(
+          'Statue royale mi-homme mi-lion du roi Glèlè, Musée du quai Branly.jpg',
+          640
+        ),
+        imageCredit: {
+          file: 'Statue royale mi-homme mi-lion du roi Glèlè, Musée du quai Branly.jpg',
+          author: 'Anonyme',
+          license: 'Domaine public'
+        }
       },
       {
-        id: 'shark',
-        title: 'The Shark',
-        meaning: 'Represents King Gbehanzin (1889–1894): "The ferocious shark that troubles the ocean bars and defies colonizers."',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCBKUIqZQ_docIjkim4YqQ5ZcQK47iCDU_V_A0LxlCCb2ZbZvxxbY4VB8IiUMhbTOLQZ8cksh_CY4UqHMNeiU4Qb7QlZBUZG0gXtnMBRtBgLArO9aw-eRTUv-XVOa8Krj6LqKlEchpvFuC1vGadmFmu2VpCz9huCSr1iK9-ou0KBU7AXFUpjAc3GLdzaevSrrrbtJgyICbE9s_mYEl1gN-qHvHRNfLKJc-vPghZgCKw8leKuBBz_IsK',
-        colorClass: 'bg-tertiary'
+        id: 'requin',
+        title: 'Le requin',
+        meaning:
+          'Emblème associé à Gbèhanzin (1889-1894), le roi qui affronta l’avance française en 1890 puis en 1892-1894. Déporté en Martinique puis en Algérie, il meurt à Blida en 1906.'
       },
       {
-        id: 'chameleon',
-        title: 'The Chameleon',
-        meaning: 'Represents King Akaba (1685–1708). Slow, wise, and steady, changing with context but inevitably reaching its goal.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA8es5Ks7PwTPuD8_IKqa2MUMHKNLCqQqC38nj66gbYUqVZ77Fi7Z0eISjA6ZpaLUDFTgTD45R8JzaoigjRNYvi9eT23WhS5SiHc2muzw6b3ZI3B09pX1VOYDGpDEc6SJbxsv6mZ0UVvyjCsrU4mJ9JssmBMYmWzidhaMCCG8MaLtwU4kD1jurQzElVgOGgica9-Z5cjKNAYaCdQ-cfkMYuU9cTHUoJEnpHW-BdmSyI7M9VOtVowI81',
-        colorClass: 'bg-secondary'
+        id: 'cameleon',
+        title: 'Le caméléon',
+        meaning:
+          'Emblème que la tradition d’Abomey rattache au roi Akaba, dont la réalité historique est discutée : animal lent et prudent, qui change de couleur selon le terrain mais atteint son but.'
       },
       {
-        id: 'swords',
-        title: 'Crossed Swords',
-        meaning: 'A general symbol of martial victory, unity in defense, and the prowess of Dahomey royal guards and the Agojie.',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC-CdHKAppEKZ96AOaQIUjDFUvsN1wWXHXcWM0hU8KzH_WSYGnwGR4hovNIQKaxTzCrhDp13YH0QGLPhJaOakQtjeOSep_0XwR4CutZlmokoyqldNBw1y-rumLE3O9tKlvdLYmodlFFnPanVjPRSoAZ54tos2UDncwy7NO01-ipR4cgoQRxmIquGetkViWLE1Nifo1zT1TLJUiS6DI-7nOdo8AvgWcMqmL5wxaFsnBiZ9_16Ip1p64Y',
-        colorClass: 'bg-primary-container'
+        id: 'glaives',
+        title: 'Les glaives croisés',
+        meaning:
+          'Figure de victoire militaire et de défense du royaume, présente dans le décor des palais royaux d’Abomey.'
       }
     ],
-    quote: {
-      text: '"The needle is our pen, the cloth is our paper. We do not forget."',
-      author: 'Artisan Collective Motto, Abomey'
-    },
-    conclusion: 'Today, while the royal courts no longer dictate the production of these cloths, the artisans of Abomey continue the tradition. The vibrant colors and bold graphics have even influenced modern graphic design, proving that this ancient visual language remains remarkably resilient and relevant.',
+    conclusion:
+      'Le musée historique d’Abomey, aménagé dans les palais royaux, conserve trônes, portes sculptées et tentures ; le site est inscrit au patrimoine mondial depuis 1985. Dans le centre-ville, les ateliers continuent de coudre : on peut y voir un appliqué se monter pièce après pièce, à condition de demander avant de photographier l’ouvrage en cours.',
     workshopCTA: {
-      title: 'Experience the Craft',
-      description: 'Visit a master artisan workshop in Abomey and learn the basics of Fon appliqué stitching and symbol composition.'
+      title: 'Préparer la visite d’Abomey',
+      description:
+        'Adresses officielles pour vérifier les horaires du musée, connaître les conditions d’accès aux ateliers et s’orienter vers un encadrement reconnu.'
     },
     relatedStories: [
       {
-        id: 'sacred-groves-osun',
-        title: 'The Sacred Groves of Osun-Osogbo',
-        category: 'Mythology',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyN-uGI_cIzqBhDS5M5pe-DWXYP6dHJ1PMjfBVMdZ4RYbZSgO89BwxFC0aH9psgFP0ydKVDUpbpJOQk0On5vMaLsLiLnPXKX2peX8tNEc74NrDJgsK936ZlRdr40YQGQkDQUL_ZxHUG8B-J8b3HWTibVprFsYLt1GdYuuzoHs3aMb06oCeNohk8TCjsj2rrzUEGzaiT8Y5IvBdV7P0X33T83OSRkSlV4FjECvDA5fihl8wC6rZgfN3'
+        id: 'vodun-foundations',
+        title: 'Vodun : des forces, des ancêtres, un équilibre',
+        category: 'Spiritual',
+        image: commonsThumb('Zangbeto au Bénin 03.png', 320)
       },
       {
-        id: 'kente-patterns',
-        title: 'Reading the Loom: Kente Patterns',
-        category: 'Textiles',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAiNxmxarVAl0v9KPYhqZd5Nkcp_1-cZIsvqUqwfkLgEfbg9eqbckJErS9Z_f8hntw6kmlna4ns95wtymb8EPtvnNNwlgI99Vaqekd6Cae4cG72IrKrlYOtKT6wGBsga6HLoek0mjH3hEEFcXhNxfkyrdrf9sfEhZKa_NNiMkM-Z4bAE2CVA1uDa7-7-H7TKcbxlpnR3Mf6G8GmkdnMIzZaRM3nRfKAkmDqfyxWp7UPP03-xhOy24UE'
+        id: 'voices-of-the-griots',
+        title: 'Voix des griots : la mémoire chantée',
+        category: 'Oral History',
+        image: commonsThumb('Joueur de kora à Toubab Dialaw.jpg', 320)
       }
     ]
   },
   {
     id: 'vodun-foundations',
-    title: 'The Philosophy of Balance: Vodun Foundations',
-    subtitle: 'An introduction to the core tenets of Vodun, focusing on harmony.',
+    title: 'Vodun : des forces, des ancêtres, un équilibre',
+    subtitle:
+      'Ce que le mot vodun veut dire dans le sud du Bénin, et ce qu’un visiteur risque à l’oublier.',
     category: 'Spiritual',
-    readTime: '6 min read',
-    heroImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuADLH3V8r4Pr7RNbdnXWAemOmUYN3c5ha6Jt1EASwRkMCGaxQPMDEdv-ycXYfCeHd--MzioYQhoJ5lGg1o8_f9aKapuW87fzBkyDL4fDNBeReiUhzPo2eA2RRkSyzsKswcapVVZ9G4y-NcBoTkt-R2L44OPUM8hO4aWk-gKjtryX7paw5_hNmJ_qbFaF6NiWgJgvsjSi_fvJ424ly4bSXnKoE-A4ZC20iMrzphthY1lb8ckGcvKGHvY',
-    author: {
-      name: 'Baba Ousmane',
-      title: 'Cultural Mediator & Custodian',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA0oM7E9hKBFHkAakmV0HrZZE4SZlACP0enQeNbCFdzQVg7m7tyD7viNibaLjgERt7vHIbbAc1JczHNZYFciIbYwWKtejcdBNShtVenhIQkE2BPYx_gREuDmQzidOkS5TG8RGOf3DxxjB4qeJiJYFgIIlJKKNdR57Z1xoEzuIxrrLLs9mO-OyWGktOgTOd0O9cEXJRpEnQY5pL7bhw1I62DueXK5hlQWjkf27YsTaNI1ZbnYCCMAei-'
+    readMinutes: 6,
+    heroImage: commonsThumb('Zangbeto au Bénin 03.png', 1600),
+    imageCredit: {
+      file: 'Zangbeto au Bénin 03.png',
+      author: 'Romario COFFI',
+      license: 'CC BY-SA 4.0'
     },
-    introduction: 'In the West, Vodun is frequently clouded by sensationalized folklore and cinema tropes. In Benin, its ancestral birthplace, Vodun is an intricate cosmic philosophy celebrating the balance between human beings, the natural elements, and ancestral memory.',
-    secondParagraph: 'At its core is Mawu-Lisa, the dual supreme deity representing the complementary harmony of sun and moon, day and night, male and female energies.',
+    author: {
+      name: 'La rédaction de La Vibe Map',
+      title: 'Récit documenté, sources publiques'
+    },
+    introduction:
+      'En fon, vodun désigne une force, une puissance capable d’agir sur le monde des vivants. Dans le sud du Bénin, le vodun n’est pas un folklore survivant : il organise des lignages, des calendriers de fête, des interdits et des obligations précises envers les anciens et envers certains lieux — une souche, une rivière, une place de village.',
+    secondParagraph:
+      'La cosmologie la plus couramment avancée place en amont Mawu-Lisa, double principe où Mawu, la lune, porte la nuit, le froid et la douceur, et Lisa, le soleil, le jour et la chaleur. Legba ouvre les chemins : sans lui, dit-on, aucune prière ne parvient aux autres vodun. Zangbeto, présenté comme le gardien de la nuit, balaie les rues de Porto-Novo et de Godomey sous un costume de fibres — sur cette image, sa sortie masque le danseur et ne laisse voir que la ronce.',
+    conclusion:
+      'Le 10 janvier est, au Bénin, la journée des vodun : les rues du sud se remplissent de masques et de danses. Un visiteur y est accueilli à une condition simple : on ne photographie pas une cérémonie sans l’accord des participants, on n’entre pas dans un espace consacré sans y être invité, on ne prélève rien — et l’on accepte qu’une partie du rite ne lui soit pas destinée.',
+    workshopCTA: {
+      title: 'Avant d’assister à une sortie de masque',
+      description:
+        'Les structures de l’annuaire renseignent sur les périodes de fête, les usages des lieux et les autorisations à demander.'
+    },
     relatedStories: [
       {
         id: 'fon-applique-textiles',
-        title: 'The Hidden Meaning of Fon Appliqué Textiles',
+        title: 'Les tissus appliqués d’Abomey, une histoire cousue',
         category: 'Heritage',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvlDb0XuU_Cb4imwPnzeB5ynevor-y5iP5Ob-77rRPkwOCWMh5kUN8L-gIrdee1M7fawU7VYx8VhPOwlmbwQyGyJJOf-40SRG_4v_xTuuMTrgbofWxd2KMJHsmTLPUgUu1lslm4B3ASn8mGGR5af1UbDPZe3c4EWfLtfseDFwxLxmkiHy4B0frryKq-jHLmhWUa_a3FXcOFAZUB5Vwk669z_H1978s5UfhHpK3s0QdK-IAiGvCJu_N'
+        image: commonsThumb('Abomey-Tissus appliqués.jpg', 320)
       }
     ]
   },
   {
     id: 'voices-of-the-griots',
-    title: 'Voices of the Griots: Keepers of History',
-    subtitle: 'Oral memory and music across centuries in West Africa.',
+    title: 'Voix des griots : la mémoire chantée',
+    subtitle:
+      'Généalogies, louanges et proverbes : une partie de l’histoire ouest-africaine se transmet sans archive écrite.',
     category: 'Oral History',
-    readTime: '7 min read',
-    heroImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8ExmseZgnuR1MI7ru4RLuHXb-WCg_D5FImPSaMpToTRwI2e5ZLtcTxLzbaVy1z2fRnC-qXv6YS3o5jGX9zYt8v7__nXGKWUpTVcphAK4dEHf2Bl21m-e1CCvCH4NgdJ0A29Ko3t0cSH4AWbeu3Cma4p2Im9QKIOogVDbkQ_NXRGwdC3crl6ZqUkegkZq7Ag1StsavGdX9ZfPcydphsR54zt-ornuzgYfxsr8HtVCqfSjuEwU-yCBu',
-    author: {
-      name: 'Jean-Marc T.',
-      title: 'Cultural Historian',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCOBwAO2hQQWAA9OHvGDKO4mWxpsFow-PevNyma39HaHhFrKO8upgdHcjhEjZep2cPMYofRNVXMhPuW3k6WB0N7O11q3jHzj5uOlb8pNAA_wMpPn7gSrpXnt39vxgzkJafdn8NA_XNHiun7EJlgO3z0S99C7WkzOlTnnjulIpxhSFZ4tGVu0kudyd4U_Q7IyPsp_dqgH2We7YnyGUa-IMNb1ju7fi8tvpuembDT0ri5mMrNwkbDUT4W'
+    readMinutes: 7,
+    heroImage: commonsThumb('Joueur de kora à Toubab Dialaw.jpg', 1600),
+    imageCredit: {
+      file: 'Joueur de kora à Toubab Dialaw.jpg',
+      author: 'M. GADJ',
+      license: 'CC BY-SA 4.0'
     },
-    introduction: 'In West African societies, the griot (or jeli) is not simply an entertainer. They are living libraries, genealogists, diplomats, and guardians of collective history through song, proverb, and the resonant strings of the kora.',
-    secondParagraph: 'When an elder dies in this tradition, as the famous Malian writer Amadou Hampâté Bâ observed, a library burns to the ground. Discover how modern oral historians record and perpetuate these melodies.',
+    author: {
+      name: 'La rédaction de La Vibe Map',
+      title: 'Récit documenté, sources publiques'
+    },
+    introduction:
+      'Du Sénégal au Nigeria, le griot — jeli en pays mandingue — n’est pas un simple musicien. Il tient les généalogies, les louanges et le souvenir des traités ; sa parole fait foi dans une négociation comme dans une cérémonie, et elle s’appuie sur un instrument : kora, balafon ou ngoni.',
+    secondParagraph:
+      'Le répertoire change de nom selon les langues et les régions, la fonction reste : dire d’où l’on vient, et dans quel ordre. Cette mémoire n’est pas libre — elle se transmet dans des lignages de praticiens, avec des droits et des devoirs de part et d’autre, y compris celui de ne pas dire n’importe quoi sur n’importe qui.',
+    quote: {
+      text: '« Quand un vieillard meurt, c’est une bibliothèque qui brûle. »',
+      author: 'Amadou Hampâté Bâ'
+    },
+    conclusion:
+      'Une part de ce répertoire a été fixée par les collections de recherche au XXe siècle ; l’enquête orale reste aujourd’hui la principale source pour les périodes anciennes. Pour un visiteur, la bonne manière d’écouter est de commencer par une cérémonie publique annoncée — un festival, une sortie de masque, une louange commandée — plutôt que par une question posée à brûle-pourpoint à un aîné.',
+    workshopCTA: {
+      title: 'Organiser une écoute',
+      description:
+        'L’office national du tourisme et les directions départementales indiquent les festivals en cours et peuvent orienter vers un accompagnement.'
+    },
     relatedStories: [
       {
-        id: 'fon-applique-textiles',
-        title: 'The Hidden Meaning of Fon Appliqué Textiles',
-        category: 'Heritage',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvlDb0XuU_Cb4imwPnzeB5ynevor-y5iP5Ob-77rRPkwOCWMh5kUN8L-gIrdee1M7fawU7VYx8VhPOwlmbwQyGyJJOf-40SRG_4v_xTuuMTrgbofWxd2KMJHsmTLPUgUu1lslm4B3ASn8mGGR5af1UbDPZe3c4EWfLtfseDFwxLxmkiHy4B0frryKq-jHLmhWUa_a3FXcOFAZUB5Vwk669z_H1978s5UfhHpK3s0QdK-IAiGvCJu_N'
+        id: 'vodun-foundations',
+        title: 'Vodun : des forces, des ancêtres, un équilibre',
+        category: 'Spiritual',
+        image: commonsThumb('Zangbeto au Bénin 03.png', 320)
       }
     ]
   }

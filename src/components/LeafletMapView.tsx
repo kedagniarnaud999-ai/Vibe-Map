@@ -3,6 +3,7 @@ import L from 'leaflet';
 import { Place, Category } from '../types';
 import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers } from 'lucide-react';
 import { UserCoordinates } from '../lib/geo';
+import { useI18n } from '../lib/i18n';
 
 interface LeafletMapViewProps {
   places: Place[];
@@ -20,6 +21,7 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
   onSelectPlace,
   layerType
 }) => {
+  const { t } = useI18n();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
@@ -177,10 +179,10 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
       userPopup.innerHTML = `
         <div class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mb-1">
           <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-          Vous êtes ici
+          ${t('Vous êtes ici')}
         </div>
         <p class="text-[10px] text-[#6b665e]">
-          Précision GPS: ~${Math.round(userPosition.accuracy || 20)}m
+          ${t('Précision GPS: ~{distance}m', { distance: Math.round(userPosition.accuracy || 20) })}
         </p>
       `;
       marker.bindPopup(userPopup);
@@ -199,7 +201,7 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
         userCircleRef.current = circle;
       }
     }
-  }, [userPosition]);
+  }, [userPosition, t]);
 
   // Update Markers
   useEffect(() => {
