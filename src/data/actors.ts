@@ -18,7 +18,8 @@ export const ACTORS_DATA: Actor[] = [
     bio: 'Service public chargé de la promotion des patrimoines culturels et de l’offre touristique du Bénin. C’est l’interlocuteur institutionnel pour préparer la visite des grands sites et s’assurer que l’accueil est conforme aux règles en vigueur.',
     contact: {
       phone: '+229 21 30 91 44',
-      email: 'secretariat-anpt@presidence.bj'
+      email: 'secretariat-anpt@presidence.bj',
+      url: 'https://www.anpt.bj/'
     },
     expertise: [
       {
@@ -46,6 +47,9 @@ export const ACTORS_DATA: Actor[] = [
     badgeTitle: 'Fondation culturelle',
     location: 'Ouidah & Cotonou, Bénin',
     bio: 'Fondation créée en juin 2005 par Marie-Cécile Zinsou, avec Lionel Zinsou et Émile Derlin Zinsou. Son musée est installé à Ouidah dans la Villa Ajavon, une demeure de 1922 à l’architecture afro-brésilienne ; le LAB, galerie d’art contemporain, se trouve à Cotonou. Les horaires, l’accès et la gratuité varient selon les expositions et se confirment auprès de la fondation.',
+    contact: {
+      url: 'https://www.fondation-zinsou.org/'
+    },
     expertise: [
       {
         title: 'Musée de Ouidah',
