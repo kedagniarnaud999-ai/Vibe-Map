@@ -459,8 +459,8 @@ export const EN: Record<string, string> = {
   'Agrément Guides ({n})': 'Guide Approvals ({n})',
   'Réservations Visiteurs ({n})': 'Visitor Bookings ({n})',
   'Scraping documenté du patrimoine': 'Documented heritage scraping',
-  'Interrogez le web et les répertoires via Gemini Grounding : horaires, tarifs et résumé reviennent en brouillon, avec les sources consultées et des photos sous crédit Wikimedia. Sans correspondance documentée, le brouillon reste vide et la publication est refusée.':
-    'Query the web and the directories through Gemini Grounding: opening hours, prices and the summary come back as a draft, with the sources consulted and Wikimedia-credited photos. Without a documented match the draft stays empty and publication is refused.',
+  'Interrogez le web et les répertoires via Gemini Grounding : nom, résumé et histoire reviennent en brouillon, avec les sources consultées et des photos sous crédit Wikimedia. Sans correspondance documentée, le brouillon reste vide et la publication est refusée.':
+    'Query the web and the directories through Gemini Grounding: the name, the summary and the history come back as a draft, with the sources consulted and Wikimedia-credited photos. Without a documented match the draft stays empty and publication is refused.',
   'Suggestions rapides de sites du Bénin :': 'Quick site suggestions in Benin:',
   "Ex: Forêt Sacrée de Kpassè, Temple des Pythons, Palais Royal d'Abomey...":
     'E.g. Kpassè Sacred Forest, Python Temple, Royal Palaces of Abomey...',
@@ -479,17 +479,14 @@ export const EN: Record<string, string> = {
   'Aucune photo sous licence trouvée sur Wikimedia Commons pour ce site : la publication restera refusée tant qu’aucune image créditée ne lui est associée.':
     'No licensed photograph found on Wikimedia Commons for this site: publication stays refused until a credited image is associated with it.',
   'Nom & Résumé': 'Name & Summary',
-  'Détails Pratiques & Coordonnées': 'Practical Details & Coordinates',
-  'Localisation (ex: Ouidah, Bénin)': 'Location (e.g. Ouidah, Benin)',
-  'Horaires': 'Opening Hours',
-  'Tarifs': 'Prices',
+  'ex : Ouidah, Bénin': 'e.g. Ouidah, Benin',
   'Catalogue des Sanctuaires et Sites ({n})': 'Site Catalogue ({n})',
   'Synchronisé avec Firestore et Cloud SQL': 'Synced with Firestore and Cloud SQL',
   'Publication…': 'Publishing…',
   'Publication refusée : aucune photo Wikimedia Commons créditée n’est associée à ce site.':
     'Publication refused: no credited Wikimedia Commons photograph is associated with this site.',
-  'Publication refusée : les coordonnées du site restent à préciser dans le formulaire.':
-    'Publication refused: the site coordinates still need to be set in the form.',
+  'Publication refusée : la recherche n’a pas donné de position pour ce site, et ce brouillon n’en saisit pas. Reprenez la fiche dans le formulaire manuel pour indiquer sa latitude et sa longitude.':
+    'Publication refused: the extraction returned no position for this site, and this draft form does not capture one. Reopen the record in the manual form to set its latitude and longitude.',
   'Publication refusée : indiquez le fichier Wikimedia Commons, son auteur et sa licence.':
     'Publication refused: provide the Wikimedia Commons file, its author and its licence.',
   'Publier le catalogue embarqué': 'Publish the built-in catalogue',
