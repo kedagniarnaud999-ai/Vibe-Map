@@ -811,20 +811,20 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
 Détermine précisément:
 1. Son nom complet et son type ("Sanctuaire", "Palais Royal", "Musée", "Cité Lacustre", "Forêt Sacrée").
 2. Sa catégorie principale parmi: "Spiritual", "Historical", "Nature", "Arts".
-3. Sa localisation géographique (Ville, Région, Bénin) avec ses coordonnées GPS approximatives (latitude, longitude).
+3. Sa localisation géographique (Ville, Région, Bénin). Pour la position GPS : uniquement celle que la source consultée publie. Ne la déduis jamais du nom, de la ville voisine ni d'un ordre de grandeur ; à défaut, réponds null.
 4. Un résumé captivant en 2 phrases ("summary").
 5. Son histoire spirituelle et ancestrale approfondie ("deepHistory").
-6. Une liste de 3 règles d'étiquette et de bienséance ("etiquette").
+6. Les règles d'étiquette et de bienséance effectivement énoncées par la source ("etiquette"). Aucune n'est obligatoire : ne rattrape pas un manque par un nombre imposé.
 
 Renvoie UNIQUEMENT un JSON valide au format:
 {
   "name": "Nom complet du site",
   "category": "Spiritual" | "Historical" | "Nature" | "Arts",
   "location": "Ville, Bénin",
-  "coordinates": { "lat": 6.36, "lng": 2.08 },
+  "coordinates": { "lat": <latitude publiée par la source>, "lng": <longitude publiée par la source> } | null,
   "summary": "Court résumé captivant",
   "deepHistory": "Histoire détaillée et signification rituelle/historique",
-  "etiquette": ["Règle 1", "Règle 2", "Règle 3"]
+  "etiquette": ["Règle publiée par la source"]
 }`;
 
         let response;
