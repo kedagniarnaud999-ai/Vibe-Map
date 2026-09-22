@@ -42,6 +42,12 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
         return '#2e5a44'; // Forest green
       case 'Arts':
         return '#d9822b'; // Indigo / bronze gold
+      case 'Food':
+        return '#8c2f39'; // Hibiscus
+      case 'Lodging':
+        return '#1d5b7a'; // Lagoon blue
+      case 'Leisure':
+        return '#0d7f7a'; // Teal
       default:
         return '#2c2926';
     }

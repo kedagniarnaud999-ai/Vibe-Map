@@ -15,7 +15,9 @@ export const useCategoryLabel = () => {
     Arts: t('Arts'),
     Heritage: t('Patrimoine'),
     Food: t('Gastronomie'),
-    'Oral History': t('Histoire Orale')
+    'Oral History': t('Histoire Orale'),
+    Lodging: t('Hébergement'),
+    Leisure: t('Loisirs')
   };
 
   return (value: Category) => labels[value] ?? value;

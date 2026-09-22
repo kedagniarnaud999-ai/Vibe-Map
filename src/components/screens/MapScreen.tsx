@@ -154,6 +154,12 @@ export const MapScreen: React.FC<MapScreenProps> = ({
       if (lower.includes('food') || lower.includes('gastro') || lower.includes('culinaire')) {
         return { label: t('Gastronomie & Terroir'), icon: '🍲' };
       }
+      if (lower.includes('lodg') || lower.includes('hotel') || lower.includes('hébergement')) {
+        return { label: t('Hébergement & Séjours'), icon: '🛏️' };
+      }
+      if (lower.includes('leisure') || lower.includes('plage') || lower.includes('loisir')) {
+        return { label: t('Loisirs & Plages'), icon: '🏖️' };
+      }
       return {
         label: cat === UNCATEGORIZED_KEY ? t('Patrimoine') : cat,
         icon: '📍'
@@ -237,6 +243,12 @@ export const MapScreen: React.FC<MapScreenProps> = ({
         return 'bg-[#2e5a44] text-white ring-[#2e5a44]/30';
       case 'Arts':
         return 'bg-[#d9822b] text-white ring-[#d9822b]/30';
+      case 'Food':
+        return 'bg-[#8c2f39] text-white ring-[#8c2f39]/30';
+      case 'Lodging':
+        return 'bg-[#1d5b7a] text-white ring-[#1d5b7a]/30';
+      case 'Leisure':
+        return 'bg-[#0d7f7a] text-white ring-[#0d7f7a]/30';
       default:
         return 'bg-[#2c2926] text-white ring-black/20';
     }

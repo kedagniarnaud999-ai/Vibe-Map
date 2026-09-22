@@ -126,6 +126,12 @@ export const GoogleMapView: React.FC<GoogleMapViewProps> = ({
         return { background: '#2e5a44', glyphColor: '#ffffff', borderColor: '#193426' };
       case 'Arts':
         return { background: '#d9822b', glyphColor: '#ffffff', borderColor: '#8a4b08' };
+      case 'Food':
+        return { background: '#8c2f39', glyphColor: '#ffffff', borderColor: '#5a1b21' };
+      case 'Lodging':
+        return { background: '#1d5b7a', glyphColor: '#ffffff', borderColor: '#0f3547' };
+      case 'Leisure':
+        return { background: '#0d7f7a', glyphColor: '#ffffff', borderColor: '#064d4a' };
       default:
         return { background: '#2c2926', glyphColor: '#ffffff', borderColor: '#000000' };
     }

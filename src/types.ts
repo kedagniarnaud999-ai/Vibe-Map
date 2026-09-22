@@ -19,7 +19,7 @@ export type ScreenId =
   | 'admin'
   | 'guide-portal';
 
-export type Category = 'Spiritual' | 'Historical' | 'Nature' | 'Food' | 'Arts' | 'Heritage' | 'Oral History';
+export type Category = 'Spiritual' | 'Historical' | 'Nature' | 'Food' | 'Arts' | 'Heritage' | 'Oral History' | 'Lodging' | 'Leisure';
 
 export interface ImageCredit {
   file: string;

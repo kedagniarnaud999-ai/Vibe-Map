@@ -565,7 +565,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                       { id: 'Spiritual', label: t('🕊️ Sanctuaire & Spirituel') },
                       { id: 'Historical', label: t('🏛️ Palais & Histoire') },
                       { id: 'Nature', label: t('🌿 Nature & Cité Lacustre') },
-                      { id: 'Arts', label: t('🎨 Arts & Artisanat') }
+                      { id: 'Arts', label: t('🎨 Arts & Artisanat') },
+                      { id: 'Food', label: t('🍲 Gastronomie') },
+                      { id: 'Lodging', label: t('🛏️ Hébergement') },
+                      { id: 'Leisure', label: t('🏖️ Loisirs') }
                     ].map((c) => (
                       <button
                         key={c.id}

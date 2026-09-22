@@ -49,7 +49,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     { value: 'Historical', label: t('Historique') },
     { value: 'Nature', label: t('Nature') },
     { value: 'Arts', label: t('Arts') },
-    { value: 'Food', label: t('Gastronomie') }
+    { value: 'Food', label: t('Gastronomie') },
+    { value: 'Lodging', label: t('Hébergement') },
+    { value: 'Leisure', label: t('Loisirs') }
   ];
 
   const filteredPlaces = places.filter((p) => {
