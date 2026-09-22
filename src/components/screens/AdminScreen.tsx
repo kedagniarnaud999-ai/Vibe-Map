@@ -207,8 +207,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       imageCredit: { file: chosen.file, author: chosen.author, license: chosen.license },
       description: scrapedResult.summary || 'Notice en attente de complément de source.',
       deepHistory: scrapedResult.deepHistory || undefined,
-      badges: ['Patrimoine Bénin'],
-      etiquette: (scrapedResult.etiquette || ['Respecter le protocole traditionnel', 'Demander l\'autorisation pour photographier']).map((rule: string) => ({
+      // Un classement patrimonial se cite avec sa source ; il ne se déduit pas d'un
+      // brouillon en cours de rédaction. Le formulaire n'en saisit aucun.
+      badges: [],
+      etiquette: (scrapedResult.etiquette || []).map((rule: string) => ({
         title: rule,
         description: 'Règle recommandée pour la visite.',
         icon: 'Shield'
@@ -269,11 +271,10 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       imageCredit: { file: imageFile, author: imageAuthor, license: imageLicense },
       description: newPlaceDesc,
       deepHistory: newPlaceHistory,
-      badges: ['Patrimoine National'],
-      etiquette: [
-        { title: 'Tenue respectueuse', description: 'Épaules et jambes couvertes', icon: 'Shield' },
-        { title: 'Demander avant de photographier', description: 'Accord du dignitaire requis', icon: 'Sparkles' }
-      ],
+      // Le formulaire ne demande ni le classement ni le protocole du lieu : les inscrire
+      // d'office ferait passer chaque nouvelle fiche pour un site classé à tenue couverte.
+      badges: [],
+      etiquette: [],
       visualGuides: [],
       verifiedGuideIds: [],
       vocabulary: [],
