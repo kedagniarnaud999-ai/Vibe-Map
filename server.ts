@@ -711,8 +711,6 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
       category: 'Spiritual',
       location: 'Ouidah, Bénin',
       coordinates: { lat: 6.3622, lng: 2.0864 },
-      openingHours: '08:00 - 18:30 tous les jours',
-      admissionFee: '1 500 FCFA (~2,30 €) + droit photo 1 000 FCFA',
       summary: 'Sanctuaire ancestral totémique dédié au python royal (Dangbé), symbole sacré de prospérité, de bienveillance et de protection spirituelle à Ouidah.',
       deepHistory: 'Érigé au XVIIIe siècle suite à la guerre entre les royaumes de Savi et de Ouidah, le temple abrite des dizaines de pythons sacrés qui circulent librement dans la cité et sont respectés par la population.',
       etiquette: [
@@ -727,8 +725,6 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
       category: 'Historical',
       location: 'Abomey, Zou, Bénin',
       coordinates: { lat: 7.1856, lng: 1.9912 },
-      openingHours: '08:30 - 18:00 (Fermé les jours de rites restreints)',
-      admissionFee: '3 000 FCFA (~4,60 €) avec guide officiel inclus',
       summary: 'Complexe monumental inscrit au Patrimoine Mondial de l’UNESCO, cœur de l’ancien et puissant royaume du Danxomè fondé au XVIIe siècle.',
       deepHistory: 'Douze rois s’y sont succédé entre 1625 et 1900. On y admire les bas-reliefs en terre cuite polychrome, les trônes sculptés montés sur des crânes d’ennemis et les sépultures sacrées.',
       etiquette: [
@@ -743,8 +739,6 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
       category: 'Nature',
       location: 'Lac Nokoué, So-Ava, Bénin',
       coordinates: { lat: 6.4678, lng: 2.4172 },
-      openingHours: '07:30 - 17:30 (Embarcadère de Calavi)',
-      admissionFee: '5 000 à 10 000 FCFA par pirogue motorisée avec gilet',
       summary: 'Plus grande cité lacustre d’Afrique de l’Ouest, érigée au XVIIIe siècle sur pilotis par le peuple Tofinu pour échapper aux razzias esclavagistes.',
       deepHistory: 'Son nom signifie "nous sommes sauvés dans la collectivité". Le marché flottant matinal et les maisons sur pilotis en bambou forment un écosystème d’une rare harmonie aquatique.',
       etiquette: [
@@ -759,8 +753,6 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
       category: 'Historical',
       location: 'Plage de Ouidah, Bénin',
       coordinates: { lat: 6.3195, lng: 2.0878 },
-      openingHours: 'Accès libre 24h/24, visites guidées 08:30 - 18:30',
-      admissionFee: 'Gratuit (Visite commentée Route des Esclaves: 2 500 FCFA)',
       summary: 'Monument mémoriel majeur érigé face à l’Océan Atlantique, commémorant l’ultime étape de la déportation des captifs africains lors de la traite transatlantique.',
       deepHistory: 'Érigée en 1995 à l’initiative de l’UNESCO, dans le cadre du projet international « La Route de l’esclave », la Porte du Non-Retour est l’œuvre de l’architecte Yves Ahouen-Gnimon, avec des bas-reliefs de Fortuné Bandeira, des bronzes de Dominique Kouas Gnonnou et des masques egungun sculptés par Yves Kpede. Le monument honore les ancêtres déportés et symbolise la réconciliation et le retour mémoriel de la diaspora.',
       etiquette: [
@@ -775,8 +767,6 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
       category: 'Spiritual',
       location: 'Ouidah Centre, Bénin',
       coordinates: { lat: 6.3689, lng: 2.0834 },
-      openingHours: '08:30 - 18:00',
-      admissionFee: '2 000 FCFA (~3 €)',
       summary: 'Sanctuaire naturel et spirituel séculaire où le Roi Kpassè, fondateur de Ouidah au XIVe siècle, s’est mystiquement métamorphosé en un iroko géant.',
       deepHistory: 'Abritant de gigantesques sculptures modernes et rituelles des divinités Vodun (Lègba, Mami Wata, Héviosso, Gu), la forêt demeure un lieu actif de prières et de libations.',
       etiquette: [
@@ -791,8 +781,6 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
       category: 'Historical',
       location: 'Porto-Novo, Bénin',
       coordinates: { lat: 6.4969, lng: 2.6289 },
-      openingHours: '09:00 - 17:30 (Mardi au Dimanche)',
-      admissionFee: '2 500 FCFA (~3,80 €)',
       summary: 'Ancien palais royal du Roi Toffa Ier à Porto-Novo, illustrant l’art de vivre, l’architecture en terre cuite et la diplomatie des souverains du sud-Bénin.',
       deepHistory: 'Le musée conserve les instruments de musique cérémoniels royaux (les célèbres tambours Alounloun), les costumes d’apparat et la cour intérieure des cérémonies de couronnement.',
       etiquette: [
@@ -826,8 +814,7 @@ Détermine précisément:
 3. Sa localisation géographique (Ville, Région, Bénin) avec ses coordonnées GPS approximatives (latitude, longitude).
 4. Un résumé captivant en 2 phrases ("summary").
 5. Son histoire spirituelle et ancestrale approfondie ("deepHistory").
-6. Ses horaires réels constatés ("openingHours") et son tarif indicatif ("admissionFee").
-7. Une liste de 3 règles d'étiquette et de bienséance ("etiquette").
+6. Une liste de 3 règles d'étiquette et de bienséance ("etiquette").
 
 Renvoie UNIQUEMENT un JSON valide au format:
 {
@@ -837,8 +824,6 @@ Renvoie UNIQUEMENT un JSON valide au format:
   "coordinates": { "lat": 6.36, "lng": 2.08 },
   "summary": "Court résumé captivant",
   "deepHistory": "Histoire détaillée et signification rituelle/historique",
-  "openingHours": "08:30 - 18:00",
-  "admissionFee": "2 000 FCFA (~3 €)",
   "etiquette": ["Règle 1", "Règle 2", "Règle 3"]
 }`;
 
@@ -907,7 +892,7 @@ Renvoie UNIQUEMENT un JSON valide au format:
     const cat = isSpiritual ? 'Spiritual' : isNature ? 'Nature' : isArts ? 'Arts' : 'Historical';
 
     // Rien n'est connu de ce site : la réponse reste un brouillon vide que l'administration
-    // devra compléter. Les horaires, les tarifs et la position ne sont pas devinés ici.
+    // devra compléter. Ni la position ni le résumé ne sont devinés ici.
     return res.json({
       success: true,
       data: {
@@ -917,8 +902,6 @@ Renvoie UNIQUEMENT un JSON valide au format:
         coordinates: null,
         summary: '',
         deepHistory: '',
-        openingHours: '',
-        admissionFee: '',
         etiquette: [],
         images: await commonsImages(lower),
         verified: false

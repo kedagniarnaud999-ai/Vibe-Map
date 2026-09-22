@@ -194,7 +194,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       return;
     }
     if (typeof coordinates?.lat !== 'number' || typeof coordinates?.lng !== 'number') {
-      alert(t('Publication refusée : les coordonnées du site restent à préciser dans le formulaire.'));
+      alert(t('Publication refusée : la recherche n’a pas donné de position pour ce site, et ce brouillon n’en saisit pas. Reprenez la fiche dans le formulaire manuel pour indiquer sa latitude et sa longitude.'));
       return;
     }
 
@@ -438,7 +438,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 <span>{t('Scraping documenté du patrimoine')}</span>
               </h3>
               <p className="text-xs text-[#6b665e] mt-1">
-                {t('Interrogez le web et les répertoires via Gemini Grounding : horaires, tarifs et résumé reviennent en brouillon, avec les sources consultées et des photos sous crédit Wikimedia. Sans correspondance documentée, le brouillon reste vide et la publication est refusée.')}
+                {t('Interrogez le web et les répertoires via Gemini Grounding : nom, résumé et histoire reviennent en brouillon, avec les sources consultées et des photos sous crédit Wikimedia. Sans correspondance documentée, le brouillon reste vide et la publication est refusée.')}
               </p>
             </div>
 
@@ -620,32 +620,14 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="font-bold text-[#2c2926] block mb-1">{t('Détails Pratiques & Coordonnées')}</label>
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        placeholder={t('Localisation (ex: Ouidah, Bénin)')}
-                        value={scrapedResult.location || ''}
-                        onChange={(e) => setScrapedResult({ ...scrapedResult, location: e.target.value })}
-                        className="w-full px-3 py-2 bg-white border border-[#e8e2d5] rounded-xl text-xs"
-                      />
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="text"
-                          placeholder={t('Horaires')}
-                          value={scrapedResult.openingHours || ''}
-                          onChange={(e) => setScrapedResult({ ...scrapedResult, openingHours: e.target.value })}
-                          className="w-full px-3 py-2 bg-white border border-[#e8e2d5] rounded-xl text-xs"
-                        />
-                        <input
-                          type="text"
-                          placeholder={t('Tarifs')}
-                          value={scrapedResult.admissionFee || ''}
-                          onChange={(e) => setScrapedResult({ ...scrapedResult, admissionFee: e.target.value })}
-                          className="w-full px-3 py-2 bg-white border border-[#e8e2d5] rounded-xl text-xs"
-                        />
-                      </div>
-                    </div>
+                    <label className="font-bold text-[#2c2926] block mb-1">{t('Localisation')}</label>
+                    <input
+                      type="text"
+                      placeholder={t('ex : Ouidah, Bénin')}
+                      value={scrapedResult.location || ''}
+                      onChange={(e) => setScrapedResult({ ...scrapedResult, location: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-[#e8e2d5] rounded-xl text-xs"
+                    />
                   </div>
                 </div>
               </div>
