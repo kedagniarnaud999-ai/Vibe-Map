@@ -80,11 +80,10 @@ export const AssistantScreen: React.FC = () => {
       sender: 'ai',
       text: withGrounding ? data.text || data.reply : data.reply || data.text,
       time: nowStamp(),
+      // Le endpoint renvoie `sources` : une entrée sans URL réelle est écartée plutôt que
+      // remplacée par un lien de convenance qui signerait une réponse qu'il n'a pas portée.
       groundingSources: withGrounding
-        ? data.groundingChunks?.map((c: any) => ({
-            title: c.web?.title || 'Patrimoine Bénin',
-            url: c.web?.uri || 'https://fr.wikipedia.org/wiki/Culture_du_B%C3%A9nin'
-          })) || []
+        ? (data.sources || []).filter((source: any) => Boolean(source?.url))
         : undefined,
       fonPhrase: data.fonPhrase,
       etiquetteTip: data.etiquetteTip

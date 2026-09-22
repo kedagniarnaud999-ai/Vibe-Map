@@ -34,6 +34,7 @@ import {
 } from '../../lib/firebase';
 import { PLACES_DATA } from '../../data/places';
 import { useI18n } from '../../lib/i18n';
+import { commonsThumb, creditLine } from '../../lib/media';
 import { useCategoryLabel } from '../../lib/labels';
 
 interface AdminScreenProps {
@@ -76,7 +77,9 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [newPlaceName, setNewPlaceName] = useState('');
   const [newPlaceLocation, setNewPlaceLocation] = useState('');
   const [newPlaceCategory, setNewPlaceCategory] = useState<Category>('Historical');
-  const [newPlaceImage, setNewPlaceImage] = useState('');
+  const [newPlaceImageFile, setNewPlaceImageFile] = useState('');
+  const [newPlaceImageAuthor, setNewPlaceImageAuthor] = useState('');
+  const [newPlaceImageLicense, setNewPlaceImageLicense] = useState('');
   const [newPlaceDesc, setNewPlaceDesc] = useState('');
   const [newPlaceHistory, setNewPlaceHistory] = useState('');
   const [newPlaceLat, setNewPlaceLat] = useState('6.3622');
@@ -154,7 +157,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       if (json.data) {
         setScrapedResult({
           ...json.data,
-          selectedImage: json.data.realImages?.[0] || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800'
+          selectedImage: json.data.images?.[0] || null
         });
       }
     } catch (e: any) {
@@ -181,16 +184,31 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
   const handleSaveScrapedAsPlace = async () => {
     if (!scrapedResult) return;
+    const chosen = scrapedResult.selectedImage || scrapedResult.images?.[0];
+    const coordinates = scrapedResult.coordinates;
+
+    // Une image sans auteur ni licence est une image d'emprunt : le catalogue refuse la
+    // publication plutôt que d'illustrer un lieu avec une photo qui ne le montre pas.
+    if (!chosen?.thumb || !chosen?.author || !chosen?.license) {
+      alert(t('Publication refusée : aucune photo Wikimedia Commons créditée n’est associée à ce site.'));
+      return;
+    }
+    if (typeof coordinates?.lat !== 'number' || typeof coordinates?.lng !== 'number') {
+      alert(t('Publication refusée : les coordonnées du site restent à préciser dans le formulaire.'));
+      return;
+    }
+
     const newPlace: Place = {
       id: 'place-' + Date.now(),
       name: scrapedResult.name || searchSiteQuery,
       location: scrapedResult.location || 'Bénin',
       category: scrapedResult.category || 'Spiritual',
       distanceKm: 28,
-      image: scrapedResult.selectedImage || scrapedResult.realImages?.[0] || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800',
-      description: scrapedResult.summary || 'Site du patrimoine béninois.',
-      deepHistory: scrapedResult.deepHistory || `Horaires constatés: ${scrapedResult.openingHours || '8h30-18h'}. Tarifs indicatifs: ${scrapedResult.admissionFee || '2 000 FCFA'}.`,
-      badges: ['Donnée Vérifiée ANPT', 'Patrimoine Bénin'],
+      image: chosen.thumb,
+      imageCredit: { file: chosen.file, author: chosen.author, license: chosen.license },
+      description: scrapedResult.summary || 'Notice en attente de complément de source.',
+      deepHistory: scrapedResult.deepHistory || undefined,
+      badges: ['Patrimoine Bénin'],
       etiquette: (scrapedResult.etiquette || ['Respecter le protocole traditionnel', 'Demander l\'autorisation pour photographier']).map((rule: string) => ({
         title: rule,
         description: 'Règle recommandée pour la visite.',
@@ -202,8 +220,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       coordinates: {
         x: 50,
         y: 50,
-        lat: scrapedResult.coordinates?.lat || 6.3622,
-        lng: scrapedResult.coordinates?.lng || 2.0864
+        lat: coordinates.lat,
+        lng: coordinates.lng
       }
     };
 
@@ -221,13 +239,23 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
   const handleCreateOrUpdatePlace = async (e: React.FormEvent) => {
     e.preventDefault();
+    const imageFile = newPlaceImageFile.trim();
+    const imageAuthor = newPlaceImageAuthor.trim();
+    const imageLicense = newPlaceImageLicense.trim();
+    // Une photo de lieu doit être nommée, signée et sous licence : sans ces trois
+    // informations, elle ne vaut pas comme document et n'entre pas au catalogue.
+    if (!imageFile || !imageAuthor || !imageLicense) {
+      alert(t('Publication refusée : indiquez le fichier Wikimedia Commons, son auteur et sa licence.'));
+      return;
+    }
     const placeToSave: Place = {
       id: editingPlace ? editingPlace.id : 'site-' + Date.now(),
       name: newPlaceName,
       location: newPlaceLocation,
       category: newPlaceCategory,
       distanceKm: 35,
-      image: newPlaceImage || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=600',
+      image: commonsThumb(imageFile, 960),
+      imageCredit: { file: imageFile, author: imageAuthor, license: imageLicense },
       description: newPlaceDesc,
       deepHistory: newPlaceHistory,
       badges: ['Patrimoine National'],
@@ -293,7 +321,9 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setNewPlaceName('');
     setNewPlaceLocation('');
     setNewPlaceCategory('Historical');
-    setNewPlaceImage('');
+    setNewPlaceImageFile('');
+    setNewPlaceImageAuthor('');
+    setNewPlaceImageLicense('');
     setNewPlaceDesc('');
     setNewPlaceHistory('');
     setNewPlaceLat('6.3622');
@@ -305,13 +335,17 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setNewPlaceName(p.name);
     setNewPlaceLocation(p.location);
     setNewPlaceCategory(p.category);
-    setNewPlaceImage(p.image);
+    setNewPlaceImageFile(p.imageCredit?.file || '');
+    setNewPlaceImageAuthor(p.imageCredit?.author || '');
+    setNewPlaceImageLicense(p.imageCredit?.license || '');
     setNewPlaceDesc(p.description);
     setNewPlaceHistory(p.deepHistory || '');
     setNewPlaceLat(String(p.coordinates?.lat || 6.36));
     setNewPlaceLng(String(p.coordinates?.lng || 2.08));
     setShowAddModal(true);
   };
+
+  const chosenScrapedImage = scrapedResult?.selectedImage || scrapedResult?.images?.[0] || null;
 
   return (
     <div className="min-h-screen bg-[#f5f1e8] py-6 px-4 font-sans text-[#2c2926]">
@@ -525,34 +559,50 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   </div>
                 </div>
 
-                {/* Real Photos Selection */}
-                {scrapedResult.realImages && scrapedResult.realImages.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-bold text-[#2c2926] mb-1.5">
-                      {t('Photo Réelle Associée :')}
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {scrapedResult.realImages.map((imgUrl: string, i: number) => (
-                        <div
-                          key={i}
-                          onClick={() => setScrapedResult({ ...scrapedResult, selectedImage: imgUrl })}
-                          className={`relative h-24 rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${
-                            (scrapedResult.selectedImage || scrapedResult.realImages[0]) === imgUrl
-                              ? 'border-[#c14e2f] ring-2 ring-[#c14e2f]/30 scale-[1.02]'
-                              : 'border-transparent opacity-70 hover:opacity-100'
-                          }`}
+                {/* Licensed photographs resolved on Wikimedia Commons */}
+                <div>
+                  <label className="block text-xs font-bold text-[#2c2926] mb-1.5">
+                    {t('Photo Réelle Associée :')}
+                  </label>
+                  {scrapedResult.images?.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <div className="grid grid-cols-3 gap-2">
+                        {scrapedResult.images.map((image: any) => (
+                          <div
+                            key={image.file}
+                            onClick={() => setScrapedResult({ ...scrapedResult, selectedImage: image })}
+                            className={`relative h-24 rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${
+                              chosenScrapedImage?.file === image.file
+                                ? 'border-[#c14e2f] ring-2 ring-[#c14e2f]/30 scale-[1.02]'
+                                : 'border-transparent opacity-70 hover:opacity-100'
+                            }`}
+                          >
+                            <img src={image.thumb} alt={image.file} className="w-full h-full object-cover" />
+                            {chosenScrapedImage?.file === image.file && (
+                              <div className="absolute top-1 right-1 bg-[#c14e2f] text-white p-1 rounded-full">
+                                <Check className="w-3 h-3" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {chosenScrapedImage && (
+                        <a
+                          href={chosenScrapedImage.page}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block text-[10px] text-[#5a5a40] hover:text-[#c14e2f] truncate"
                         >
-                          <img src={imgUrl} alt={t('Photo')} className="w-full h-full object-cover" />
-                          {(scrapedResult.selectedImage || scrapedResult.realImages[0]) === imgUrl && (
-                            <div className="absolute top-1 right-1 bg-[#c14e2f] text-white p-1 rounded-full">
-                              <Check className="w-3 h-3" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                          {creditLine(chosenScrapedImage)}
+                        </a>
+                      )}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-[11px] text-[#8c867c]">
+                      {t('Aucune photo sous licence trouvée sur Wikimedia Commons pour ce site : la publication restera refusée tant qu’aucune image créditée ne lui est associée.')}
+                    </p>
+                  )}
+                </div>
 
                 {/* Info Fields Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -863,14 +913,53 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('URL Image')}</label>
+                  <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Fichier Wikimedia Commons')}</label>
                   <input
-                    type="url"
-                    value={newPlaceImage}
-                    onChange={(e) => setNewPlaceImage(e.target.value)}
-                    placeholder="https://..."
+                    type="text"
+                    value={newPlaceImageFile}
+                    onChange={(e) => setNewPlaceImageFile(e.target.value)}
+                    placeholder="Porte du non-retour au Benin.jpg"
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
                   />
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Auteur de la photo')}</label>
+                      <input
+                        type="text"
+                        value={newPlaceImageAuthor}
+                        onChange={(e) => setNewPlaceImageAuthor(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#2c2926] mb-1">{t('Licence')}</label>
+                      <input
+                        type="text"
+                        value={newPlaceImageLicense}
+                        onChange={(e) => setNewPlaceImageLicense(e.target.value)}
+                        placeholder="CC BY-SA 4.0"
+                        className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
+                      />
+                    </div>
+                  </div>
+                  {newPlaceImageFile.trim() ? (
+                    <div className="flex items-center gap-2 mt-2">
+                      <img
+                        src={commonsThumb(newPlaceImageFile.trim(), 160)}
+                        alt=""
+                        className="w-16 h-12 object-cover rounded-lg border border-[#e8e2d5]"
+                      />
+                      <span className="text-[10px] text-[#5a5a40]">
+                        {newPlaceImageAuthor.trim() && newPlaceImageLicense.trim()
+                          ? creditLine({ file: newPlaceImageFile.trim(), author: newPlaceImageAuthor.trim(), license: newPlaceImageLicense.trim() })
+                          : t('Crédit incomplet : la fiche ne pourra pas être publiée.')}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-[#8c867c] mt-2">
+                      {t('Aucun fichier : la publication sera refusée, aucune photo de remplacement n’est ajoutée.')}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">

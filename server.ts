@@ -71,10 +71,80 @@ function withTimeout<T>(promise: Promise<T>, ms: number = 7000, fallbackMessage 
   });
 }
 
+interface CommonsImage {
+  file: string;
+  thumb: string;
+  page: string;
+  author: string;
+  license: string;
+}
+
+const plainText = (value: unknown): string =>
+  String(value ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+// Une photo n'a d'intérêt que si l'on peut dire qui la signe et à quelles conditions la
+// réutiliser. Commons répond les deux dans la requête : aucune URL d'image n'est écrite à
+// la main ici, et un échec renvoie une liste vide plutôt qu'un visuel de substitution.
+async function commonsImages(searchTerm: string, limit = 4): Promise<CommonsImage[]> {
+  const term = searchTerm.trim();
+  if (!term) return [];
+
+  const params = new URLSearchParams({
+    action: "query",
+    generator: "search",
+    gsrsearch: term,
+    gsrnamespace: "6",
+    gsrlimit: String(Math.min(limit * 4, 40)),
+    prop: "imageinfo",
+    iiprop: "url|mime|extmetadata",
+    iiextmetadatafilter: "Artist|LicenseShortName",
+    iiurlwidth: "960",
+    format: "json"
+  });
+
+  try {
+    const response = await withTimeout(
+      fetch(`https://commons.wikimedia.org/w/api.php?${params.toString()}`, {
+        headers: { "User-Agent": "LaVibeMap/1.0 (cultural catalog lookup)" }
+      }).then((r) => r.json()),
+      6000,
+      "Commons lookup timed out"
+    );
+
+    const pages: any[] = Object.values(response?.query?.pages || {});
+    return pages
+      .sort((a: any, b: any) => (a?.index ?? 0) - (b?.index ?? 0))
+      .map((entry: any) => {
+        const info = entry?.imageinfo?.[0] || {};
+        const meta = info.extmetadata || {};
+        return {
+          mime: String(info.mime || ""),
+          file: String(entry?.title || "").replace(/^File:/, ""),
+          thumb: String(info.thumburl || ""),
+          page: String(info.descriptionurl || ""),
+          author: plainText(meta.Artist?.value),
+          license: plainText(meta.LicenseShortName?.value)
+        };
+      })
+      .filter(
+        (image) =>
+          /^image\/(jpeg|png)$/.test(image.mime) &&
+          image.file &&
+          image.thumb &&
+          image.author &&
+          image.license
+      )
+      .slice(0, limit)
+      .map(({ mime, ...image }) => image);
+  } catch (err: any) {
+    console.warn("Commons lookup skipped:", err?.message || err);
+    return [];
+  }
+}
+
 function boundedString(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
-
 function boundedStringList(value: unknown, maxItems: number, maxLength: number): string[] {
   return Array.isArray(value)
     ? value.map((item) => boundedString(item, maxLength)).filter(Boolean).slice(0, maxItems)
@@ -599,7 +669,7 @@ Format de sortie en JSON strict:
       const ai = getAI();
       if (!ai) {
         return res.json({
-          text: `Données culturelles vérifiées pour "${searchQuery}": Les sites emblématiques du Bénin (Ouidah, Ganvié, Abomey, Porto-Novo) disposent de guides officiels et d'horaires d'ouverture réguliers (généralement 8h30 - 18h00).`,
+          text: `Le compagnon culturel en temps réel est indisponible : aucune réponse vérifiée ne peut être apportée ici pour « ${searchQuery} ». Les horaires et les tarifs se confirment auprès des portails officiels listés ci-dessous.`,
           sources: [
             { title: "Bénin Tourisme Officiel", url: "https://benin.travel" },
             { title: "Patrimoine Mondial UNESCO Bénin", url: "https://whc.unesco.org" }
@@ -618,7 +688,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         }
       }), 7000);
 
-      const text = response.text || "Données culturelles vérifiées pour le Bénin.";
+      const text = response.text || "Le compagnon n'a pas produit de réponse exploitable pour cette demande.";
       const searchChunks = (response.candidates?.[0]?.groundingMetadata as any)?.groundingChunks || [];
       const webSources = searchChunks
         .filter((c: any) => c.web?.uri)
@@ -629,17 +699,14 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
 
       return res.json({
         text,
-        sources: webSources.length > 0 ? webSources : [
-          { title: "Portail Culture & Tourisme du Bénin", url: "https://benin-tourisme.bj" }
-        ]
+        // Une source que le modèle n'a pas consultée ne peut pas être attribuée à sa réponse.
+        sources: webSources
       });
     } catch (err: any) {
       console.warn("Search grounding fallback triggered:", err?.message || err);
       return res.json({
-        text: `Données culturelles vérifiées pour "${searchQuery || 'Bénin'}": Le patrimoine béninois (sanctuaires Vodun de Ouidah, palais d'Abomey, cités lacustres de Ganvié) est sous la protection de l'ANPT. Les visites sont guidées par des médiateurs locaux certifiés.`,
-        sources: [
-          { title: "Patrimoine Culturel du Bénin", url: "https://benin.travel" }
-        ]
+        text: `Le compagnon culturel n'a pas pu vérifier « ${searchQuery || 'Bénin'} » en direct. Aucune donnée d'horaires, de tarifs ou de protocole n'est avancée ici : la réponse serait inventée.`,
+        sources: []
       });
     }
   });
@@ -660,11 +727,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         'Retirer chaussures et lunettes de soleil avant d’entrer dans la case sacrée',
         'Demander la bénédiction du prêtre gardien avant de manipuler les reptiles'
       ],
-      realImages: [
-        'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1609198092458-38a293c7ac4b?auto=format&fit=crop&q=80&w=800'
-      ]
+      commonsQuery: 'Temple des Pythons Ouidah'
     },
     'abomey': {
       name: 'Palais Royaux d’Abomey & Cour de Béhanzin',
@@ -680,11 +743,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         'Salutation respectueuse de la main droite devant le trône royal',
         'Silence requis dans les cours mémorielles des reines et amazones'
       ],
-      realImages: [
-        'https://images.unsplash.com/photo-1590845947698-8924d7409b56?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800'
-      ]
+      commonsQuery: 'Royal Palaces of Abomey'
     },
     'ganvie': {
       name: 'Ganvié, la Venise Africaine du Lac Nokoué',
@@ -700,11 +759,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         'Toujours demander la permission aux commerçantes du marché flottant avant de photographier',
         'Préserver la propreté du lac en ne jetant aucun déchet'
       ],
-      realImages: [
-        'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800'
-      ]
+      commonsQuery: 'Ganvie Benin'
     },
     'porte': {
       name: 'Mémorial de la Porte du Non-Retour & Djègbadji',
@@ -720,10 +775,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         'Moment privilégié au coucher du soleil pour les méditations',
         'Écouter les chants et poèmes récités par les guides mémoriaux'
       ],
-      realImages: [
-        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800'
-      ]
+      commonsQuery: 'Door of No Return Ouidah'
     },
     'kpasse': {
       name: 'Forêt Sacrée de Kpassè & Arbre Métamorphique',
@@ -739,10 +791,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         'Ne rien cueillir ni ramasser au sol (sol consacré)',
         'Verser une offrande d’eau ou de boisson traditionnelle si invité par le prêtre'
       ],
-      realImages: [
-        'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800'
-      ]
+      commonsQuery: 'Kpasse sacred forest Ouidah'
     },
     'honme': {
       name: 'Musée Honmè & Palais des Rois de Hogbonou',
@@ -757,10 +806,7 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         'Interdiction de toucher les instruments cérémoniels sans guide',
         'Respect des cours privées réservées aux prêtresses de la cour'
       ],
-      realImages: [
-        'https://images.unsplash.com/photo-1590845947698-8924d7409b56?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800'
-      ]
+      commonsQuery: 'Honme Porto-Novo'
     }
   };
 
@@ -826,18 +872,19 @@ Renvoie UNIQUEMENT un JSON valide au format:
 
         const parsed = JSON.parse(response.text || '{}');
         if (parsed.name) {
-          // Provide authentic real curated images
-          const realImages = matchedCatalog?.realImages || [
-            'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800',
-            'https://images.unsplash.com/photo-1590845947698-8924d7409b56?auto=format&fit=crop&q=80&w=800',
-            'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=800'
-          ];
+          const grounding = (response.candidates?.[0]?.groundingMetadata as any)?.groundingChunks || [];
+          const sources = grounding
+            .filter((c: any) => c.web?.uri)
+            .map((c: any) => ({ title: c.web.title || 'Source vérifiée', url: c.web.uri }));
+          const images = await commonsImages(matchedCatalog?.commonsQuery || parsed.name);
           return res.json({
             success: true,
             data: {
               ...parsed,
-              realImages,
-              verified: true
+              images,
+              sources,
+              // Le texte sort d'un modèle : seul le catalogue écrit à la main mérite « vérifié ».
+              verified: Boolean(matchedCatalog)
             }
           });
         }
@@ -848,10 +895,12 @@ Renvoie UNIQUEMENT un JSON valide au format:
 
     // Fallback to rich catalog or structured fallback
     if (matchedCatalog) {
+      const { commonsQuery, ...curated } = matchedCatalog;
       return res.json({
         success: true,
         data: {
-          ...matchedCatalog,
+          ...curated,
+          images: await commonsImages(commonsQuery),
           verified: true
         }
       });
@@ -864,28 +913,22 @@ Renvoie UNIQUEMENT un JSON valide au format:
 
     const cat = isSpiritual ? 'Spiritual' : isNature ? 'Nature' : isArts ? 'Arts' : 'Historical';
 
+    // Rien n'est connu de ce site : la réponse reste un brouillon vide que l'administration
+    // devra compléter. Les horaires, les tarifs et la position ne sont pas devinés ici.
     return res.json({
       success: true,
       data: {
-        name: lower || "Sanctuaire & Trésor Patrimonial du Bénin",
+        name: lower,
         category: cat,
-        location: "Ouidah & Corridor Historique, Bénin",
-        coordinates: { lat: 6.3622, lng: 2.0864 },
-        summary: `Site emblématique du patrimoine béninois valorisant la richesse historique, spirituelle et culturelle de la région.`,
-        deepHistory: `Témoin vivant des dynasties et des traditions séculaires du Bénin, ce haut-lieu culturel est protégé par les gardiens de la tradition et les autorités du tourisme national (ANPT).`,
-        openingHours: "08:30 - 18:00 tous les jours",
-        admissionFee: "2 000 à 4 000 FCFA (~3 à 6 €)",
-        etiquette: [
-          "Saluer respectueusement les dignitaires et aînés sur place",
-          "Demander l'autorisation préalable avant toute prise de vue",
-          "Porter une tenue décente et respecter les zones interdites aux non-initiés"
-        ],
-        realImages: [
-          'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=800',
-          'https://images.unsplash.com/photo-1590845947698-8924d7409b56?auto=format&fit=crop&q=80&w=800',
-          'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=800'
-        ],
-        verified: true
+        location: '',
+        coordinates: null,
+        summary: '',
+        deepHistory: '',
+        openingHours: '',
+        admissionFee: '',
+        etiquette: [],
+        images: await commonsImages(lower),
+        verified: false
       }
     });
   });
