@@ -197,12 +197,24 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       alert(t('Publication refusée : la recherche n’a pas donné de position pour ce site, et ce brouillon n’en saisit pas. Reprenez la fiche dans le formulaire manuel pour indiquer sa latitude et sa longitude.'));
       return;
     }
+    // Le champ « Localisation » est vide sous les yeux de l’administrateur : l’enregistrer
+    // quand même en écrivant « Bénin » ferait passer le pays pour la ville du site.
+    if (typeof scrapedResult.location !== 'string' || !scrapedResult.location.trim()) {
+      alert(t('Publication refusée : aucune localité n’est renseignée dans le champ « Localisation » de ce brouillon. « Bénin » n’est pas une localité, c’est le pays de tous les sites.'));
+      return;
+    }
+    // De même, la catégorie détermine les puces sélectionnées dans ce brouillon : sans choix
+    // visible, inscrire « Spiritual » classerait un lieu inconnu parmi les sanctuaires.
+    if (typeof scrapedResult.category !== 'string' || !scrapedResult.category.trim()) {
+      alert(t('Publication refusée : aucune catégorie n’est sélectionnée dans ce brouillon. Choisissez l’une des quatre catégories proposées avant d’enregistrer.'));
+      return;
+    }
 
     const newPlace: Place = {
       id: 'place-' + Date.now(),
       name: scrapedResult.name || searchSiteQuery,
-      location: scrapedResult.location || 'Bénin',
-      category: scrapedResult.category || 'Spiritual',
+      location: scrapedResult.location,
+      category: scrapedResult.category,
       image: chosen.thumb,
       imageCredit: { file: chosen.file, author: chosen.author, license: chosen.license },
       description: scrapedResult.summary || 'Notice en attente de complément de source.',

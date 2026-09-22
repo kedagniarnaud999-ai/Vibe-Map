@@ -487,6 +487,10 @@ export const EN: Record<string, string> = {
     'Publication refused: no credited Wikimedia Commons photograph is associated with this site.',
   'Publication refusée : la recherche n’a pas donné de position pour ce site, et ce brouillon n’en saisit pas. Reprenez la fiche dans le formulaire manuel pour indiquer sa latitude et sa longitude.':
     'Publication refused: the extraction returned no position for this site, and this draft form does not capture one. Reopen the record in the manual form to set its latitude and longitude.',
+  'Publication refusée : aucune localité n’est renseignée dans le champ « Localisation » de ce brouillon. « Bénin » n’est pas une localité, c’est le pays de tous les sites.':
+    'Publication refused: this draft has no locality in its Location field. "Benin" is not a locality, it is the country all the sites are in.',
+  'Publication refusée : aucune catégorie n’est sélectionnée dans ce brouillon. Choisissez l’une des quatre catégories proposées avant d’enregistrer.':
+    'Publication refused: no category is selected in this draft. Choose one of the four suggested categories before saving.',
   'Publication refusée : indiquez une latitude entre -90 et 90 et une longitude entre -180 et 180.':
     'Publication refused: provide a latitude between -90 and 90 and a longitude between -180 and 180.',
   'Publication refusée : indiquez le fichier Wikimedia Commons, son auteur et sa licence.':
