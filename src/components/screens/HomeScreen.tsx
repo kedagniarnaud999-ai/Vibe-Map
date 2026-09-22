@@ -182,7 +182,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   <span>{categoryLabel(place.category)}</span>
                 </div>
                 <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-semibold backdrop-blur-sm">
-                  {t('{distance} km de vous', { distance: place.distanceKm })}
+                  {place.location}
                 </div>
                 {place.audioGuide && (
                   <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#5a5a40]/90 text-white text-[10px] font-semibold backdrop-blur-sm">

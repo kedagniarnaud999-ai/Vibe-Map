@@ -191,7 +191,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
       }
       return {
         ...place,
-        calculatedDistanceKm: calculatedDistanceKm ?? place.distanceKm
+        calculatedDistanceKm
       };
     });
   }, [places, userPosition]);
@@ -565,7 +565,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
 
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {filteredPlaces.map((place) => {
-              const badge = getProximityBadge(place.calculatedDistanceKm || place.distanceKm);
+              const badge =
+                place.calculatedDistanceKm === undefined
+                  ? undefined
+                  : getProximityBadge(place.calculatedDistanceKm);
               return (
                 <div
                   key={place.id}
@@ -592,9 +595,11 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                         {place.location}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border ${badge.color}`}>
-                          {badge.label}
-                        </span>
+                        {badge && (
+                          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border ${badge.color}`}>
+                            {badge.label}
+                          </span>
+                        )}
                         <span className="text-[10px] text-[#6b665e]">
                           {categoryLabel(place.category)}
                         </span>
@@ -602,14 +607,16 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                     </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0 ml-2">
-                    <span className="font-bold text-xs text-blue-600 block">
-                      {formatDistance(place.calculatedDistanceKm || place.distanceKm)}
-                    </span>
-                    <span className="text-[10px] text-[#8c867c]">
-                      {t('de vous')}
-                    </span>
-                  </div>
+                  {place.calculatedDistanceKm !== undefined && (
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <span className="font-bold text-xs text-blue-600 block">
+                        {formatDistance(place.calculatedDistanceKm)}
+                      </span>
+                      <span className="text-[10px] text-[#8c867c]">
+                        {t('de vous')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -640,12 +647,12 @@ export const MapScreen: React.FC<MapScreenProps> = ({
                     <h4 className="font-serif font-bold text-sm sm:text-base text-[#2c2926] truncate">
                       {activePlace.name}
                     </h4>
-                    <div className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 border border-blue-100">
-                      <MapPin className="w-3 h-3 text-blue-600" />
-                      <span>
-                        {formatDistance(activePlace.calculatedDistanceKm || activePlace.distanceKm)}
-                      </span>
-                    </div>
+                    {activePlace.calculatedDistanceKm !== undefined && (
+                      <div className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 border border-blue-100">
+                        <MapPin className="w-3 h-3 text-blue-600" />
+                        <span>{formatDistance(activePlace.calculatedDistanceKm)}</span>
+                      </div>
+                    )}
                   </div>
                   <p className="text-xs text-[#6b665e] line-clamp-2 mt-0.5 font-sans">
                     {activePlace.description}
