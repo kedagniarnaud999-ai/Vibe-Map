@@ -16,7 +16,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Temple des Pythons',
     location: 'Quartier Dangbé Xwé, Ouidah, Atlantique, Bénin',
     category: 'Spiritual',
-    distanceKm: 1.2,
     image: commonsThumb('Entrée du Temple des Pythons (Ouidah).jpg', 960),
     imageCredit: {
       file: 'Entrée du Temple des Pythons (Ouidah).jpg',
@@ -86,7 +85,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Forêt Sacrée de Kpassè Zoun',
     location: 'Tovè II, Ouidah, Atlantique, Bénin',
     category: 'Nature',
-    distanceKm: 2,
     image: commonsThumb('Forêt sacrée de Kpassè 01.jpg', 960),
     imageCredit: { file: 'Forêt sacrée de Kpassè 01.jpg', author: 'Chiemelacebelae', license: 'CC0' },
     description:
@@ -151,7 +149,6 @@ export const PLACES_DATA: Place[] = [
     name: 'La Porte du Non-Retour & Route des Esclaves',
     location: 'Plage de Ouidah, Atlantique, Bénin',
     category: 'Historical',
-    distanceKm: 4.5,
     image: commonsThumb('Porte du non-retour au Benin.jpg', 960),
     imageCredit: { file: 'Porte du non-retour au Benin.jpg', author: 'Borisghost', license: 'CC0' },
     description:
@@ -218,7 +215,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Palais Royaux d’Abomey',
     location: 'Abomey, Collines, Bénin',
     category: 'Historical',
-    distanceKm: 110,
     image: commonsThumb('Royal Palaces of Abomey-133469.jpg', 960),
     imageCredit: {
       file: 'Royal Palaces of Abomey-133469.jpg',
@@ -287,7 +283,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Cité Lacustre de Ganvié',
     location: 'Sô-Ava, lac Nokoué, Atlantique, Bénin',
     category: 'Nature',
-    distanceKm: 28,
     image: commonsThumb('Ganvie2.jpg', 960),
     imageCredit: { file: 'Ganvie2.jpg', author: 'Manu25', license: 'CC BY-SA 3.0' },
     description:
@@ -355,7 +350,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Grande Mosquée de Porto-Novo',
     location: 'Rue Victor Ballot, Porto-Novo, Ouémé, Bénin',
     category: 'Historical',
-    distanceKm: 32,
     image: commonsThumb('Grande Mosquee Porto-Novo Benin Joseph Herve Ahissou.jpg', 960),
     imageCredit: {
       file: 'Grande Mosquee Porto-Novo Benin Joseph Herve Ahissou.jpg',
@@ -424,7 +418,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Fondation Zinsou',
     location: 'Cotonou (LAB) & Ouidah (Villa Ajavon), Bénin',
     category: 'Arts',
-    distanceKm: 35,
     image: commonsThumb('Les lieux touristiques de Ouidah, Villa Ajavon.jpg', 960),
     imageCredit: {
       file: 'Les lieux touristiques de Ouidah, Villa Ajavon.jpg',
@@ -489,7 +482,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Esplanade des Amazones',
     location: '12e arrondissement, Cotonou, Littoral, Bénin',
     category: 'Historical',
-    distanceKm: 34,
     image: commonsThumb("Monument de l'amazone.jpg", 960),
     imageCredit: { file: "Monument de l'amazone.jpg", author: 'AKE Amazan', license: 'CC BY-SA 4.0' },
     description:
@@ -560,7 +552,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Sanctuaire Marial d’Arigbo',
     location: 'Agbégbé, Dassa-Zoumé (Igbo Idaasha), Collines, Bénin',
     category: 'Spiritual',
-    distanceKm: 180,
     image: commonsThumb("Basilique Notre-Dame d'Arigbo.jpg", 960),
     imageCredit: { file: "Basilique Notre-Dame d'Arigbo.jpg", author: 'Élisabeth', license: 'CC0' },
     description:
@@ -617,7 +608,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Koutammakou, pays des Tata Somba',
     location: 'Boukoumbé, Atakora, Bénin',
     category: 'Historical',
-    distanceKm: 520,
     image: commonsThumb('Tata somba, la maison traditionnelle à étage.jpg', 960),
     imageCredit: {
       file: 'Tata somba, la maison traditionnelle à étage.jpg',
@@ -678,7 +668,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Parc National de la Pendjari',
     location: 'Tanguiéta, Matéri et Kérou, Atakora & Borgou, Bénin',
     category: 'Nature',
-    distanceKm: 650,
     image: commonsThumb('Parc national de la Pendjari-Hippopotames à la Mare Sacrée (3).jpg', 960),
     imageCredit: {
       file: 'Parc national de la Pendjari-Hippopotames à la Mare Sacrée (3).jpg',
@@ -747,7 +736,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Kétou, Berceau du Gèlèdé',
     location: 'Kétou, Plateau, Bénin',
     category: 'Heritage',
-    distanceKm: 120,
     image: commonsThumb('Gèlèdé masked dancer, Kétou, Benin.jpg', 960),
     imageCredit: {
       file: 'Gèlèdé masked dancer, Kétou, Benin.jpg',
@@ -820,7 +808,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Marché Dantokpa',
     location: 'Boulevard Saint-Michel, 4e arrondissement, Cotonou, Littoral, Bénin',
     category: 'Food',
-    distanceKm: 3,
     image: commonsThumb('Vue panoramique marché Dantokpa au Bénin1.jpg', 960),
     imageCredit: {
       file: 'Vue panoramique marché Dantokpa au Bénin1.jpg',
@@ -893,7 +880,6 @@ export const PLACES_DATA: Place[] = [
     name: 'Lac Ahémé',
     location: 'Comè et Grand-Popo, Mono, Bénin',
     category: 'Nature',
-    distanceKm: 65,
     image: commonsThumb('LE LAC AHEME AU BENIN en 2018.jpg', 960),
     imageCredit: {
       file: 'LE LAC AHEME AU BENIN en 2018.jpg',

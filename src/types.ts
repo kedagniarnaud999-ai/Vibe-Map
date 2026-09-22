@@ -32,7 +32,8 @@ export interface Place {
   name: string;
   location: string;
   category: Category;
-  distanceKm: number;
+  // Constante de catalogue, sans point de référence : conservée pour les documents Firestore déjà écrits, jamais affichée comme une distance jusqu'au visiteur.
+  distanceKm?: number;
   // Dérivée à l'exécution depuis la position GPS réelle du visiteur : absente tant qu'elle n'est pas connue.
   calculatedDistanceKm?: number;
   image: string;
