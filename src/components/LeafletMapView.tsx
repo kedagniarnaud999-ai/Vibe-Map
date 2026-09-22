@@ -11,6 +11,7 @@ interface LeafletMapViewProps {
   userPosition: UserCoordinates | null;
   onSelectPlace: (place: Place) => void;
   layerType: 'street' | 'satellite' | 'terrain' | 'voyager';
+  focusToken: number;
   onPanToUser?: () => void;
 }
 
@@ -19,7 +20,8 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
   selectedPlace,
   userPosition,
   onSelectPlace,
-  layerType
+  layerType,
+  focusToken
 }) => {
   const { t } = useI18n();
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -242,6 +244,33 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
       easeLinearity: 0.25
     });
   }, [selectedPlace]);
+
+  // Recadrer sur la sélection filtrée. Déclaré après le vol vers le lieu choisi : un clic sur
+  // une puce modifie les deux dépendances dans le même rendu, et Leaflet garde l'animation
+  // émise en dernier. Sans ce recadrage, filtrer sur « Nature » laissait la caméra posée sur la
+  // côte pendant que les puces du Pendjari apparaissaient hors champ.
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || focusToken === 0) return;
+
+    const points = places
+      .filter((p) => p.coordinates?.lat && p.coordinates?.lng)
+      .map((p) => [p.coordinates.lat, p.coordinates.lng] as [number, number]);
+
+    if (points.length === 0) return;
+    if (points.length === 1) {
+      map.flyTo(points[0], 13, { duration: 1.2, easeLinearity: 0.25 });
+      return;
+    }
+
+    map.flyToBounds(L.latLngBounds(points).pad(0.2), {
+      duration: 1.2,
+      easeLinearity: 0.25,
+      paddingTopLeft: [40, 116],
+      paddingBottomRight: [40, 224],
+      maxZoom: 14
+    });
+  }, [focusToken, places]);
 
   return (
     <div className="relative w-full h-full">
