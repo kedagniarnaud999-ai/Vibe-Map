@@ -165,35 +165,37 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
           </div>
         )}
 
-        {/* Before You Enter: Etiquette Protocol */}
-        <div className="bg-[#efece2] border border-[#dfdbcb] rounded-2xl p-4 sm:p-5 space-y-3">
-          <div className="flex items-center gap-2 text-[#3a3a28]">
-            <ShieldAlert className="w-5 h-5 text-[#5a5a40] flex-shrink-0" />
-            <h3 className="font-serif font-bold text-base">
-              {t('Protocole & Éthique du Sanctuaire')}
-            </h3>
-          </div>
-          <p className="text-xs text-[#6b665e] leading-relaxed">
-            {t('Ce sanctuaire est un lieu sacré et historique toujours vivant. Observer les coutumes locales témoigne d’un profond respect pour la communauté et ses gardiens.')}
-          </p>
+        {/* Protocole & Éthique : rien à afficher tant qu'aucune règle n'est sourcée. */}
+        {!!place.etiquette?.length && (
+          <div className="bg-[#efece2] border border-[#dfdbcb] rounded-2xl p-4 sm:p-5 space-y-3">
+            <div className="flex items-center gap-2 text-[#3a3a28]">
+              <ShieldAlert className="w-5 h-5 text-[#5a5a40] flex-shrink-0" />
+              <h3 className="font-serif font-bold text-base">
+                {t('Protocole & Éthique du Sanctuaire')}
+              </h3>
+            </div>
+            <p className="text-xs text-[#6b665e] leading-relaxed">
+              {t('Ce sanctuaire est un lieu sacré et historique toujours vivant. Observer les coutumes locales témoigne d’un profond respect pour la communauté et ses gardiens.')}
+            </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-            {place.etiquette.map((rule, idx) => (
-              <div
-                key={idx}
-                className="bg-white/90 rounded-xl p-3 border border-[#dfdbcb] space-y-1"
-              >
-                <div className="text-xs font-bold text-[#5a5a40] flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#c14e2f]" />
-                  {rule.title}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              {place.etiquette.map((rule, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white/90 rounded-xl p-3 border border-[#dfdbcb] space-y-1"
+                >
+                  <div className="text-xs font-bold text-[#5a5a40] flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#c14e2f]" />
+                    {rule.title}
+                  </div>
+                  <p className="text-[11px] text-[#6b665e] leading-normal">
+                    {rule.description}
+                  </p>
                 </div>
-                <p className="text-[11px] text-[#6b665e] leading-normal">
-                  {rule.description}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Audio Story Guide Player */}
         {place.audioGuide && (
