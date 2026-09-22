@@ -478,7 +478,8 @@ export const EN: Record<string, string> = {
   '🌿 Nature & Cité Lacustre': '🌿 Nature & Lake City',
   '🎨 Arts & Artisanat': '🎨 Arts & Craft',
   'Photo Réelle Associée :': 'Associated Real Photo:',
-  'Photo': 'Photo',
+  'Aucune photo sous licence trouvée sur Wikimedia Commons pour ce site : la publication restera refusée tant qu’aucune image créditée ne lui est associée.':
+    'No licensed photograph found on Wikimedia Commons for this site: publication stays refused until a credited image is associated with it.',
   'Nom & Résumé': 'Name & Summary',
   'Détails Pratiques & Coordonnées': 'Practical Details & Coordinates',
   'Localisation (ex: Ouidah, Bénin)': 'Location (e.g. Ouidah, Benin)',
@@ -487,6 +488,12 @@ export const EN: Record<string, string> = {
   'Catalogue des Sanctuaires et Sites ({n})': 'Site Catalogue ({n})',
   'Synchronisé avec Firestore et Cloud SQL': 'Synced with Firestore and Cloud SQL',
   'Publication…': 'Publishing…',
+  'Publication refusée : aucune photo Wikimedia Commons créditée n’est associée à ce site.':
+    'Publication refused: no credited Wikimedia Commons photograph is associated with this site.',
+  'Publication refusée : les coordonnées du site restent à préciser dans le formulaire.':
+    'Publication refused: the site coordinates still need to be set in the form.',
+  'Publication refusée : indiquez le fichier Wikimedia Commons, son auteur et sa licence.':
+    'Publication refused: provide the Wikimedia Commons file, its author and its licence.',
   'Publier le catalogue embarqué': 'Publish the built-in catalogue',
   'Ajouter un Sanctuaire': 'Add a Site',
   'Modifier': 'Edit',
@@ -511,7 +518,12 @@ export const EN: Record<string, string> = {
   'Catégorie': 'Category',
   'Spirituel (Vodun)': 'Spiritual (Vodun)',
   'Historique & Royal': 'Historical & Royal',
-  'URL Image': 'Image URL',
+  'Fichier Wikimedia Commons': 'Wikimedia Commons File',
+  'Auteur de la photo': 'Photo author',
+  'Licence': 'Licence',
+  'Crédit incomplet : la fiche ne pourra pas être publiée.': 'Incomplete credit: this entry cannot be published.',
+  'Aucun fichier : la publication sera refusée, aucune photo de remplacement n’est ajoutée.':
+    'No file: publication will be refused, and no substitute photo is added.',
   'Latitude': 'Latitude',
   'Longitude': 'Longitude',
   'Description Courte': 'Short Description',
