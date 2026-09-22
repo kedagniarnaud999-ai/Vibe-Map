@@ -123,9 +123,10 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('assistant')}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#fceee9] text-[#c14e2f] text-xs font-semibold hover:bg-[#f2c8bd] transition-all cursor-pointer"
               title={t('Assistant Culturel IA')}
+              aria-label={t('Assistant Culturel IA')}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">IA Vibe</span>
+              <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="whitespace-nowrap">IA Vibe</span>
             </button>
           )}
 

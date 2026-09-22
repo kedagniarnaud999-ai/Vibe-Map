@@ -34,11 +34,16 @@ interface Message {
   etiquetteTip?: string;
 }
 
-export const AssistantScreen: React.FC = () => {
+interface AssistantScreenProps {
+  requireSession?: () => boolean;
+}
+
+export const AssistantScreen: React.FC<AssistantScreenProps> = ({ requireSession }) => {
   const { lang, t } = useI18n();
   const nowStamp = () =>
     new Date().toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   const [useLiveWebSearch, setUseLiveWebSearch] = useState(true);
+  const [aiOnline, setAiOnline] = useState<boolean | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -74,6 +79,23 @@ export const AssistantScreen: React.FC = () => {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  // Sante publique de l'API : `/api/health` repond `ai: false` quand le serveur ne tient aucune
+  // cle Gemini. Sans ce drapeau, l'ecran promet un modele et ne livre que son archive.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/health')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled) setAiOnline(Boolean(data?.ai));
+      })
+      .catch(() => {
+        if (!cancelled) setAiOnline(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const buildAiMessage = (data: any, query: string, withGrounding: boolean): Message => {
     return {
       id: (Date.now() + 1).toString(),
@@ -104,6 +126,10 @@ export const AssistantScreen: React.FC = () => {
 
     // Both routes sit behind requireAuth. Without a session apiFetch throws and the answer
     // comes from the archive below, which is labelled so it does not read as a model reply.
+    // La feuille de connexion s'ouvre en parallele : sans elle, un visiteur non connecte ne
+    // voit qu'une archive et croit l'IA morte.
+    requireSession?.();
+
     try {
       const data = useLiveWebSearch
         ? await apiFetch<any>('/api/gemini/search-grounding', {
@@ -188,7 +214,9 @@ export const AssistantScreen: React.FC = () => {
               {t('Compagnon Culturel IA')}
             </h2>
             <p className="text-xs text-[#5a5a40] font-medium">
-              {t('Alimenté par Gemini 3.5 Flash & Données Culturelles du Bénin')}
+              {aiOnline === false
+                ? t('Réponses issues de l’archive culturelle écrite')
+                : t('Alimenté par Gemini 3.5 Flash & Données Culturelles du Bénin')}
             </p>
           </div>
         </div>
@@ -207,6 +235,16 @@ export const AssistantScreen: React.FC = () => {
           <span>{useLiveWebSearch ? t('Recherche Web Active') : t('Mode Mémoire')}</span>
         </button>
       </div>
+
+      {aiOnline === false && (
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/95 px-3 py-2.5">
+          <ShieldAlert className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+          <p className="text-[11px] leading-relaxed text-amber-800">
+            <span className="font-semibold">{t('Compagnon IA hors ligne.')}</span>{' '}
+            {t('Le serveur ne tient aucune clé Gemini : ce qui s’affiche ici vient de l’archive culturelle écrite de La Vibe Map, pas d’un modèle.')}
+          </p>
+        </div>
+      )}
 
       {/* Messages Thread Container */}
       <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-1">

@@ -551,7 +551,9 @@ export default function App() {
               <EventsScreen events={localizedEvents} requireSession={requireVerifiedIntent} />
             )}
 
-            {currentScreen === 'assistant' && <AssistantScreen />}
+            {currentScreen === 'assistant' && (
+              <AssistantScreen requireSession={requireVerifiedIntent} />
+            )}
 
             {currentScreen === 'admin' && (
               <AdminScreen
