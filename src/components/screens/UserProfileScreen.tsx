@@ -20,7 +20,6 @@ import {
   MapPin,
   Send,
   X,
-  Lock,
   AlertTriangle
 } from 'lucide-react';
 import { UserPreferences, UserRole, ScreenId } from '../../types';
@@ -385,20 +384,6 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Discreet Administrator Entry Link */}
-      {userRole !== 'admin' && (
-        <div className="text-center pt-2">
-          <button
-            type="button"
-            onClick={() => onOpenAuth('admin')}
-            className="text-[11px] text-[#8c867c] hover:text-[#2c2926] hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
-          >
-            <Lock className="w-3 h-3 text-[#8c867c]" />
-            <span>{t('Accès Réservé au Conservatoire & Administration')}</span>
-          </button>
-        </div>
-      )}
 
       {/* Guide Accreditation Modal */}
       {showGuideModal && (
