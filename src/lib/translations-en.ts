@@ -509,8 +509,12 @@ export const EN: Record<string, string> = {
     'Publication refused: the extraction returned no position for this site, and this draft form does not capture one. Reopen the record in the manual form to set its latitude and longitude.',
   'Publication refusée : aucune localité n’est renseignée dans le champ « Localisation » de ce brouillon. « Bénin » n’est pas une localité, c’est le pays de tous les sites.':
     'Publication refused: this draft has no locality in its Location field. "Benin" is not a locality, it is the country all the sites are in.',
-  'Publication refusée : aucune catégorie n’est sélectionnée dans ce brouillon. Choisissez l’une des quatre catégories proposées avant d’enregistrer.':
-    'Publication refused: no category is selected in this draft. Choose one of the four suggested categories before saving.',
+  'Publication refusée : aucune catégorie n’est sélectionnée dans ce brouillon. Choisissez l’une des neuf catégories proposées avant d’enregistrer.':
+    'Publication refused: no category is selected in this draft. Choose one of the nine suggested categories before saving.',
+  'Publication refusée : le champ « Résumé » de ce brouillon est vide. La notice du site ne s’écrit pas toute seule : complétez-le à partir de la source consultée.':
+    'Publication refused: the Summary field of this draft is empty. A site notice does not write itself: complete it from the source you consulted.',
+  'Aucune catégorie choisie : la recherche ne la devine pas. Sélectionnez-en une pour publier ce site.':
+    'No category chosen: the lookup does not guess one. Select a category to publish this site.',
   'Publication refusée : indiquez une latitude entre -90 et 90 et une longitude entre -180 et 180.':
     'Publication refused: provide a latitude between -90 and 90 and a longitude between -180 and 180.',
   'Publication refusée : indiquez le fichier Wikimedia Commons, son auteur et sa licence.':

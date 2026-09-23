@@ -854,19 +854,15 @@ Renvoie UNIQUEMENT un JSON valide au format:
     }
 
     // Generic Beninese cultural site fallback
-    const isSpiritual = lower.includes('vodun') || lower.includes('temple') || lower.includes('sanctuaire') || lower.includes('arbre') || lower.includes('forêt');
-    const isNature = lower.includes('lac') || lower.includes('pendjari') || lower.includes('fleuve') || lower.includes('chutes') || lower.includes('parc');
-    const isArts = lower.includes('centre') || lower.includes('art') || lower.includes('tissage') || lower.includes('sculpture');
-
-    const cat = isSpiritual ? 'Spiritual' : isNature ? 'Nature' : isArts ? 'Arts' : 'Historical';
-
     // Rien n'est connu de ce site : la réponse reste un brouillon vide que l'administration
-    // devra compléter. Ni la position ni le résumé ne sont devinés ici.
+    // devra compléter. Ni la position, ni le résumé, ni le classement ne sont devinés ici —
+    // une catégorie déduite de la requête pré-cocherait une puce et franchirait le refus du
+    // brouillon, pour atterrir dans Firestore sans qu'aucune source ne l'ait jamais énoncée.
     return res.json({
       success: true,
       data: {
         name: lower,
-        category: cat,
+        category: '',
         location: '',
         coordinates: null,
         summary: '',

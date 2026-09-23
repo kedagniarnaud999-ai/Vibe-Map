@@ -206,7 +206,13 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     // De même, la catégorie détermine les puces sélectionnées dans ce brouillon : sans choix
     // visible, inscrire « Spiritual » classerait un lieu inconnu parmi les sanctuaires.
     if (typeof scrapedResult.category !== 'string' || !scrapedResult.category.trim()) {
-      alert(t('Publication refusée : aucune catégorie n’est sélectionnée dans ce brouillon. Choisissez l’une des quatre catégories proposées avant d’enregistrer.'));
+      alert(t('Publication refusée : aucune catégorie n’est sélectionnée dans ce brouillon. Choisissez l’une des neuf catégories proposées avant d’enregistrer.'));
+      return;
+    }
+    // La notice est le corps de la fiche : une phrase d’attente à la place afficherait un
+    // vide habillé en contenu, en français de surcroît dans une interface anglaise.
+    if (typeof scrapedResult.summary !== 'string' || !scrapedResult.summary.trim()) {
+      alert(t('Publication refusée : le champ « Résumé » de ce brouillon est vide. La notice du site ne s’écrit pas toute seule : complétez-le à partir de la source consultée.'));
       return;
     }
 
@@ -217,14 +223,15 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       category: scrapedResult.category,
       image: chosen.thumb,
       imageCredit: { file: chosen.file, author: chosen.author, license: chosen.license },
-      description: scrapedResult.summary || 'Notice en attente de complément de source.',
+      description: scrapedResult.summary,
       deepHistory: scrapedResult.deepHistory || undefined,
       // Un classement patrimonial se cite avec sa source ; il ne se déduit pas d'un
       // brouillon en cours de rédaction. Le formulaire n'en saisit aucun.
       badges: [],
       etiquette: (scrapedResult.etiquette || []).map((rule: string) => ({
         title: rule,
-        description: 'Règle recommandée pour la visite.',
+        // La règle publiée tient dans son énoncé : rien à ajouter dessous.
+        description: '',
         icon: 'Shield'
       })),
       visualGuides: [],
@@ -586,6 +593,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                       </button>
                     ))}
                   </div>
+                  {!String(scrapedResult.category || '').trim() && (
+                    <p className="text-[11px] text-[#8a5a3c] mt-1.5">
+                      {t('Aucune catégorie choisie : la recherche ne la devine pas. Sélectionnez-en une pour publier ce site.')}
+                    </p>
+                  )}
                 </div>
 
                 {/* Licensed photographs resolved on Wikimedia Commons */}
