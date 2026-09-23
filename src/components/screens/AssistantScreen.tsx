@@ -133,11 +133,11 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ requireSession
       const data = useLiveWebSearch
         ? await apiFetch<any>('/api/gemini/search-grounding', {
             method: 'POST',
-            body: { query: query + ' patrimoine bénin culture vaudou histoire ouidah abomey' }
+            body: { query: query + ' patrimoine bénin culture vaudou histoire ouidah abomey', lang }
           })
         : await apiFetch<any>('/api/gemini/chat', {
             method: 'POST',
-            body: { message: query, conversationHistory: messages.slice(-6) }
+            body: { message: query, conversationHistory: messages.slice(-6), lang }
           });
 
       if (data && (data.text || data.reply)) {

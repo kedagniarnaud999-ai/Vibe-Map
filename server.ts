@@ -181,6 +181,21 @@ function catalogueCandidates(value: unknown): Array<{ id: string; name: string; 
   return candidates;
 }
 
+// Le visiteur choisit la langue de l'interface, mais toutes les consignes envoyées
+// au modèle sont écrites en français : un prompt français tire la réponse vers le
+// français, et l'application bilingue ne parlerait alors qu'à la moitié de ses
+// voyageurs. Le jeton de langue, lui, ne sort jamais de « fr » ou « en » : le
+// client ne peut pas imposer une langue avec un texte libre.
+function answerLanguage(value: unknown): 'fr' | 'en' {
+  return value === 'en' ? 'en' : 'fr';
+}
+
+function writingLanguage(lang: 'fr' | 'en', fields: string): string {
+  return lang === 'en'
+    ? `Rédige ${fields} en anglais : c'est la langue du visiteur. Cette consigne-ci est en français, cela ne change pas la langue de rédaction.`
+    : `Rédige ${fields} en français.`;
+}
+
 function verifiedEmail(req: AuthRequest, res: Response): string | undefined {
   const email = getAuthenticatedEmail(req);
   if (email) {
@@ -478,6 +493,7 @@ async function startServer() {
   // AI Cultural Companion Chat API
   app.post("/api/gemini/chat", requireAuth, async (req: AuthRequest, res) => {
     const message = boundedString(req.body?.message, LIMITS.message);
+    const lang = answerLanguage(req.body?.lang);
     const conversationHistory = Array.isArray(req.body?.conversationHistory)
       ? req.body.conversationHistory.slice(-LIMITS.historyItems)
       : [];
@@ -494,7 +510,7 @@ async function startServer() {
 
       const systemPrompt = `Tu es le Compagnon Culturel et Médiateur Authentique de "La Vibe Map", l'application de découverte patrimoniale et spirituelle du Bénin (Ouidah, Abomey, Ganvié, Porto-Novo, Allada).
 Ton rôle est de guider les voyageurs avec respect, précision historique, dignité culturelle et bienveillance.
-Tu réponds en français clair et élégant, avec :
+Tu réponds dans la langue du visiteur, sur un registre clair et élégant, avec :
 1. Une explication culturelle ou pratique captivante et authentique.
 2. Une expression ou formule de politesse en langue Fon (avec sa prononciation phonétique et son sens).
 3. Une règle d'étiquette ou recommandation éthique pour respecter les dignitaires, sanctuaires ou habitants.
@@ -505,10 +521,12 @@ Format de sortie strict en JSON valide:
   "fonPhrase": {
     "fon": "Expression en Fon",
     "phonetic": "Prononciation phonétique simplifiée",
-    "meaning": "Signification en français"
+    "meaning": "Signification de l'expression, dans la langue du visiteur"
   },
   "etiquetteTip": "Conseil d'étiquette ou de bienséance pour le lieu ou la situation"
-}`;
+}
+
+${writingLanguage(lang, '« reply », « fonPhrase.meaning » et « etiquetteTip »')}`;
 
       const contents: any[] = [];
       conversationHistory.forEach((entry: any) => {
@@ -561,6 +579,7 @@ Format de sortie strict en JSON valide:
     const interests = boundedStringList(req.body?.interests, LIMITS.interests, LIMITS.tag);
     const userVibe = boundedString(req.body?.userVibe, LIMITS.label) || 'Explorateur Immersif';
     const places = catalogueCandidates(req.body?.places);
+    const lang = answerLanguage(req.body?.lang);
 
     if (places.length === 0) {
       return res.status(400).json({ error: "Aucune fiche de lieu transmise : l'itinéraire n'aurait rien auquel se raccrocher." });
@@ -596,7 +615,9 @@ Format de sortie en JSON strict:
       "placeId": "${places[0].id}"
     }
   ]
-}`;
+}
+
+${writingLanguage(lang, '« title », « description », « insight » et « transitTime »')}`;
 
       const response = await withTimeout(ai.models.generateContent({
         model: AI_MODEL,
@@ -627,6 +648,23 @@ Format de sortie en JSON strict:
   // Live Web Search Grounding API (Google Search avec le modèle partagé dans src/lib/ai-model.ts)
   app.post("/api/gemini/search-grounding", requireAuth, async (req: AuthRequest, res) => {
     const searchQuery = boundedString(req.body?.query, LIMITS.query);
+    const lang = answerLanguage(req.body?.lang);
+    // Les phrases que ce routeur écrit de sa propre main — le modèle n'a rien rendu,
+    // une source n'a pas de titre, la recherche a échoué — tombent telles quelles
+    // dans la conversation : elles suivent la langue du visiteur.
+    const lines = lang === 'en'
+      ? {
+          subject: 'Benin',
+          empty: 'The companion produced no usable answer for this request.',
+          untitled: 'Untitled source',
+          unverifiable: (q: string) => `The cultural companion could not verify "${q}" live. No opening hours, prices or protocol are claimed here: that answer would be invented.`
+        }
+      : {
+          subject: 'Bénin',
+          empty: "Le compagnon n'a pas produit de réponse exploitable pour cette demande.",
+          untitled: 'Source sans titre',
+          unverifiable: (q: string) => `Le compagnon culturel n'a pas pu vérifier « ${q} » en direct. Aucune donnée d'horaires, de tarifs ou de protocole n'est avancée ici : la réponse serait inventée.`
+        };
 
     try {
       if (!searchQuery) {
@@ -638,7 +676,9 @@ Format de sortie en JSON strict:
       }
 
       const prompt = `Recherche les informations en temps réel et vérifiées sur le web concernant cette demande sur le tourisme, la culture, les guides ou le patrimoine au Bénin : "${searchQuery}".
-Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Euros si disponibles, les conseils de visite et les sources fiables.`;
+Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Euros si disponibles, les conseils de visite et les sources fiables.
+
+${writingLanguage(lang, 'le résumé')}`;
 
       const response = await withTimeout(ai.models.generateContent({
         model: AI_MODEL,
@@ -648,12 +688,12 @@ Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Eu
         }
       }), 7000);
 
-      const text = response.text || "Le compagnon n'a pas produit de réponse exploitable pour cette demande.";
+      const text = response.text || lines.empty;
       const searchChunks = (response.candidates?.[0]?.groundingMetadata as any)?.groundingChunks || [];
       const webSources = searchChunks
         .filter((c: any) => c.web?.uri)
         .map((c: any) => ({
-          title: c.web.title || "Source sans titre",
+          title: c.web.title || lines.untitled,
           url: c.web.uri
         }));
 
