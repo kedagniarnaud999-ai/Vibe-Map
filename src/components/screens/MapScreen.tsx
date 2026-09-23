@@ -1,30 +1,20 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import { 
-  Search, 
-  MapPin, 
-  Navigation, 
-  Layers, 
-  Plus, 
-  Minus, 
-  Sparkles, 
-  ShieldAlert, 
-  ArrowRight, 
-  Info,
+import {
+  Search,
+  MapPin,
+  Plus,
   Compass,
-  Map as MapIcon,
-  Globe,
-  Mountain,
+  ShieldAlert,
+  ArrowRight,
   Satellite,
   LocateFixed,
   Loader2,
   ListFilter,
-  CheckCircle2,
   AlertTriangle,
-  ChevronUp,
-  ChevronDown,
-  X
+  X,
+  Globe
 } from 'lucide-react';
-import { Place, Category } from '../../types';
+import { Place } from '../../types';
 import { LeafletMapView } from '../LeafletMapView';
 import { hasGoogleMapsKey } from '../../lib/map-provider-key';
 import { useI18n } from '../../lib/i18n';
@@ -57,8 +47,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [focusToken, setFocusToken] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [layerType, setLayerType] = useState<'voyager' | 'satellite' | 'terrain' | 'street'>('voyager');
-  const [viewEngine, setViewEngine] = useState<'interactive-map' | 'google-maps' | 'heritage-canvas'>('interactive-map');
+  const [layerType, setLayerType] = useState<'voyager' | 'satellite'>('voyager');
+  const [viewEngine, setViewEngine] = useState<'interactive-map' | 'google-maps'>('interactive-map');
   
   // Geolocation states
   const [userPosition, setUserPosition] = useState<UserCoordinates | null>(null);
@@ -238,27 +228,6 @@ export const MapScreen: React.FC<MapScreenProps> = ({
     selectedPlace && filteredPlaces.some((p) => p.id === selectedPlace.id)
       ? selectedPlace
       : filteredPlaces[0] || places[0];
-
-  const getCategoryColor = (cat: Category) => {
-    switch (cat) {
-      case 'Spiritual':
-        return 'bg-[#c14e2f] text-white ring-[#c14e2f]/30';
-      case 'Historical':
-        return 'bg-[#5a5a40] text-white ring-[#5a5a40]/30';
-      case 'Nature':
-        return 'bg-[#2e5a44] text-white ring-[#2e5a44]/30';
-      case 'Arts':
-        return 'bg-[#d9822b] text-white ring-[#d9822b]/30';
-      case 'Food':
-        return 'bg-[#8c2f39] text-white ring-[#8c2f39]/30';
-      case 'Lodging':
-        return 'bg-[#1d5b7a] text-white ring-[#1d5b7a]/30';
-      case 'Leisure':
-        return 'bg-[#0d7f7a] text-white ring-[#0d7f7a]/30';
-      default:
-        return 'bg-[#2c2926] text-white ring-black/20';
-    }
-  };
 
   return (
     <div className="relative h-[calc(100vh-120px)] w-full overflow-hidden bg-[#e8e2d5] flex flex-col">
@@ -469,7 +438,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             layerType={layerType}
             focusToken={focusToken}
           />
-        ) : viewEngine === 'google-maps' ? (
+        ) : (
           <Suspense
             fallback={
               <div className="w-full h-full flex items-center justify-center bg-[#f5f1e8] text-xs text-[#8c867c]">
@@ -490,48 +459,6 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               }}
             />
           </Suspense>
-        ) : (
-          /* Heritage Stylized Canvas */
-          <div className="relative w-full h-full bg-[#eadecb] flex items-center justify-center overflow-hidden">
-            <svg className="w-full h-full opacity-40 absolute inset-0" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#b8ad96" strokeWidth="0.8" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#grid)" />
-              <path d="M 0 450 Q 250 420 500 460 T 1000 480 L 1000 1000 L 0 1000 Z" fill="#d0c4aa" opacity="0.6" />
-            </svg>
-
-            {/* Cultural Pins on Stylized Map */}
-            {filteredPlaces.map((place) => {
-              const isSelected = activePlace?.id === place.id;
-              return (
-                <div
-                  key={place.id}
-                  onClick={() => onSelectPlace(place)}
-                  style={{
-                    left: `${place.coordinates.x}%`,
-                    top: `${place.coordinates.y}%`
-                  }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 group"
-                >
-                  <div
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg transition-all ${
-                      isSelected
-                        ? 'scale-110 ring-4 ring-[#c14e2f]/40 z-20 ' + getCategoryColor(place.category)
-                        : 'bg-white text-[#2c2926] hover:scale-105 border border-[#e8e2d5]'
-                    }`}
-                  >
-                    <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="text-xs font-semibold whitespace-nowrap">
-                      {place.name}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         )}
       </div>
 

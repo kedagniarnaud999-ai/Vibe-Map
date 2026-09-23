@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Place, Category } from '../types';
-import { ShieldAlert, ArrowRight, Compass, Sparkles, Navigation, Layers } from 'lucide-react';
 import { UserCoordinates } from '../lib/geo';
 import { useI18n } from '../lib/i18n';
 
@@ -10,9 +9,8 @@ interface LeafletMapViewProps {
   selectedPlace: Place | null;
   userPosition: UserCoordinates | null;
   onSelectPlace: (place: Place) => void;
-  layerType: 'street' | 'satellite' | 'terrain' | 'voyager';
+  layerType: 'voyager' | 'satellite';
   focusToken: number;
-  onPanToUser?: () => void;
 }
 
 export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
@@ -56,7 +54,9 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
   const createCustomIcon = (place: Place, isSelected: boolean) => {
     const color = getCategoryColor(place.category);
     const size = isSelected ? 42 : 34;
-    const pulseRing = isSelected ? `<div class="absolute -inset-2.5 rounded-full border-2 border-[${color}] animate-ping opacity-75"></div>` : '';
+    // La couleur venait d'une interpolation de classe : Tailwind ne l'émet jamais,
+    // et cinq catégories sur huit affichaient un anneau sans couleur.
+    const pulseRing = isSelected ? `<div class="absolute -inset-2.5 rounded-full border-2 animate-ping opacity-75" style="border-color: ${color}"></div>` : '';
 
     const html = `
       <div class="relative flex items-center justify-center cursor-pointer transition-transform duration-200 ${isSelected ? 'scale-110' : 'hover:scale-105'}">
@@ -145,12 +145,6 @@ export const LeafletMapView: React.FC<LeafletMapViewProps> = ({
       tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
       subdomains = '';
       maxZoom = 18;
-    } else if (layerType === 'terrain') {
-      tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-      maxZoom = 17;
-    } else if (layerType === 'street') {
-      tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-      maxZoom = 19;
     }
 
     const newLayer = L.tileLayer(tileUrl, {
