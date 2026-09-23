@@ -52,11 +52,9 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ requireSession
       sender: 'ai',
       text: t('Akwaba ! Je réponds sur les sanctuaires sacrés de Ouidah, les palais royaux d’Abomey, les protocoles Vodun, la fête de la Gaani, et les salutations en Fon et Yoruba.'),
       time: t('Maintenant'),
-      fonPhrase: {
-        fon: 'Ku abo / Akwaba',
-        phonetic: '/koo ah-boh/',
-        meaning: t('Bienvenue chaleureuse pour franchir le seuil d’un sanctuaire ou d’une concession familiale.')
-      },
+      // Pas de puce « expression en Fon » ici : Akwaba est un mot akan, et aucune
+      // formule fon saluée n'est sourcée dans le catalogue. Montrer une langue
+      // qu'aucune fiche n'appuie coûterait plus que l'absence de puce.
       etiquetteTip: t('Dans les couvents et cours royales, saluez toujours avec la main droite et le regard bienveillant.')
     }
   ]);
@@ -154,18 +152,12 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ requireSession
     // Local rich fallback response based on cultural queries
     setTimeout(() => {
       let reply = '';
-      let fonPhrase = undefined;
       let etiquetteTip = undefined;
 
       const lower = query.toLowerCase();
 
       if (lower.includes('salu') || lower.includes('greet') || lower.includes('bonjour') || lower.includes('fon')) {
         reply = t('Dans la tradition béninoise et la culture Fon, la salutation est un acte sacré qui instaure la paix (Fífá). On salue toujours de la main droite, en s’inclinant légèrement face aux aînés.');
-        fonPhrase = {
-          fon: 'Afon gangji a ?',
-          phonetic: '/ah-fon gan-jee ah/',
-          meaning: t('Vous êtes-vous réveillé dans la paix ? (Salutation matinale respectueuse)')
-        };
         etiquetteTip = t('Ne tendez jamais la main gauche lors d’un salut ou pour remettre un objet.');
       } else if (lower.includes('python') || lower.includes('temple') || lower.includes('ouidah')) {
         reply = t('Au Temple des Pythons de Ouidah, les pythons royaux (Dangbé) sont tenus pour sacrés : le culte du python y est attesté depuis la fin du XVIIe siècle. On les observe sans les déplacer.');
@@ -178,7 +170,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ requireSession
         etiquetteTip = t('Parlez à voix basse dans la forêt sacrée et ne touchez pas les tissus blancs noués autour des troncs.');
       } else {
         reply = t('Au Bénin, chaque sanctuaire et tradition vivante s’appuie sur le respect des ancêtres et de la nature. Concernant votre question sur « {query} », les gardiens recommandent la sincérité, la retenue et l’écoute avant d’immortaliser les cérémonies.', { query });
-        etiquetteTip = t('La formule « Kou do agbé » (Que la paix soit avec vous) ouvre tous les cœurs.');
+        etiquetteTip = t('Demandez l’accord des personnes et des gardiens avant de photographier une cérémonie ou un dignitaire.');
       }
 
       const aiMsg: Message = {
@@ -186,7 +178,6 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ requireSession
         sender: 'ai',
         text: reply,
         time: nowStamp(),
-        fonPhrase,
         etiquetteTip,
         fromArchive: true
       };

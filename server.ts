@@ -541,36 +541,17 @@ Format de sortie strict en JSON valide:
         const parsed = JSON.parse(responseText);
         return res.json(parsed);
       } catch (parseErr) {
-        return res.json({
-          reply: responseText,
-          fonPhrase: {
-            fon: "Akwaba",
-            phonetic: "Ah-kwah-bah",
-            meaning: "Bienvenue chaleureuse"
-          },
-          etiquetteTip: "Saluez toujours de la main droite en entrant dans une cour traditionnelle."
-        });
+        // Le texte brut vient bien du modèle : lui seul le porte. Une expression
+        // « en Fon » et une règle de tenue que le modèle n'a pas produites ne
+        // peuvent pas se greffer ici — « Akwaba » est de surcroît un mot akan.
+        return res.json({ reply: responseText });
       }
     } catch (err: any) {
-      console.warn("Gemini Chat API fallback triggered:", err?.message || err);
-      const lower = message.toLowerCase();
-      let customReply = "Akwaba ! Au Bénin, terre d'histoire et berceau du Vodun, la culture se transmet par la parole, les rythmes et le respect sacré des sanctuaires.";
-      if (lower.includes('vaudou') || lower.includes('vodun') || lower.includes('temple')) {
-        customReply = "Le Vodun au Bénin est une spiritualité d'harmonie avec la nature et les forces invisibles (Mami Wata, Dangbé, Héviosso). À Ouidah et Abomey, chaque sanctuaire a ses dignitaires et ses règles de visite.";
-      } else if (lower.includes('abomey') || lower.includes('roi') || lower.includes('palais')) {
-        customReply = "Les Palais Royaux d'Abomey, inscrits au patrimoine mondial de l'UNESCO, témoignent de la puissance du royaume du Danxomè et de la vaillance des célèbres guerrières Agoodjié (Amazones).";
-      } else if (lower.includes('ganvié') || lower.includes('lac') || lower.includes('eau')) {
-        customReply = "Ganvié, la 'Venise de l'Afrique', a été bâtie sur pilotis au XVIIIe siècle pour protéger ses habitants des razzias. La vie y est rythmée par la pirogue et le marché flottant.";
-      }
-      return res.json({
-        reply: customReply,
-        fonPhrase: {
-          fon: "Kou do agbé",
-          phonetic: "Kou doh ah-gbeh",
-          meaning: "Bonjour / Paix et longue vie"
-        },
-        etiquetteTip: "Saluez toujours de la main droite en entrant dans une cour traditionnelle et demandez la permission avant de photographier."
-      });
+      console.warn("Gemini Chat API unavailable:", err?.message || err);
+      // Un 200 à des paragraphes écrits à la main se lirait côté client comme
+      // une sortie du modèle, et l'archive étiquetée de l'écran ne serait
+      // jamais atteinte.
+      return aiUnavailable(res);
     }
   });
 
