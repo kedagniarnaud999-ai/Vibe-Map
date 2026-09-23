@@ -188,9 +188,11 @@ export const PlaceDetailScreen: React.FC<PlaceDetailScreenProps> = ({
                     <span className="w-1.5 h-1.5 rounded-full bg-[#c14e2f]" />
                     {rule.title}
                   </div>
-                  <p className="text-[11px] text-[#6b665e] leading-normal">
-                    {rule.description}
-                  </p>
+                  {!!rule.description && (
+                    <p className="text-[11px] text-[#6b665e] leading-normal">
+                      {rule.description}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
