@@ -25,7 +25,7 @@ const place: Place = {
   visualGuides: [{ title: 'Repère', description: 'Observez le portail.', image: 'guide.jpg' }],
   verifiedGuideIds: [],
   vocabulary: [{ term: 'Xwé', meaning: 'Sens français' }],
-  coordinates: { x: 0, y: 0, lat: 0, lng: 0 }
+  coordinates: { lat: 0, lng: 0 }
 };
 
 const story: Story = {

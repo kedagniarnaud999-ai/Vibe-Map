@@ -7,8 +7,7 @@ import { commonsThumb } from '../lib/media';
  * les superlatifs sans source et les biographies inventees n'ont pas leur place ici.
  * Les visuels viennent de Wikimedia Commons : le champ `imageCredit` porte le nom
  * du fichier, l'auteur et la licence, et doit rester affiche sous l'image.
- * `coordinates.x/y` est une place sur la carte illustrée ; `lat/lng` est la position
- * réelle vérifiée, utilisée par le calque Leaflet.
+ * `coordinates` est la position réelle vérifiée, utilisée par le calque Leaflet.
  */
 export const PLACES_DATA: Place[] = [
   {
@@ -74,8 +73,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 38,
-      y: 68,
       lat: 6.35997,
       lng: 2.08504
     }
@@ -138,8 +135,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 35,
-      y: 72,
       lat: 6.36484,
       lng: 2.09637
     }
@@ -204,8 +199,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 36,
-      y: 85,
       lat: 6.32425,
       lng: 2.08958
     }
@@ -272,8 +265,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 32,
-      y: 42,
       lat: 7.18645,
       lng: 1.994003
     }
@@ -339,8 +330,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 70,
-      y: 58,
       lat: 6.467694,
       lng: 2.39125
     }
@@ -407,8 +396,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 82,
-      y: 56,
       lat: 6.47174,
       lng: 2.62811
     }
@@ -471,8 +458,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 75,
-      y: 65,
       lat: 6.36256,
       lng: 2.42069
     }
@@ -541,8 +526,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 76,
-      y: 66,
       lat: 6.3492,
       lng: 2.40756
     }
@@ -597,8 +580,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 45,
-      y: 30,
       lat: 7.7757,
       lng: 2.18572
     }
@@ -657,8 +638,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 20,
-      y: 12,
       lat: 10.18322,
       lng: 1.10005
     }
@@ -725,12 +704,10 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 22,
-      y: 6,
       lat: 11.23294,
       lng: 1.49239
     }
-  },
+  },
   {
     id: 'ketou-gelede',
     name: 'Kétou, Berceau du Gèlèdé',
@@ -797,8 +774,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 80,
-      y: 40,
       lat: 7.358056,
       lng: 2.6075
     }
@@ -869,8 +844,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 78,
-      y: 62,
       lat: 6.37271,
       lng: 2.43351
     }
@@ -941,8 +914,6 @@ export const PLACES_DATA: Place[] = [
       }
     ],
     coordinates: {
-      x: 30,
-      y: 76,
       lat: 6.49791,
       lng: 1.979
     }
@@ -987,8 +958,6 @@ export const PLACES_DATA: Place[] = [
     verifiedGuideIds: [],
     vocabulary: [],
     coordinates: {
-      x: 80,
-      y: 64,
       lat: 6.35183,
       lng: 2.43581
     }
@@ -1012,8 +981,6 @@ export const PLACES_DATA: Place[] = [
     verifiedGuideIds: [],
     vocabulary: [],
     coordinates: {
-      x: 74,
-      y: 72,
       lat: 6.3578,
       lng: 2.37173
     }
@@ -1054,8 +1021,6 @@ export const PLACES_DATA: Place[] = [
     verifiedGuideIds: [],
     vocabulary: [],
     coordinates: {
-      x: 72,
-      y: 76,
       lat: 6.3525,
       lng: 2.36755
     }
@@ -1092,8 +1057,6 @@ export const PLACES_DATA: Place[] = [
     verifiedGuideIds: [],
     vocabulary: [],
     coordinates: {
-      x: 33,
-      y: 88,
       lat: 6.32234,
       lng: 2.08321
     }
