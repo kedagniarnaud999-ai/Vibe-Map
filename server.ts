@@ -2,6 +2,7 @@ import express, { Response } from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import { AI_MODEL } from "./src/lib/ai-model.ts";
 import dotenv from "dotenv";
 import {
   getOrCreateUser,
@@ -505,7 +506,7 @@ Format de sortie strict en JSON valide:
       });
 
       const response = await withTimeout(ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: AI_MODEL,
         contents,
         config: {
           systemInstruction: systemPrompt,
@@ -583,7 +584,7 @@ Format de sortie en JSON strict:
 }`;
 
       const response = await withTimeout(ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: AI_MODEL,
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           responseMimeType: "application/json"
@@ -625,7 +626,7 @@ Format de sortie en JSON strict:
     }
   });
 
-  // Live Web Search Grounding API (Google Search with gemini-3.6-flash)
+  // Live Web Search Grounding API (Google Search avec le modèle partagé dans src/lib/ai-model.ts)
   app.post("/api/gemini/search-grounding", requireAuth, async (req: AuthRequest, res) => {
     const searchQuery = boundedString(req.body?.query, LIMITS.query);
 
@@ -642,7 +643,7 @@ Format de sortie en JSON strict:
 Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Euros si disponibles, les conseils de visite et les sources fiables.`;
 
       const response = await withTimeout(ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: AI_MODEL,
         contents: prompt,
         config: {
           tools: [{ googleSearch: {} }]
@@ -798,7 +799,7 @@ Renvoie UNIQUEMENT un JSON valide au format:
         let response;
         try {
           response = await withTimeout(ai.models.generateContent({
-            model: 'gemini-3.6-flash',
+            model: AI_MODEL,
             contents: prompt,
             config: {
               tools: [{ googleSearch: {} }],
@@ -808,7 +809,7 @@ Renvoie UNIQUEMENT un JSON valide au format:
         } catch (toolErr: any) {
           console.warn("Search tool query failed or timed out, retrying direct generation:", toolErr?.message || toolErr);
           response = await withTimeout(ai.models.generateContent({
-            model: 'gemini-3.6-flash',
+            model: AI_MODEL,
             contents: prompt,
             config: {
               responseMimeType: "application/json"
