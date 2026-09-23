@@ -15,6 +15,7 @@ import {
   Layers
 } from 'lucide-react';
 import { useI18n } from '../../lib/i18n';
+import { AI_MODEL } from '../../lib/ai-model';
 import { playCulturalTermAudio } from '../../lib/audio';
 import { apiFetch } from '../../lib/firebase';
 
@@ -49,7 +50,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ requireSession
     {
       id: 'welcome',
       sender: 'ai',
-      text: t('Akwaba ! Je suis votre guide spirituel et culturel alimenté par Gemini & Search Grounding. Posez-moi des questions sur les sanctuaires sacrés de Ouidah, les palais royaux d’Abomey, les protocoles Vodun, la fête de la Gaani ou apprenez les salutations en Fon et Yoruba.'),
+      text: t('Akwaba ! Je réponds sur les sanctuaires sacrés de Ouidah, les palais royaux d’Abomey, les protocoles Vodun, la fête de la Gaani, et les salutations en Fon et Yoruba.'),
       time: t('Maintenant'),
       fonPhrase: {
         fon: 'Ku abo / Akwaba',
@@ -216,7 +217,7 @@ export const AssistantScreen: React.FC<AssistantScreenProps> = ({ requireSession
             <p className="text-xs text-[#5a5a40] font-medium">
               {aiOnline === false
                 ? t('Réponses issues de l’archive culturelle écrite')
-                : t('Alimenté par Gemini 3.5 Flash & Données Culturelles du Bénin')}
+                : t('Alimenté par {model} & données culturelles du Bénin', { model: AI_MODEL })}
             </p>
           </div>
         </div>

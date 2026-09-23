@@ -17,6 +17,7 @@ import {
   VerifiedSession
 } from './lib/firebase';
 import { useI18n } from './lib/i18n';
+import { AI_MODEL } from './lib/ai-model';
 import {
   localizeActors,
   localizeEvents,
@@ -335,7 +336,7 @@ export default function App() {
         return {
           show: true,
           title: t('Compagnon Culturel IA'),
-          subtitle: 'Gemini 3.5 Flash & Search Grounding',
+          subtitle: t('Modèle {model} & recherche web documentée', { model: AI_MODEL }),
           showBack: true
         };
       case 'admin':

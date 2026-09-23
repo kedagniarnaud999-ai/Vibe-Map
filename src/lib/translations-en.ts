@@ -58,8 +58,9 @@ export const EN: Record<string, string> = {
   'Espace Administrateur': 'Admin Portal',
   'Espace Guide Agréé': 'Accredited Guide Portal',
 
-  'Akwaba ! Je suis votre guide spirituel et culturel alimenté par Gemini & Search Grounding. Posez-moi des questions sur les sanctuaires sacrés de Ouidah, les palais royaux d’Abomey, les protocoles Vodun, la fête de la Gaani ou apprenez les salutations en Fon et Yoruba.':
-    'Akwaba! I am your spiritual and cultural guide, powered by Gemini & Search Grounding. Ask me about the sacred sanctuaries of Ouidah, the royal palaces of Abomey, Vodun protocols, the Gaani festival, or learn greetings in Fon and Yoruba.',
+  'Akwaba ! Je réponds sur les sanctuaires sacrés de Ouidah, les palais royaux d’Abomey, les protocoles Vodun, la fête de la Gaani, et les salutations en Fon et Yoruba.':
+    'Akwaba! I answer about the sacred sanctuaries of Ouidah, the royal palaces of Abomey, Vodun protocols, the Gaani festival, and greetings in Fon and Yoruba.',
+  'Modèle {model} & recherche web documentée': 'Model {model} & documented web search',
   Maintenant: 'Now',
   'Bienvenue chaleureuse pour franchir le seuil d’un sanctuaire ou d’une concession familiale.':
     'A warm welcome as you cross the threshold of a sanctuary or a family compound.',
@@ -91,7 +92,7 @@ export const EN: Record<string, string> = {
     'In Benin, every sanctuary and living tradition rests on respect for the ancestors and nature. Regarding your question about "{query}", the keepers recommend sincerity, restraint and listening before filming ceremonies.',
   'La formule « Kou do agbé » (Que la paix soit avec vous) ouvre tous les cœurs.':
     'The phrase "Kou do agbé" (May peace be with you) opens every heart.',
-  'Alimenté par Gemini 3.5 Flash & Données Culturelles du Bénin': 'Powered by Gemini 3.5 Flash & Benin cultural data',
+  'Alimenté par {model} & données culturelles du Bénin': 'Powered by {model} & Benin cultural data',
   'Activer la recherche Google en direct sur le web': 'Enable live Google web search',
   'Recherche Web Active': 'Live Web Search On',
   'Mode Mémoire': 'Memory Mode',
