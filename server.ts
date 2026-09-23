@@ -184,8 +184,8 @@ function catalogueCandidates(value: unknown): Array<{ id: string; name: string; 
 // Le visiteur choisit la langue de l'interface, mais toutes les consignes envoyées
 // au modèle sont écrites en français : un prompt français tire la réponse vers le
 // français, et l'application bilingue ne parlerait alors qu'à la moitié de ses
-// voyageurs. Seules ces deux valeurs atteignent le prompt — rien d'autre que
-// « fr » ou « en », aucun texte libre du client.
+// voyageurs. Le jeton de langue, lui, ne sort jamais de « fr » ou « en » : le
+// client ne peut pas imposer une langue avec un texte libre.
 function answerLanguage(value: unknown): 'fr' | 'en' {
   return value === 'en' ? 'en' : 'fr';
 }
