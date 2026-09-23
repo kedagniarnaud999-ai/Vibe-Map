@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Search, ShieldCheck, Star, MapPin, ArrowRight } from 'lucide-react';
-import { Actor } from '../../types';
+import { Actor, ActorKind } from '../../types';
+import { useActorKindLabel } from '../../lib/labels';
 import { monogram } from '../../lib/media';
 import { useI18n } from '../../lib/i18n';
+import { DemoProfileBadge } from '../DemoProfileBadge';
 
 interface ActorDirectoryScreenProps {
   actors: Actor[];
@@ -14,9 +16,17 @@ export const ActorDirectoryScreen: React.FC<ActorDirectoryScreenProps> = ({
   onSelectActor
 }) => {
   const { t } = useI18n();
+  const kindLabel = useActorKindLabel();
   const [searchQuery, setSearchQuery] = useState('');
+  const [kind, setKind] = useState<ActorKind | 'all'>('all');
+
+  const counts = useMemo(() => {
+    const guides = actors.filter((a) => a.kind === 'guide').length;
+    return { all: actors.length, guide: guides, structure: actors.length - guides };
+  }, [actors]);
 
   const filteredActors = actors.filter((a) => {
+    if (kind !== 'all' && a.kind !== kind) return false;
     const query = searchQuery.toLowerCase();
     return (
       searchQuery === '' ||
@@ -31,13 +41,13 @@ export const ActorDirectoryScreen: React.FC<ActorDirectoryScreenProps> = ({
       {/* Header Info */}
       <div className="space-y-1">
         <span className="text-xs font-bold uppercase tracking-wider text-[#5a5a40]">
-          {t('Ressources Locales de Confiance')}
+          {t('Ressources locales au Bénin')}
         </span>
         <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#2c2926]">
-          {t('Structures publiques et institutions culturelles')}
+          {t('Guides et structures d’accueil')}
         </h2>
         <p className="text-xs text-[#6b665e]">
-          {t('Adresses officielles pour préparer une visite, vérifier les conditions d’accès et s’orienter vers un encadrement reconnu.')}
+          {t('Adresses officielles pour préparer une visite, et profils de ceux qui accompagnent les sites.')}
         </p>
       </div>
 
@@ -49,7 +59,7 @@ export const ActorDirectoryScreen: React.FC<ActorDirectoryScreenProps> = ({
             {t('Ce que cet annuaire garantit')}
           </h4>
           <p className="text-[11px] text-[#6b665e] leading-relaxed">
-            {t('Seules des structures existantes du Bénin sont référencées, avec leurs coordonnées publiques. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission sur une mise en relation.')}
+            {t('Les structures référencées existent et publient leurs coordonnées. Un profil marqué « démonstration » est un modèle de mise en page : aucune personne derrière, aucune mise en relation possible. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission sur une mise en relation.')}
           </p>
         </div>
       </div>
@@ -61,9 +71,34 @@ export const ActorDirectoryScreen: React.FC<ActorDirectoryScreenProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={t('Rechercher une structure, un secteur ou une ville...')}
+          placeholder={t('Rechercher un guide, une structure, un secteur ou une ville...')}
           className="w-full pl-10 pr-4 py-3 bg-[#f0ece1] text-[#2c2926] placeholder-[#8c867c] text-sm rounded-xl border border-transparent focus:border-[#c14e2f] focus:bg-white focus:outline-none transition-all"
         />
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        {([
+          { value: 'all', label: t('Tous') },
+          { value: 'guide', label: t('Guides') },
+          { value: 'structure', label: t('Structures d’accueil') }
+        ] as const).map((segment) => {
+          const isActive = kind === segment.value;
+
+          return (
+            <button
+              key={segment.value}
+              onClick={() => setKind(segment.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                isActive
+                  ? 'bg-[#c14e2f] text-white border-[#c14e2f]'
+                  : 'bg-white text-[#6b665e] border-[#e8e2d5] hover:border-[#c14e2f]/40'
+              }`}
+            >
+              {segment.label}
+              <span className="ml-1.5 opacity-70">{counts[segment.value]}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Mediators List */}
@@ -100,6 +135,10 @@ export const ActorDirectoryScreen: React.FC<ActorDirectoryScreenProps> = ({
                       {actor.badgeTitle}
                     </span>
                   )}
+                  {actor.isDemo && <DemoProfileBadge />}
+                  <span className="px-2 py-0.5 rounded-full bg-[#f0ece1] text-[#6b665e] text-[10px] font-bold">
+                    {kindLabel(actor.kind)}
+                  </span>
                 </div>
                 <p className="text-xs text-[#5a5a40] font-medium">{actor.role}</p>
                 <div className="flex items-center gap-3 text-xs text-[#6b665e] flex-wrap">
@@ -153,7 +192,7 @@ export const ActorDirectoryScreen: React.FC<ActorDirectoryScreenProps> = ({
 
         {filteredActors.length === 0 && (
           <p className="text-xs text-[#6b665e] bg-white rounded-2xl border border-[#e8e2d5] p-5">
-            {t('Aucune structure ne correspond à cette recherche.')}
+            {t('Aucun profil ne correspond à cette recherche.')}
           </p>
         )}
       </div>

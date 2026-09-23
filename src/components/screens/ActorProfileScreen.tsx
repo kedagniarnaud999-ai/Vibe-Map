@@ -19,6 +19,7 @@ import {
 import { Actor } from '../../types';
 import { monogram } from '../../lib/media';
 import { createBookingInFirestore } from '../../lib/firebase';
+import { DemoProfileBadge } from '../DemoProfileBadge';
 import { useI18n } from '../../lib/i18n';
 
 interface ActorProfileScreenProps {
@@ -94,7 +95,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
             <ArrowLeft className="w-5 h-5" />
           </button>
           <span className="font-serif font-bold text-sm text-[#2c2926]">
-            {t('Profil du Médiateur')}
+            {actor.kind === 'guide' ? t('Profil du Guide') : t('Fiche de la structure')}
           </span>
           <button
             onClick={() => {
@@ -141,6 +142,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                   {actor.badgeTitle}
                 </span>
               )}
+              {actor.isDemo && <DemoProfileBadge />}
             </div>
 
             <p className="text-sm font-semibold text-[#5a5a40]">{actor.role}</p>

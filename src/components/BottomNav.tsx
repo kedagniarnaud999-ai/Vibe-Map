@@ -19,7 +19,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const navItems: { id: ScreenId; label: string; icon: React.FC<{ className?: string }> }[] = [
     { id: 'home', label: t('Récits'), icon: Compass },
     { id: 'map', label: t('Carte Vivante'), icon: Map },
-    { id: 'actors', label: t('Structures d’accueil'), icon: Users },
+    { id: 'actors', label: t('Annuaire'), icon: Users },
     { id: 'itinerary-builder', label: t('Itinéraire'), icon: Sparkles },
     ...(userRole === 'admin' 
       ? [{ id: 'admin' as ScreenId, label: t('Espace Admin'), icon: Shield }]

@@ -364,7 +364,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
               <Calendar className="w-8 h-8 text-[#8c867c] mx-auto opacity-50" />
               <p className="font-semibold text-[#2c2926]">{t('Aucune réservation directe pour le moment')}</p>
               <p className="text-[11px] text-[#8c867c]">
-                {t("Votre profil est visible par les voyageurs sur la carte et le répertoire des médiateurs. Dès qu'un voyageur réserve une expérience, elle apparaîtra ici.")}
+                {t("Votre profil est visible par les voyageurs dans l’annuaire des guides et structures. Dès qu'un voyageur réserve une expérience, elle apparaîtra ici.")}
               </p>
             </div>
           ) : (

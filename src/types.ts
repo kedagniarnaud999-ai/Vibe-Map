@@ -115,11 +115,17 @@ export interface Story {
   }[];
 }
 
-/** Ressource d'accueil réelle : institution publique, fondation ou guichet de site. */
+/** Profil d'annuaire : une structure d'accueil, ou un guide individuel. */
+export type ActorKind = 'structure' | 'guide';
+
+/** Structure d'accueil vérifiable ou guide individuel ; un guide de démonstration n'est pas une personne joignable. */
 export interface Actor {
   id: string;
   name: string;
   role: string;
+  kind: ActorKind;
+  /** Modèle de mise en page sans personne joignable derrière : à signaler partout où il apparaît. */
+  isDemo?: boolean;
   location: string;
   badgeTitle?: string;
   avatar?: string;
