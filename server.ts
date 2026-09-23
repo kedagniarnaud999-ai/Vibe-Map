@@ -181,11 +181,14 @@ function catalogueCandidates(value: unknown): Array<{ id: string; name: string; 
   return candidates;
 }
 
-// Le visiteur choisit la langue de l'interface, mais toutes les consignes envoyées
-// au modèle sont écrites en français : un prompt français tire la réponse vers le
-// français, et l'application bilingue ne parlerait alors qu'à la moitié de ses
-// voyageurs. Le jeton de langue, lui, ne sort jamais de « fr » ou « en » : le
-// client ne peut pas imposer une langue avec un texte libre.
+// Le visiteur choisit la langue de l'interface, mais deux des trois prompts envoyés au
+// modèle sont écrits en français, qui est la langue de travail du serveur : un prompt
+// français tire la réponse vers le français, et l'application bilingue ne parlerait alors
+// qu'à la moitié de ses voyageurs. `writingLanguage` rappelle donc la langue de rédaction
+// à chaque tour. Une route fait exception, la voie documentée : là le texte du prompt EST
+// la recherche, il est donc posé dans la langue du visiteur, sinon ses sources restent
+// francophones. Le jeton de langue, lui, ne sort jamais de « fr » ou « en » : le client
+// ne peut pas imposer une langue avec un texte libre.
 function answerLanguage(value: unknown): 'fr' | 'en' {
   return value === 'en' ? 'en' : 'fr';
 }
@@ -666,6 +669,25 @@ ${writingLanguage(lang, '« title », « description », « insight » et « tra
           unverifiable: (q: string) => `Le compagnon culturel n'a pas pu vérifier « ${q} » en direct. Aucune donnée d'horaires, de tarifs ou de protocole n'est avancée ici : la réponse serait inventée.`
         };
 
+    // L'outil `googleSearch` cherche sur le texte de ce prompt : posé en français, il
+    // rapporte des sources francophones à un visiteur anglais, qui reçoit alors un
+    // résumé anglais d'une documentation française. L'instruction, les mots-clés
+    // d'ancrage et la consigne de rédaction suivent donc sa langue. Le texte brut du
+    // visiteur, lui, reste le sien : ni traduit, ni enrichi, ni allongé.
+    const search = lang === 'en'
+      ? {
+          ask: (q: string) => `Search the web, in real time and against verified sources, for this request about tourism, culture, guides or heritage in Benin: "${q}".`,
+          facts: 'Give a clear summary, recent facts, indicative prices in FCFA and Euros when available, visiting advice, and reliable sources.',
+          anchors: 'Anchor keywords: Benin heritage voodoo history Ouidah Abomey culture',
+          write: 'Write the summary in English, whatever the language of the pages retrieved.'
+        }
+      : {
+          ask: (q: string) => `Recherche les informations en temps réel et vérifiées sur le web concernant cette demande sur le tourisme, la culture, les guides ou le patrimoine au Bénin : "${q}".`,
+          facts: "Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Euros si disponibles, les conseils de visite et les sources fiables.",
+          anchors: "Mots-clés d'ancrage : patrimoine bénin culture vaudou histoire ouidah abomey",
+          write: 'Rédige le résumé en français.'
+        };
+
     try {
       if (!searchQuery) {
         return res.status(400).json({ error: "Query is required" });
@@ -675,10 +697,11 @@ ${writingLanguage(lang, '« title », « description », « insight » et « tra
         return aiUnavailable(res);
       }
 
-      const prompt = `Recherche les informations en temps réel et vérifiées sur le web concernant cette demande sur le tourisme, la culture, les guides ou le patrimoine au Bénin : "${searchQuery}".
-Donne un résumé clair, des faits récents, les tarifs indicatifs en FCFA et Euros si disponibles, les conseils de visite et les sources fiables.
+      const prompt = `${search.ask(searchQuery)}
+${search.facts}
+${search.anchors}
 
-${writingLanguage(lang, 'le résumé')}`;
+${search.write}`;
 
       const response = await withTimeout(ai.models.generateContent({
         model: AI_MODEL,
@@ -705,7 +728,7 @@ ${writingLanguage(lang, 'le résumé')}`;
     } catch (err: any) {
       console.warn("Search grounding fallback triggered:", err?.message || err);
       return res.json({
-        text: `Le compagnon culturel n'a pas pu vérifier « ${searchQuery || 'Bénin'} » en direct. Aucune donnée d'horaires, de tarifs ou de protocole n'est avancée ici : la réponse serait inventée.`,
+        text: lines.unverifiable(searchQuery || lines.subject),
         sources: []
       });
     }
