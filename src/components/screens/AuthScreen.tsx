@@ -356,56 +356,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             </p>
           </div>
 
-          {/* Intent Selection */}
-          <div className="mb-5 bg-[#faf7f0] p-1.5 rounded-2xl border border-[#e8e2d5]">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-[#8c867c] px-2 py-1 mb-1">
-              {t("Choisir votre profil d'accès")}
-            </div>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedRole('traveler');
-                  setErrorMessage(null);
-                }}
-                className={`p-2.5 rounded-xl text-left transition-all flex flex-col gap-0.5 border ${
-                  selectedRole === 'traveler'
-                    ? 'bg-white text-[#2c2926] border-[#c14e2f] shadow-sm ring-2 ring-[#c14e2f]/20'
-                    : 'bg-transparent text-[#6b665e] border-transparent hover:bg-white/60'
-                }`}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Compass className={`w-4 h-4 ${selectedRole === 'traveler' ? 'text-[#c14e2f]' : 'text-[#8c867c]'}`} />
-                  <span className="text-xs font-bold">{t('Voyageur')}</span>
-                </div>
-                <span className="text-[10px] text-[#8c867c] leading-tight">
-                  {t('Découverte & visites')}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedRole('guide');
-                  setErrorMessage(null);
-                }}
-                className={`p-2.5 rounded-xl text-left transition-all flex flex-col gap-0.5 border ${
-                  selectedRole === 'guide'
-                    ? 'bg-white text-[#2c2926] border-[#5a5a40] shadow-sm ring-2 ring-[#5a5a40]/20'
-                    : 'bg-transparent text-[#6b665e] border-transparent hover:bg-white/60'
-                }`}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Award className={`w-4 h-4 ${selectedRole === 'guide' ? 'text-[#5a5a40]' : 'text-[#8c867c]'}`} />
-                  <span className="text-xs font-bold">{t('Guide / Médiateur')}</span>
-                </div>
-                <span className="text-[10px] text-[#8c867c] leading-tight">
-                  {t('Demande d’agrément')}
-                </span>
-              </button>
-            </div>
-          </div>
-
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
@@ -614,7 +564,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 : (selectedRole === 'guide' ? t('Nouveau médiateur ? Déposer une demande d’agrément') : t('Nouveau voyageur ? Créer un compte'))}
             </button>
 
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center justify-between gap-3 pt-1">
               <button
                 type="button"
                 onClick={onCancel}
@@ -623,17 +573,34 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 ← {t('Continuer en invité')}
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setPortalMode('admin');
-                  resetNotices();
-                }}
-                className="text-[11px] text-[#8c867c] hover:text-[#2c2926] flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-[#faf7f0] border border-transparent hover:border-[#e8e2d5] transition-all cursor-pointer"
-              >
-                <Shield className="w-3.5 h-3.5 text-amber-600" />
-                <span className="font-semibold text-[#5a5a40]">{t('Portail Conservateur & Admin')}</span>
-              </button>
+              {/* L'agrément se demande, il ne se choisit pas : un candidat n'a pas de porte
+                  au sens où un visiteur en a une. Le lien reste en note de bas de carte, et
+                  le portail admin, lui, n'est jamais proposé ici — il suit le claim Firebase. */}
+              {selectedRole === 'guide' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRole('traveler');
+                    setIsSignUp(false);
+                    resetNotices();
+                  }}
+                  className="text-[11px] text-[#8c867c] hover:text-[#2c2926] cursor-pointer"
+                >
+                  {t('Retour à l’accès voyageur')}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRole('guide');
+                    setIsSignUp(true);
+                    resetNotices();
+                  }}
+                  className="text-[11px] text-[#8c867c] hover:text-[#5a5a40] underline underline-offset-2 decoration-[#d6cfbe] hover:decoration-[#5a5a40] cursor-pointer"
+                >
+                  {t('Vous encadrez des visites ? Demander un agrément')}
+                </button>
+              )}
             </div>
           </div>
         </div>
