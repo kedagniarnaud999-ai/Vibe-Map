@@ -13,6 +13,11 @@ import { Place, ItineraryStop } from '../../types';
 import { apiFetch, saveItineraryToFirestore } from '../../lib/firebase';
 import { useI18n } from '../../lib/i18n';
 
+// Le parcours conseillé tient en trois temps de journée : pas d'horaire précis que
+// personne n'aurait mesuré, mais un ordre lisible. Les libellés restent passés à t()
+// en littéraux, seuls vérifiables par le gate des traductions.
+const ADVISED_STEPS = 3;
+
 interface ItineraryBuilderScreenProps {
   places: Place[];
   onSelectPlace: (place: Place) => void;
@@ -76,20 +81,27 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
         body: {
           duration,
           interests: selectedInterests,
-          userVibe: 'Explorateur Immersif du Patrimoine'
+          userVibe: 'Explorateur Immersif du Patrimoine',
+          places: places.map((p) => ({ id: p.id, name: p.name, location: p.location }))
         }
       });
 
       if (data.timeline && Array.isArray(data.timeline) && data.timeline.length > 0) {
         const stops: ItineraryStop[] = data.timeline.map((s: any, idx: number) => ({
           id: `stop-${idx + 1}`,
-          time: s.time || '09:00',
-          placeId: s.placeId || (places[idx % places.length]?.id ?? 'ouidah-python'),
-          title: s.title || 'Visite Culturelle',
-          description: s.description || 'Immersion patrimoniale au cœur des traditions.',
-          insight: s.insight || 'Saluez toujours les aînés et gardiens du sanctuaire.',
-          transitTime: s.transitTime || '10 min',
-          transitMode: 'walk',
+          // Une heure, un trajet ou une règle de conduite que le modèle n'a pas
+          // donnés ne doivent pas être comblés par l'application : ils passeraient
+          // pour mesurés, et ils sont enregistrés tels quels dans le parcours.
+          time: typeof s.time === 'string' ? s.time.trim() : '',
+          placeId: typeof s.placeId === 'string' && s.placeId ? s.placeId : null,
+          title: typeof s.title === 'string' && s.title ? s.title : t('Visite Culturelle'),
+          description:
+            typeof s.description === 'string' && s.description
+              ? s.description
+              : t('Immersion patrimoniale au cœur des traditions.'),
+          insight: typeof s.insight === 'string' ? s.insight.trim() : '',
+          transitTime:
+            typeof s.transitTime === 'string' && s.transitTime ? s.transitTime : undefined,
           icon: 'sparkles',
           color: 'bg-primary',
         }));
@@ -103,59 +115,26 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
       console.warn('Gemini itinerary API unavailable, using curated sequence:', e);
     }
 
-    // Curated sequence: real sites, written offline. Labelled as such below the timeline.
+    // Le parcours conseillé prend le catalogue réellement chargé : noms, résumés
+    // et règles de tenue viennent des fiches elles-mêmes. Chaque étape mène donc à
+    // une fiche qui existe, avec le libellé que le visiteur voit déjà sur la carte.
     setTimeout(() => {
       setIsGenerating(false);
-      const stops: ItineraryStop[] = [
-        {
-          id: 'stop-1',
-          time: '09:00 AM',
-          placeId: 'temple-of-pythons',
-          title: 'Temple of Pythons & The Sacred Covenant',
-          description: 'Begin with morning silence as the temple awakens. Observe the sacred royal pythons and learn about the covenant between Dangbé and Ouidah.',
-          insight: 'Vibe Tip: Ask the keeper for the traditional greeting "Akwaba" and remember to step inside with bare feet.',
-          transitTime: '15 min walk through historical quarter',
-          transitMode: 'walk',
-          icon: 'sparkles',
-          color: 'bg-primary',
-        },
-        {
-          id: 'stop-2',
-          time: '10:30 AM',
-          placeId: 'sacred-forest-kpasse',
-          title: 'Sacred Forest of Kpassè: The King’s Tree',
-          description: 'Walk beneath the 400-year-old sacred Iroko tree where King Kpassè was transformed to protect his kingdom.',
-          insight: 'Vibe Tip: Keep discussions to a gentle whisper; local tradition honors the forest as a listening space.',
-          transitTime: '10 min zemidjan (taxi) ride',
-          transitMode: 'taxi',
-          icon: 'forest',
-          color: 'bg-secondary',
-        },
-        {
-          id: 'stop-3',
-          time: '12:30 PM',
-          placeId: 'fondation-zinsou',
-          title: 'Fondation Zinsou & Textile Heritage',
-          description: 'Observe how contemporary African artists reinterpret royal Fon appliqué tapestries with modern mediums.',
-          insight: 'Vibe Tip: Free entrance. The reading room on the top floor has rare books on Dahomey metallurgy.',
-          transitTime: '20 min scenic coastal drive',
-          transitMode: 'taxi',
-          icon: 'palette',
-          color: 'bg-tertiary',
-        },
-        {
-          id: 'stop-4',
-          time: '03:30 PM',
-          placeId: 'door-of-no-return',
-          title: 'The Door of No Return: Sunset Meditation',
-          description: 'End at the Atlantic coastline memorial archway for quiet reflection and sea breeze.',
-          insight: 'Vibe Tip: Stand beneath the bronze arch as the Atlantic waves break in rhythm with ancestral memory.',
-          icon: 'map-pin',
-          color: 'bg-primary-container',
-        }
-      ];
-
-      setGeneratedTimeline(stops);
+      const advised = places.slice(0, ADVISED_STEPS);
+      if (advised.length === 0) {
+        setGenerateError(t('Aucune fiche de lieu n’est disponible : rien à proposer pour l’instant.'));
+        return;
+      }
+      setGeneratedTimeline(advised.map((place, idx) => ({
+        id: `stop-${idx + 1}`,
+        time: idx === 0 ? t('Matinée') : idx === 1 ? t('Mi-journée') : t('Fin de journée'),
+        placeId: place.id,
+        title: place.name,
+        description: place.description,
+        insight: place.etiquette[0]?.description ?? '',
+        icon: 'sparkles',
+        color: 'bg-primary',
+      })));
       setTimelineSource('curated');
     }, 800);
   };
@@ -340,11 +319,13 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
 
                   {/* Stop Card */}
                   <div className="bg-white rounded-2xl p-5 border border-[#e8e2d5] shadow-sm space-y-3">
-                    <div className="flex items-center">
-                      <span className="px-2.5 py-0.5 rounded-md bg-[#efece2] text-[#3a3a28] font-mono text-xs font-bold">
-                        {stop.time}
-                      </span>
-                    </div>
+                    {stop.time && (
+                      <div className="flex items-center">
+                        <span className="px-2.5 py-0.5 rounded-md bg-[#efece2] text-[#3a3a28] font-mono text-xs font-bold">
+                          {stop.time}
+                        </span>
+                      </div>
+                    )}
 
                     <div>
                       <h4 className="font-serif font-bold text-base text-[#2c2926]">
@@ -356,10 +337,12 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
                     </div>
 
                     {/* Vibe Tip Insight Box */}
-                    <div className="p-3 rounded-xl bg-[#f0ece1] border border-[#e8e2d5] text-xs text-[#5a5a40] font-medium flex items-start gap-2">
-                      <Sparkles className="w-3.5 h-3.5 text-[#c14e2f] flex-shrink-0 mt-0.5" />
-                      <span>{stop.insight}</span>
-                    </div>
+                    {!!stop.insight && (
+                      <div className="p-3 rounded-xl bg-[#f0ece1] border border-[#e8e2d5] text-xs text-[#5a5a40] font-medium flex items-start gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-[#c14e2f] flex-shrink-0 mt-0.5" />
+                        <span>{stop.insight}</span>
+                      </div>
+                    )}
 
                     {matchedPlace && (
                       <button

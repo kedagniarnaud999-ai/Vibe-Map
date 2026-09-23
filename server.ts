@@ -49,7 +49,8 @@ const LIMITS = {
   deepHistory: 8000,
   historyItems: 4,
   interests: 12,
-  stops: 40
+  stops: 40,
+  candidates: 120
 };
 
 // Lazy initialization of Gemini AI
@@ -157,6 +158,27 @@ function boundedStringList(value: unknown, maxItems: number, maxLength: number):
   return Array.isArray(value)
     ? value.map((item) => boundedString(item, maxLength)).filter(Boolean).slice(0, maxItems)
     : [];
+}
+
+// Les fiches que le voyageur a sous les yeux, telles que le client les envoie.
+// Un itinéraire ne peut s'appuyer que sur ces lieux-là : le prompt n'en énumère
+// aucun autre, et tout identifiant rendu hors de cette liste est rejeté.
+function catalogueCandidates(value: unknown): Array<{ id: string; name: string; location: string }> {
+  if (!Array.isArray(value)) return [];
+  const candidates: Array<{ id: string; name: string; location: string }> = [];
+  for (const item of value) {
+    if (!item || typeof item !== 'object') continue;
+    const id = boundedString((item as { id?: unknown }).id, LIMITS.identifier);
+    const name = boundedString((item as { name?: unknown }).name, LIMITS.name);
+    if (!id || !name) continue;
+    candidates.push({
+      id,
+      name: name.replace(/\s+/g, ' '),
+      location: boundedString((item as { location?: unknown }).location, LIMITS.label).replace(/\s+/g, ' ')
+    });
+    if (candidates.length >= LIMITS.candidates) break;
+  }
+  return candidates;
 }
 
 function verifiedEmail(req: AuthRequest, res: Response): string | undefined {
@@ -557,6 +579,11 @@ Format de sortie strict en JSON valide:
     const duration = boundedString(req.body?.duration, LIMITS.tag) || '1 jour';
     const interests = boundedStringList(req.body?.interests, LIMITS.interests, LIMITS.tag);
     const userVibe = boundedString(req.body?.userVibe, LIMITS.label) || 'Explorateur Immersif';
+    const places = catalogueCandidates(req.body?.places);
+
+    if (places.length === 0) {
+      return res.status(400).json({ error: "Aucune fiche de lieu transmise : l'itinéraire n'aurait rien auquel se raccrocher." });
+    }
 
     try {
       const ai = getAI();
@@ -565,9 +592,16 @@ Format de sortie strict en JSON valide:
         return aiUnavailable(res);
       }
 
+      const placeLines = places
+        .map((p) => `- ${p.id} — ${p.name}${p.location ? `, ${p.location}` : ''}`)
+        .join('\n');
+
       const prompt = `Génère un itinéraire culturel fluide et séquentiel au Bénin pour une durée de "${duration}" avec les centres d'intérêt suivants: ${interests.length > 0 ? interests.join(', ') : 'Patrimoine, Spiritualité Vodun, Histoire'}. Le style du voyageur est "${userVibe}".
 
-Chaque étape doit comporter des heures précises, un titre évocateur, une description captivante, un conseil d'initié (insight/étiquette), un temps de trajet estimé (transitTime), et un identifiant de lieu associé parmi ('ouidah-python', 'abomey-palaces', 'ganvie-village', 'slave-route', 'porte-non-retour', 'porto-novo-adjina', 'allada-togudo', 'ouidah-zinsou').
+Les seuls lieux sur lesquels compter, avec leur identifiant exact :
+${placeLines}
+
+Chaque étape doit comporter des heures précises, un titre évocateur, une description captivante, un conseil d'initié (insight/étiquette), un temps de trajet estimé (transitTime), et un "placeId" repris mot pour mot de la liste ci-dessus. Ne propose aucun lieu, aucun monument ni aucune adresse absent de cette liste : si un temps fort manque, organise la journée avec ce qui est disponible.
 
 Format de sortie en JSON strict:
 {
@@ -578,7 +612,7 @@ Format de sortie en JSON strict:
       "description": "Courte description évocatrice (2 phrases)",
       "insight": "Conseil d'étiquette ou anecdote culturelle secrète",
       "transitTime": "15 min en Zémidjan",
-      "placeId": "ouidah-python"
+      "placeId": "${places[0].id}"
     }
   ]
 }`;
@@ -592,37 +626,20 @@ Format de sortie en JSON strict:
       }), 7000);
 
       const parsed = JSON.parse(response.text || '{"timeline": []}');
+      const known = new Set(places.map((p) => p.id));
+      if (Array.isArray(parsed.timeline)) {
+        parsed.timeline = parsed.timeline.map((stop: unknown) => {
+          if (!stop || typeof stop !== 'object') return stop;
+          const placeId = boundedString((stop as { placeId?: unknown }).placeId, LIMITS.identifier);
+          return { ...stop, placeId: known.has(placeId) ? placeId : null };
+        });
+      }
       return res.json(parsed);
     } catch (err: any) {
       console.warn("Gemini Itinerary API fallback triggered:", err?.message || err);
-      return res.json({
-        timeline: [
-          {
-            time: '08:30',
-            title: 'Temple des Pythons & Sanctuaire Sacré Dangbé',
-            description: 'Immersion respectueuse dans le sanctuaire totémique de Ouidah.',
-            insight: 'Retirer chaussures et lunettes de soleil avant d’entrer dans la case sacrée.',
-            transitTime: '15 min de marche',
-            placeId: 'ouidah-python'
-          },
-          {
-            time: '11:00',
-            title: 'La Route des Esclaves & Arbre de l’Oubli',
-            description: 'Marche mémorielle commentée par un historien de la communauté.',
-            insight: 'Observer un moment de recueillement sous l’Arbre du Retour.',
-            transitTime: '20 min en Zémidjan',
-            placeId: 'slave-route'
-          },
-          {
-            time: '14:30',
-            title: 'Porte du Non-Retour & Méditation Littorale',
-            description: 'Arrivée sur la plage atlantique face au monument mémoriel de bronze.',
-            insight: 'Les couchers de soleil y sont particulièrement propices à la méditation historique.',
-            transitTime: '25 min en pirogue ou taxi',
-            placeId: 'porte-non-retour'
-          }
-        ]
-      });
+      // Une journée préécrite servie en 200 serait prise pour une réponse du
+      // modèle. Le client garde son parcours conseillé, et l'affiche comme tel.
+      return res.json({ timeline: [] });
     }
   });
 
