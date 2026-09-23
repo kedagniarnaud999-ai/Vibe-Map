@@ -24,6 +24,28 @@ function* walk(dir) {
   }
 }
 
+/**
+ * Encodage double : un fichier UTF-8 relu comme latin1 puis re-ecrit en UTF-8
+ * remplace chaque accent par deux caracteres illisibles. Le texte affiche ne
+ * ressemble plus a rien et la cle ne correspond plus a aucune entree anglaise.
+ * Ni tsc ni la couverture de traduction ne le voyaient : le badge de
+ * demonstration a traverse les quatre gates et est parti en production.
+ */
+const MOJIBAKE = /[\u00c2\u00c3][\u0080-\u00bf]|\u00e2[\u0080-\u009f]/;
+
+function garbledSources() {
+  const found = [];
+  for (const file of walk(SRC)) {
+    const rel = relative(ROOT, file).replaceAll('\\', '/');
+    readFileSync(file, 'utf8')
+      .split('\n')
+      .forEach((line, index) => {
+        if (MOJIBAKE.test(line)) found.push(`${rel}:${index + 1} ${line.trim().slice(0, 70)}`);
+      });
+  }
+  return found;
+}
+
 /** Les litteraux passes a t() : chaine simple, double, ou template sans interpolation. */
 const CALL = /(?<![.\w])t\(\s*('([^'\\\n]|\\.)*'|"([^"\\\n]|\\.)*"|`([^`\\]|\\.)*`)/g;
 
@@ -94,5 +116,14 @@ if (unused.length) {
 
 if (STRICT && missing.size) {
   console.error(`\n${missing.size} chaine(s) sans traduction anglaise en mode strict.`);
+  process.exit(1);
+}
+
+// Un source double-encode n'est pas une dette de traduction : le texte est casse
+// a l'ecran, en francais comme en anglais. Bloquant, meme hors mode strict.
+const garbled = garbledSources();
+if (garbled.length) {
+  console.error(`\nEncodage double dans les sources (${garbled.length}) :`);
+  for (const entry of garbled) console.error(`  ${entry}`);
   process.exit(1);
 }
