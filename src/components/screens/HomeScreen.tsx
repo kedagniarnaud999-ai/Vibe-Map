@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Search, 
   MapPin, 
@@ -14,6 +14,7 @@ import { Place, Story, Actor, Category, ScreenId, CulturalEvent } from '../../ty
 import { commonsPage, creditLine, monogram } from '../../lib/media';
 import { useI18n } from '../../lib/i18n';
 import { useCategoryLabel } from '../../lib/labels';
+import { DemoProfileBadge } from '../DemoProfileBadge';
 
 interface HomeScreenProps {
   places: Place[];
@@ -41,6 +42,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Avant-banniere : une structure et un guide, pour que les deux natures restent visibles ici.
+  const spotlightActors = useMemo(() => {
+    const structure = actors.find((a) => a.kind === 'structure');
+    const guide = actors.find((a) => a.kind === 'guide');
+    return [structure, guide].filter((a): a is Actor => a !== undefined);
+  }, [actors]);
 
   // Les valeurs restent les enumerations persistees de Place : seuls les libelles passent par t().
   const categories = [
@@ -371,10 +379,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-serif text-lg font-bold text-[#2c2926]">
-              {t('Structures publiques et institutions culturelles')}
+              {t('Guides et structures d’accueil')}
             </h3>
             <p className="text-xs text-[#6b665e]">
-              {t('Adresses officielles et guichets de site')}
+              {t('Une institution qui publie ses coordonnées, un profil guide, et le reste dans l’annuaire.')}
             </p>
           </div>
           <button
@@ -386,7 +394,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {actors.slice(0, 2).map((actor) => (
+          {spotlightActors.map((actor) => (
             <div
               key={actor.id}
               onClick={() => onSelectActor(actor)}
@@ -415,6 +423,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <p className="text-[11px] text-[#6b665e] flex items-center gap-1 mt-1 truncate">
                   <MapPin className="w-3 h-3 text-[#8c867c] flex-shrink-0" /> {actor.location}
                 </p>
+                {actor.isDemo && (
+                  <div className="pt-1.5">
+                    <DemoProfileBadge />
+                  </div>
+                )}
               </div>
             </div>
           ))}

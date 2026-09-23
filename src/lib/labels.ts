@@ -1,4 +1,4 @@
-import { Category, UserRole } from '../types';
+import { ActorKind, Category, UserRole } from '../types';
 import { useI18n } from './i18n';
 
 /**
@@ -34,4 +34,16 @@ export const useRoleLabel = () => {
   };
 
   return (value: UserRole) => labels[value] ?? value;
+};
+
+/** La nature d'un profil d'annuaire est une donnee, pas une deviation du texte du role. */
+export const useActorKindLabel = () => {
+  const { t } = useI18n();
+
+  const labels: Record<ActorKind, string> = {
+    structure: t('Structure'),
+    guide: t('Guide')
+  };
+
+  return (value: ActorKind) => labels[value] ?? value;
 };

@@ -306,8 +306,8 @@ export default function App() {
       case 'actors':
         return {
           show: true,
-          title: t('Structures d’accueil'),
-          subtitle: t('Bureaux publics, musées et fondations du Bénin'),
+          title: t('Guides & structures'),
+          subtitle: t('Adresses officielles et profils guides'),
           showBack: true
         };
       case 'itinerary-builder':

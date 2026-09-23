@@ -25,7 +25,7 @@ export const EN: Record<string, string> = {
   'Sites et sanctuaires réels du Bénin': 'Real sites and sanctuaries of Benin',
   'Bibliothèque Culturelle': 'Cultural Library',
   'Récits, proverbes et symboles royaux': 'Stories, proverbs and royal symbols',
-  'Bureaux publics, musées et fondations du Bénin': 'Public offices, museums and foundations of Benin',
+  'Adresses officielles et profils guides': 'Official addresses and guide profiles',
   'Tissez Votre Immersion': 'Weave Your Immersion',
   'Séquencement culturel et enregistrement au Passeport': 'Cultural sequencing, saved to your Passport',
   'Passeport Culturel': 'Cultural Passport',
@@ -380,13 +380,14 @@ export const EN: Record<string, string> = {
   'Étape {n}': 'Step {n}',
   'Commencer l’Expérience': 'Start the Experience',
 
-  'Ressources Locales de Confiance': 'Trusted Local Resources',
+  'Ressources locales au Bénin': 'Local resources in Benin',
 '1 avis': '1 review',
   '{count} avis': '{count} reviews',
   '{count} an d’expérience': '{count} year of experience',
   '{count} ans d’expérience': '{count} years of experience',
   'Voir le profil': 'View Profile',
-  'Profil du Médiateur': 'Mediator Profile',
+  'Profil du Guide': 'Guide Profile',
+  'Fiche de la structure': 'Venue Profile',
   'À propos & Références': 'About & Credentials',
   'Domaines d’Expertise Culturelle': 'Areas of Cultural Expertise',
   'Expériences Sélectionnées': 'Curated Experiences',
@@ -428,15 +429,20 @@ export const EN: Record<string, string> = {
 'Enregistrement impossible. Vérifiez que votre session est toujours active.': 'Could not save. Check that you are still signed in.',
   'Photo : {credit}': 'Photo: {credit}',
   'Contact officiel': 'Official contact',
-  'Structures publiques et institutions culturelles': 'Public bodies and cultural institutions',
-  'Adresses officielles pour préparer une visite, vérifier les conditions d’accès et s’orienter vers un encadrement reconnu.':
-    'Official addresses to prepare a visit, check access conditions and find your way to recognised guidance.',
-  'Adresses officielles et guichets de site': 'Official addresses and site desks',
+  'Guides et structures d’accueil': 'Guides and hospitality venues',
+  'Adresses officielles pour préparer une visite, et profils de ceux qui accompagnent les sites.':
+    'Official addresses to prepare a visit, and profiles of those who guide you on site.',
   'Ce que cet annuaire garantit': 'What this directory guarantees',
-  'Seules des structures existantes du Bénin sont référencées, avec leurs coordonnées publiques. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission sur une mise en relation.':
-    'Only existing organisations in Benin are listed, with their public contact details. La Vibe Map certifies no mediator and takes no commission on an introduction.',
-  'Rechercher une structure, un secteur ou une ville...': 'Search an organisation, a sector or a city...',
-  'Aucune structure ne correspond à cette recherche.': 'No organisation matches this search.',
+  'Les structures référencées existent et publient leurs coordonnées. Un profil marqué « démonstration » est un modèle de mise en page : aucune personne derrière, aucune mise en relation possible. La Vibe Map ne certifie aucun médiateur et ne prend aucune commission sur une mise en relation.':
+    'Listed venues exist and publish their contact details. A profile marked “demo” is a layout template: no one stands behind it and no introduction is possible. La Vibe Map certifies no mediator and takes no commission on an introduction.',
+  'Rechercher un guide, une structure, un secteur ou une ville...': 'Search a guide, a venue, a sector or a city...',
+  'Guides & structures': 'Guides & venues',
+  'Guides': 'Guides',
+  'Structure': 'Venue',
+  'Profil de démonstration': 'Demo profile',
+  'Aucun profil ne correspond à cette recherche.': 'No profile matches this search.',
+  'Une institution qui publie ses coordonnées, un profil guide, et le reste dans l’annuaire.':
+    'One institution that publishes its contact details, one guide profile, and the rest in the directory.',
   'Préparer sa visite': 'Planning your visit',
   'Consulter les structures d’accueil': 'Browse the directory of institutions',
   'Zone Sécurisée & Dissociée': 'Secure, Separated Zone',
@@ -580,8 +586,8 @@ export const EN: Record<string, string> = {
   'Demandes de Visites & Immersions ({n})': 'Tour & Immersion Requests ({n})',
   'Chargement de vos réservations...': 'Loading your bookings...',
   'Aucune réservation directe pour le moment': 'No direct booking for now',
-  "Votre profil est visible par les voyageurs sur la carte et le répertoire des médiateurs. Dès qu'un voyageur réserve une expérience, elle apparaîtra ici.":
-    'Your profile is visible to travellers on the map and in the mediator directory. As soon as a traveller books an experience, it will appear here.',
+  "Votre profil est visible par les voyageurs dans l’annuaire des guides et structures. Dès qu'un voyageur réserve une expérience, elle apparaîtra ici.":
+    'Your profile is visible to travellers in the guides and venues directory. As soon as a traveller books an experience, it will appear here.',
   "L'état d'une réservation se confirme depuis la console d'administration : le portail médiateur reste en lecture tant qu'aucun compte n'est rattaché à une fiche médiateur.":
     'A booking status is confirmed from the admin console: the mediator portal stays read-only while no account is linked to a mediator profile.',
   'Mes Expériences & Itinéraires Proposés': 'My Experiences & Proposed Itineraries',

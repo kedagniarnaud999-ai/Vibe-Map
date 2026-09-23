@@ -751,6 +751,62 @@ export const ACTOR_CONTENT_EN: Record<string, ActorContentEn> = {
           'Support for itineraries, reception infrastructure and destination promotion.'
       }
     ]
+  },
+  'guide-demo-abomey': {
+    role: 'Royal palaces guide · Abomey',
+    quote: 'The earth walls tell of twelve reigns: you only have to know where to look.',
+    bio: 'Layout model, with no reachable person behind it. It shows what a guide in Abomey could present: the courts built by twelve rulers from 1625 to 1900, the applied hangings and bas-reliefs, and the protocol owed to altars still in use.',
+    languages: ['French', 'Fon', 'English'],
+    expertise: [
+      {
+        title: 'Royal courts',
+        description:
+          'Reading the earthen enclosures, altars and applied décor of the palaces of Abomey.'
+      },
+      {
+        title: 'Visiting protocol',
+        description:
+          'Customs at sites that remain alive, photography rights, and the escort the museum asks for.'
+      }
+    ]
+  },
+  'guide-demo-ouidah': {
+    role: 'Memory of Ouidah · slave route',
+    quote:
+      'From the auction square to the ocean the route is short: it is walked in silence.',
+    bio: 'Layout model, with no reachable person behind it. It shows what a guide in Ouidah could present: the memorial path to the Door of No Return, the Dangbé python temple, and the gestures the beach forbids.',
+    languages: ['French', 'Fon', 'English'],
+    expertise: [
+      {
+        title: 'Memorial path',
+        description:
+          'The route from the auction square to the beach, with the stops along the way and the moments of silence.'
+      },
+      {
+        title: 'Vodun sites of Ouidah',
+        description:
+          'Python temple and Afro-Brazilian houses: customs of the place and the contribution asked for taking photographs.'
+      }
+    ]
+  },
+  'guide-demo-ganvie': {
+    role: 'Lakeside city guide · Ganvié',
+    quote:
+      'On the lake you are not visiting a town: you are crossing the life of forty thousand people.',
+    bio: 'Layout model, with no reachable person behind it. It shows what a guide in Ganvié could present: the stilt habitat of lake Nokoué, lakeside fishing, the Tofinu language heard on site, and the agreements to seek before filming a family.',
+    languages: ['French', 'Tofinu', 'English'],
+    expertise: [
+      {
+        title: 'City on the water',
+        description:
+          'Stilt neighbourhoods, travel by pirogue, and the Tofinu memory of an 18th-century refuge.'
+      },
+      {
+        title: 'Lake and fishing',
+        description:
+          'Days of lakeside fishing, the gestures that protect the lake, and the rules for passing in front of homes.'
+      }
+    ]
   }
 };
 

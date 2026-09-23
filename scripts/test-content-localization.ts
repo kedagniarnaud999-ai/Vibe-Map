@@ -7,6 +7,8 @@ import {
   localizeStory
 } from '../src/lib/content';
 import { PLACES_DATA } from '../src/data/places';
+import { ACTORS_DATA } from '../src/data/actors';
+import { ACTOR_CONTENT_EN } from '../src/data/content-en';
 import type { Actor, CulturalEvent, Place, Story } from '../src/types';
 
 const place: Place = {
@@ -49,6 +51,7 @@ const actor: Actor = {
   id: 'actor-1',
   name: 'Institution',
   role: 'Rôle français',
+  kind: 'structure',
   location: 'Bénin',
   badgeTitle: 'Badge français',
   quote: 'Citation française',
@@ -167,5 +170,20 @@ const localizedEvent = localizeEvent(event, 'en', {
 assert.equal(localizedEvent.accessType, 'English access');
 
 assert.strictEqual(localizeEvent(event, 'en'), event);
+
+const demoGuides = ACTORS_DATA.filter((entry) => entry.isDemo);
+assert.ok(demoGuides.length > 0, 'at least one layout model profile must be listed');
+for (const demo of demoGuides) {
+  assert.equal(demo.kind, 'guide', `${demo.id} is a layout model, so it must read as a guide`);
+  assert.equal(demo.contact, undefined, `${demo.id} must stay unreachable: no phone, mail or link`);
+  assert.equal(demo.rating, undefined, `${demo.id} must not display an invented rating`);
+  assert.equal(demo.badgeTitle, undefined, `${demo.id} must not claim a verified status`);
+  assert.deepEqual(demo.experiences, [], `${demo.id} must not offer a bookable experience`);
+  assert.deepEqual(demo.reviews, [], `${demo.id} must not display invented reviews`);
+  const localized = localizeActor(demo, 'en', ACTOR_CONTENT_EN[demo.id]);
+  assert.notStrictEqual(localized, demo, `${demo.id} has no English fallback: French would leak`);
+  assert.notEqual(localized.role, demo.role, `${demo.id} role must be translated`);
+  assert.notEqual(localized.bio, demo.bio, `${demo.id} bio must be translated`);
+}
 
 console.log('Content localization contract passed.');
