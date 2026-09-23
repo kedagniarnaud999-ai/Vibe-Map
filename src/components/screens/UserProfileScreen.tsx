@@ -435,7 +435,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                   {t('Dossier Transmis avec Succès !')}
                 </h4>
                 <p className="text-xs text-[#6b665e] max-w-xs mx-auto">
-                  {t("Votre demande d'agrément a été transmise aux conservateurs. Vous recevrez une notification dès validation.")}
+                  {t("Votre demande d'agrément est transmise aux conservateurs. Si elle est validée, le rôle guide est accordé à votre compte et vos sessions en cours sont closes : l'accès au portail se prend à votre prochaine connexion. Aucune notification ne part vers vous.")}
                 </p>
               </div>
             ) : (

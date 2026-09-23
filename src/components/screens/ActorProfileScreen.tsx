@@ -28,12 +28,17 @@ interface ActorProfileScreenProps {
   requireSession: () => boolean;
 }
 
+// Valeur exacte du premier créneau proposé au <select> plus bas. Initialiser l'état
+// hors de cette liste laisse le sélecteur vide à l'écran et enregistre, dans la
+// réservation, un horaire que le voyageur n'a pourtant jamais choisi.
+const FIRST_SLOT = 'Tomorrow, 09:00 AM (Recommended Morning Sanctuary Walk)';
+
 export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, onBack, requireSession }) => {
   const { t } = useI18n();
   const [selectedExperience, setSelectedExperience] = useState<any | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState('');
-  const [bookingDate, setBookingDate] = useState('Tomorrow, 10:00 AM');
+  const [bookingDate, setBookingDate] = useState(FIRST_SLOT);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openBookingDrawer = (exp: any) => {
@@ -368,10 +373,10 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h4 className="font-serif font-bold text-xl text-[#2c2926]">
-                  {t('Introduction Confirmée !')}
+                  {t('Demande enregistrée')}
                 </h4>
                 <p className="text-xs text-[#6b665e] max-w-xs mx-auto">
-                  {t('{name} a été notifié. Vous recevrez les détails de rendez-vous et de protocole sur votre WhatsApp / SMS.', { name: actor.name })}
+                  {t('Votre demande est enregistrée au nom de votre compte et s’ajoute à la liste des réservations de l’équipe, avec l’adresse e-mail qui y est rattachée. Rien n’est envoyé automatiquement : ni un message à {name}, ni un SMS vers votre téléphone.', { name: actor.name })}
                 </p>
               </div>
             ) : (
@@ -401,7 +406,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                     className="w-full p-3 rounded-xl bg-white border border-[#e8e2d5] text-xs font-medium focus:border-[#c14e2f] focus:outline-none"
                   >
                     {/* value kept as the stored Firestore payload token; only the visible label is translated */}
-                    <option value="Tomorrow, 09:00 AM (Recommended Morning Sanctuary Walk)">
+                    <option value={FIRST_SLOT}>
                       {t('Demain, 09h00 (Randonnée matinale au sanctuaire, recommandée)')}
                     </option>
                     <option value="Tomorrow, 03:00 PM (Afternoon Sunset Walk)">

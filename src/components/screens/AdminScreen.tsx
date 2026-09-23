@@ -877,7 +877,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                         {t('Montant')} : {b.price}
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 bg-green-100 text-green-800 rounded-full font-bold text-[10px]">
+                    <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${
+                      b.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                      b.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                      b.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
                       {b.status.toUpperCase()}
                     </span>
                   </div>
