@@ -142,6 +142,12 @@ export const MapScreen: React.FC<MapScreenProps> = ({
       if (lower.includes('spirit') || lower.includes('vodun') || lower.includes('sanctuaire')) {
         return { label: t('Spirituel & Sanctuaires'), icon: '🕊️' };
       }
+      if (lower.includes('oral') || lower.includes('conte') || lower.includes('legende')) {
+        return { label: t('Histoire Orale'), icon: '🎙️' };
+      }
+      if (lower.includes('heritage') || lower.includes('patrimoine')) {
+        return { label: t('Patrimoine'), icon: '📜' };
+      }
       if (lower.includes('histor') || lower.includes('palais') || lower.includes('royaume') || lower.includes('monument')) {
         return { label: t('Histoire & Royaumes'), icon: '🏛️' };
       }

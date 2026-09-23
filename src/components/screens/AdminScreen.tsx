@@ -566,7 +566,9 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                       { id: 'Historical', label: t('🏛️ Palais & Histoire') },
                       { id: 'Nature', label: t('🌿 Nature & Cité Lacustre') },
                       { id: 'Arts', label: t('🎨 Arts & Artisanat') },
+                      { id: 'Heritage', label: t('📜 Patrimoine') },
                       { id: 'Food', label: t('🍲 Gastronomie') },
+                      { id: 'Oral History', label: t('🎙️ Histoire Orale') },
                       { id: 'Lodging', label: t('🛏️ Hébergement') },
                       { id: 'Leisure', label: t('🏖️ Loisirs') }
                     ].map((c) => (
@@ -917,6 +919,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                       <option value="Historical">{t('Historique & Royal')}</option>
                       <option value="Nature">{t('Nature & Écotourisme')}</option>
                       <option value="Arts">{t('Arts & Artisanat')}</option>
+                      <option value="Heritage">{t('Patrimoine')}</option>
+                      <option value="Food">{t('Gastronomie & Terroir')}</option>
+                      <option value="Oral History">{t('Histoire Orale')}</option>
+                      <option value="Lodging">{t('Hébergement & Séjours')}</option>
+                      <option value="Leisure">{t('Loisirs & Plages')}</option>
                     </select>
                   </div>
                 </div>
