@@ -49,7 +49,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     { value: 'Historical', label: t('Historique') },
     { value: 'Nature', label: t('Nature') },
     { value: 'Arts', label: t('Arts') },
+    { value: 'Heritage', label: t('Patrimoine') },
     { value: 'Food', label: t('Gastronomie') },
+    { value: 'Oral History', label: t('Histoire Orale') },
     { value: 'Lodging', label: t('Hébergement') },
     { value: 'Leisure', label: t('Loisirs') }
   ];

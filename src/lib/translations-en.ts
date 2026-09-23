@@ -278,6 +278,8 @@ export const EN: Record<string, string> = {
   '🍲 Gastronomie': '🍲 Food',
   '🛏️ Hébergement': '🛏️ Lodging',
   '🏖️ Loisirs': '🏖️ Leisure',
+  '📜 Patrimoine': '📜 Heritage',
+  '🎙️ Histoire Orale': '🎙️ Oral History',
   'Mon passeport culturel La Vibe Map : {n} site sacré enregistré.': 'My La Vibe Map cultural passport: {n} sacred site recorded.',
   'Mon passeport culturel La Vibe Map : {n} sites sacrés enregistrés.': 'My La Vibe Map cultural passport: {n} sacred sites recorded.',
   'Copie impossible': 'Copy failed',
