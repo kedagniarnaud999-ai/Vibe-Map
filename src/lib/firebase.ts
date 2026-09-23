@@ -367,7 +367,11 @@ export async function createBookingInFirestore(booking: BookingInput): Promise<s
       travelerUid,
       travelerEmail,
       travelerName,
-      status: 'confirmed',
+      // Une demande posée par le voyageur n'est pas une demande acceptée. Écrire
+      // `confirmed` ici supprimait tout l'usage du champ : la liste d'administration
+      // affichait chaque nouvelle réservation comme déjà traitée, sans moyen de repérer
+      // celles qui attendent.
+      status: 'pending',
       createdAt: new Date().toISOString(),
       timestamp: serverTimestamp()
     });

@@ -146,8 +146,8 @@ export const EN: Record<string, string> = {
   'Agrément Médiateur & Guide Culturel': 'Cultural Mediator & Guide Accreditation',
   'Formulaire officiel pour guides et conteurs du Bénin': 'Official form for guides and storytellers of Benin',
   'Dossier Transmis avec Succès !': 'Application Submitted!',
-  "Votre demande d'agrément a été transmise aux conservateurs. Vous recevrez une notification dès validation.":
-    'Your accreditation request has been sent to the curators. You will be notified once it is approved.',
+  "Votre demande d'agrément est transmise aux conservateurs. Si elle est validée, le rôle guide est accordé à votre compte et vos sessions en cours sont closes : l'accès au portail se prend à votre prochaine connexion. Aucune notification ne part vers vous.":
+    'Your accreditation request is passed to the curators. If it is approved, the guide role is granted to your account and your open sessions are closed: portal access comes at your next sign-in. No notification is sent to you.',
   'Nom & Prénom du Guide': 'Guide full name',
   'Numéro Téléphone / WhatsApp': 'Phone / WhatsApp number',
   "Années d'Expérience": 'Years of experience',
@@ -397,8 +397,9 @@ export const EN: Record<string, string> = {
   'Réserver cette expérience': 'Book this experience',
   'Avis des Voyageurs': 'Traveler Endorsements',
   'Demander une Introduction': 'Request Introduction',
-  'Introduction Confirmée !': 'Introduction Confirmed!',
-  '{name} a été notifié. Vous recevrez les détails de rendez-vous et de protocole sur votre WhatsApp / SMS.': '{name} has been notified. You will receive meeting and etiquette details on your WhatsApp / SMS.',
+  'Demande enregistrée': 'Request recorded',
+  'Votre demande est enregistrée au nom de votre compte et s’ajoute à la liste des réservations de l’équipe, avec l’adresse e-mail qui y est rattachée. Rien n’est envoyé automatiquement : ni un message à {name}, ni un SMS vers votre téléphone.':
+    'Your request is saved under your account and added to the team’s reservations list, along with the e-mail address attached to it. Nothing is sent automatically — no message to {name}, no text to your phone.',
   'Médiateur :': 'Mediator:',
   'Durée :': 'Duration:',
   'Honoraires :': 'Honorarium:',
