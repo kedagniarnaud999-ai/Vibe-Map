@@ -65,8 +65,6 @@ export interface Place {
     meaning: string;
   }[];
   coordinates: {
-    x: number; // percentage on map
-    y: number; // percentage on map
     lat: number;
     lng: number;
   };

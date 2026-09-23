@@ -238,8 +238,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       verifiedGuideIds: [],
       vocabulary: [],
       coordinates: {
-        x: 50,
-        y: 50,
         lat: coordinates.lat,
         lng: coordinates.lng
       }
@@ -298,8 +296,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       verifiedGuideIds: [],
       vocabulary: [],
       coordinates: {
-        x: 50,
-        y: 50,
         lat: latitude,
         lng: longitude
       }
