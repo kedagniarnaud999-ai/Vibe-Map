@@ -31,7 +31,7 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
   requireSession,
   onSaveItinerary
 }) => {
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const [duration, setDuration] = useState<'2h' | 'half-day' | 'full-day' | '3-days'>('half-day');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([
     'Spiritual Traditions',
@@ -82,7 +82,8 @@ export const ItineraryBuilderScreen: React.FC<ItineraryBuilderScreenProps> = ({
           duration,
           interests: selectedInterests,
           userVibe: 'Explorateur Immersif du Patrimoine',
-          places: places.map((p) => ({ id: p.id, name: p.name, location: p.location }))
+          places: places.map((p) => ({ id: p.id, name: p.name, location: p.location })),
+          lang
         }
       });
 
