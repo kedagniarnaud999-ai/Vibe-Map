@@ -232,13 +232,13 @@ export interface GuideApplication {
 export interface ItineraryStop {
   id: string;
   time: string;
-  placeId: string;
+  // Identifiant d'une fiche du catalogue, ou null quand l'étape n'en cite aucune :
+  // une étape non rattachée reste lisible, elle ne pointe pas sur un lieu deviné.
+  placeId: string | null;
   title: string;
   description: string;
   insight: string;
   transitTime?: string;
-  transitMode?: 'walk' | 'taxi' | 'boat';
-  image?: string;
   icon: string;
   color: string;
 }
