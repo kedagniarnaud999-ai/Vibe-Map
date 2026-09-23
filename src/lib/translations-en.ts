@@ -62,8 +62,6 @@ export const EN: Record<string, string> = {
     'Akwaba! I answer about the sacred sanctuaries of Ouidah, the royal palaces of Abomey, Vodun protocols, the Gaani festival, and greetings in Fon and Yoruba.',
   'Modèle {model} & recherche web documentée': 'Model {model} & documented web search',
   Maintenant: 'Now',
-  'Bienvenue chaleureuse pour franchir le seuil d’un sanctuaire ou d’une concession familiale.':
-    'A warm welcome as you cross the threshold of a sanctuary or a family compound.',
   'Dans les couvents et cours royales, saluez toujours avec la main droite et le regard bienveillant.':
     'In convents and royal courts, always greet with the right hand and a kind gaze.',
   'Quels sont les interdits du Temple des Pythons ?': 'What are the taboos at the Python Temple?',
@@ -72,8 +70,6 @@ export const EN: Record<string, string> = {
   'Pourquoi l’Iroko est-il sacré dans la forêt de Kpassè ?': 'Why is the Iroko sacred in the Kpassè forest?',
   'Dans la tradition béninoise et la culture Fon, la salutation est un acte sacré qui instaure la paix (Fífá). On salue toujours de la main droite, en s’inclinant légèrement face aux aînés.':
     'In Beninese tradition and Fon culture, greeting is a sacred act that establishes peace (Fífá). You always greet with the right hand, bowing slightly before elders.',
-  'Vous êtes-vous réveillé dans la paix ? (Salutation matinale respectueuse)':
-    'Did you wake in peace? (respectful morning greeting)',
   'Ne tendez jamais la main gauche lors d’un salut ou pour remettre un objet.':
     'Never offer the left hand when greeting or handing over an object.',
   'Au Temple des Pythons de Ouidah, les pythons royaux (Dangbé) sont tenus pour sacrés : le culte du python y est attesté depuis la fin du XVIIe siècle. On les observe sans les déplacer.':
@@ -90,8 +86,8 @@ export const EN: Record<string, string> = {
     'Speak in low voices in the sacred forest and do not touch the white cloth tied around the trunks.',
   'Au Bénin, chaque sanctuaire et tradition vivante s’appuie sur le respect des ancêtres et de la nature. Concernant votre question sur « {query} », les gardiens recommandent la sincérité, la retenue et l’écoute avant d’immortaliser les cérémonies.':
     'In Benin, every sanctuary and living tradition rests on respect for the ancestors and nature. Regarding your question about "{query}", the keepers recommend sincerity, restraint and listening before filming ceremonies.',
-  'La formule « Kou do agbé » (Que la paix soit avec vous) ouvre tous les cœurs.':
-    'The phrase "Kou do agbé" (May peace be with you) opens every heart.',
+  'Demandez l’accord des personnes et des gardiens avant de photographier une cérémonie ou un dignitaire.':
+    'Ask the people and the keepers before photographing a ceremony or a dignitary.',
   'Alimenté par {model} & données culturelles du Bénin': 'Powered by {model} & Benin cultural data',
   'Activer la recherche Google en direct sur le web': 'Enable live Google web search',
   'Recherche Web Active': 'Live Web Search On',
