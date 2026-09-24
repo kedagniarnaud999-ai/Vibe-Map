@@ -49,7 +49,7 @@ const USER_ROLES: readonly UserRole[] = ['traveler', 'guide', 'admin'];
 
 // Firestore keeps these for display only; the authorized role always comes from the ID token claims.
 const PROFILE_EDITABLE_FIELDS = [
-  'name', 'avatar', 'vibeTag', 'travelStyle', 'language', 'notificationsEnabled',
+  'name', 'avatar', 'travelStyle', 'language', 'notificationsEnabled',
   'interests', 'savedPlaces', 'completedStops', 'storiesCount'
 ] as const;
 
@@ -122,14 +122,16 @@ function editableProfileFields(user: Partial<UserProfile>): Record<string, unkno
   return fields;
 }
 
+/**
+ * Seed of a first session. `travelStyle` is deliberately absent: this object is written to
+ * Firestore, and a seeded rhythm would be stored as a preference the traveller never made.
+ */
 function travelerProfile(fbUser: FirebaseUser): UserProfile {
   return {
     id: fbUser.uid,
     name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Explorateur Culturel',
     email: fbUser.email || '',
     avatar: fbUser.photoURL || '',
-    vibeTag: 'Explorateur Passionné',
-    travelStyle: 'Cultural Deep-Dive',
     language: 'fr',
     role: 'traveler',
     notificationsEnabled: true,

@@ -22,7 +22,7 @@ import { getMyBookingsFromFirestore, BookingRecord } from '../../lib/firebase';
 import { formatBookingWhen, formatInstant } from '../../lib/slots';
 import { useI18n } from '../../lib/i18n';
 import { UserAvatar } from '../UserAvatar';
-import { useCategoryLabel, useBookingStatusLabel } from '../../lib/labels';
+import { useCategoryLabel, useBookingStatusLabel, useTravelStyleLabel } from '../../lib/labels';
 
 interface JournalScreenProps {
   user: UserPreferences;
@@ -51,6 +51,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
 
   const categoryLabel = useCategoryLabel();
   const bookingStatusLabel = useBookingStatusLabel();
+  const travelStyleLabel = useTravelStyleLabel();
 
   const loadRequests = async () => {
     setRequestsLoading(true);
@@ -149,7 +150,9 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
             <h3 className="font-serif font-bold text-lg leading-tight">
               {user.name}
             </h3>
-            <p className="text-xs text-[#d9822b] font-medium">{user.vibeTag}</p>
+            {user.travelStyle && (
+              <p className="text-xs text-[#d9822b] font-medium">{travelStyleLabel(user.travelStyle)}</p>
+            )}
           </div>
         </div>
 

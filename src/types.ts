@@ -176,13 +176,16 @@ export interface CulturalEvent {
   description: string;
 }
 
+/** Les trois rythmes proposés à l'écran de profil. Le mot stocké reste l'identifiant français. */
+export type TravelStyle = 'Relaxed' | 'Explorer' | 'Cultural Deep-Dive';
+
 export interface UserPreferences {
   id: string;
   name: string;
   email: string;
   avatar: string;
-  vibeTag: string;
-  travelStyle: 'Relaxed' | 'Explorer' | 'Cultural Deep-Dive';
+  // Absent tant que le voyageur n'a rien enregistré : aucun écran ne peut prêter un rythme.
+  travelStyle?: TravelStyle;
   language: string;
   role: UserRole;
   guideProfile?: {

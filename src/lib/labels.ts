@@ -1,4 +1,4 @@
-import { ActorKind, BookingStatus, Category, UserRole } from '../types';
+import { ActorKind, BookingStatus, Category, TravelStyle, UserRole } from '../types';
 import { useI18n } from './i18n';
 
 /**
@@ -65,4 +65,21 @@ export const useBookingStatusLabel = () => {
   };
 
   return (value: BookingStatus) => labels[value] ?? value;
+};
+
+/**
+ * Le rythme d'exploration est le seul gout que le voyageur choisisse lui-meme. Il est stocke
+ * par son identifiant (`'Cultural Deep-Dive'`) : la carte du passeport et l'ecran de profil
+ * partagent ce registre, pour que le meme choix ne s'affiche pas avec deux mots differents.
+ */
+export const useTravelStyleLabel = () => {
+  const { t } = useI18n();
+
+  const labels: Record<TravelStyle, string> = {
+    Relaxed: t('Doux'),
+    Explorer: t('Explorateur'),
+    'Cultural Deep-Dive': t('Immersion Profonde')
+  };
+
+  return (value: TravelStyle) => labels[value] ?? value;
 };

@@ -11,8 +11,9 @@ export async function getOrCreateUser(uid: string, email: string, name?: string,
         email,
         name: name || 'Voyageur Curieux',
         avatar: avatar || '',
-        vibeTag: vibeTag || 'Immersion & Spiritualité',
-        travelStyle: travelStyle || 'Explorer',
+        // Les deux colonnes sont nullables : ce que le client n'envoie pas reste inconnu.
+        vibeTag: vibeTag ?? null,
+        travelStyle: travelStyle ?? null,
       })
       .onConflictDoUpdate({
         target: users.uid,
