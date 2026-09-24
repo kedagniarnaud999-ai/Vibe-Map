@@ -22,9 +22,10 @@ import {
   X,
   AlertTriangle
 } from 'lucide-react';
-import { UserPreferences, UserRole, ScreenId } from '../../types';
+import { UserPreferences, UserRole, ScreenId, TravelStyle } from '../../types';
 import { logoutUser, submitGuideApplication } from '../../lib/firebase';
 import { SUPPORTED_LANGUAGES, useI18n } from '../../lib/i18n';
+import { useTravelStyleLabel } from '../../lib/labels';
 import { UserAvatar } from '../UserAvatar';
 
 interface UserProfileScreenProps {
@@ -41,7 +42,8 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
   onNavigate
 }) => {
   const { lang, setLang, t } = useI18n();
-  const [travelStyle, setTravelStyle] = useState(user.travelStyle);
+  const travelStyleLabel = useTravelStyleLabel();
+  const [travelStyle, setTravelStyle] = useState<TravelStyle | undefined>(user.travelStyle);
   const [notifications, setNotifications] = useState(user.notificationsEnabled);
   const [saveToast, setSaveToast] = useState(false);
   const [toastMessage, setToastMessage] = useState(t('Préférences enregistrées avec succès !'));
@@ -130,6 +132,14 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
   };
 
   const userRole = user.role || 'traveler';
+
+  // Seule la description reste portee par l'ecran : le libelle vient du registre partage
+  // avec la carte du passeport, pour que le meme choix porte partout le meme mot.
+  const rhythms: { id: TravelStyle; desc: string }[] = [
+    { id: 'Relaxed', desc: t('Flâneries, sanctuaires et thé') },
+    { id: 'Explorer', desc: t('Découverte équilibrée et marchés') },
+    { id: 'Cultural Deep-Dive', desc: t('Maîtres artisans, rituels et cours royales') }
+  ];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-4 pb-28 space-y-6 font-sans">
@@ -320,22 +330,18 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             {t("Rythme d'exploration")}
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            {[
-              { id: 'Relaxed', label: t('Doux'), desc: t('Flâneries, sanctuaires et thé') },
-              { id: 'Explorer', label: t('Explorateur'), desc: t('Découverte équilibrée et marchés') },
-              { id: 'Cultural Deep-Dive', label: t('Immersion Profonde'), desc: t('Maîtres artisans, rituels et cours royales') }
-            ].map((style) => (
+            {rhythms.map((style) => (
               <button
                 key={style.id}
                 type="button"
-                onClick={() => setTravelStyle(style.id as any)}
+                onClick={() => setTravelStyle(style.id)}
                 className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                   travelStyle === style.id
                     ? 'bg-[#fceee9] border-[#c14e2f] text-[#c14e2f] shadow-sm'
                     : 'bg-[#faf7f0] border-transparent text-[#6b665e] hover:bg-[#e8e2d5]'
                 }`}
               >
-                <div className="font-serif font-bold text-xs">{style.label}</div>
+                <div className="font-serif font-bold text-xs">{travelStyleLabel(style.id)}</div>
                 <div className="text-[10px] text-[#8c867c] mt-0.5">{style.desc}</div>
               </button>
             ))}

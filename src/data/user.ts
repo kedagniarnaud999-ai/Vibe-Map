@@ -1,14 +1,13 @@
 import { UserPreferences } from '../types';
 
 // Logged-out shell only. Identity fields stay empty: a real name, e-mail and role
-// arrive exclusively from a verified Firebase session.
+// arrive exclusively from a verified Firebase session. The same goes for the travel
+// rhythm — a visitor who never picked one is not asked to pretend they did.
 export const INITIAL_USER: UserPreferences = {
   id: '',
   name: 'Explorateur Culturel',
   email: '',
   avatar: '',
-  vibeTag: 'Cultural Seeker',
-  travelStyle: 'Explorer',
   role: 'traveler',
   language: 'fr',
   notificationsEnabled: true,
