@@ -234,8 +234,7 @@ export default function App() {
       : [...(user.savedPlaces || []), placeId];
     const updatedUser = {
       ...user,
-      savedPlaces: updatedPlaces,
-      placesCount: updatedPlaces.length
+      savedPlaces: updatedPlaces
     };
 
     const synced = await syncUserProfileToFirestore(updatedUser);
@@ -322,7 +321,7 @@ export default function App() {
         return {
           show: true,
           title: t('Passeport Culturel'),
-          subtitle: t('Sites visités et badges initiatiques'),
+          subtitle: t('Sites enregistrés, itinéraires sauvegardés et demandes posées'),
           showBack: true
         };
       case 'events':
