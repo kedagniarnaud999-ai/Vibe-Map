@@ -21,6 +21,7 @@ import {
   deleteDoc,
   query,
   where,
+  or,
   getDocs,
   serverTimestamp,
   orderBy
@@ -413,18 +414,50 @@ export async function setBookingStatus(
   }
 }
 
-export async function getUserBookingsFromFirestore(userEmail: string): Promise<BookingRecord[]> {
+export interface TravelerBookingsResult {
+  signedIn: boolean;
+  bookings: BookingRecord[];
+  error: string | null;
+}
+
+/** Une date de demande illisible compte pour le bas du tri, pas pour NaN. */
+function bookedAt(booking: BookingRecord): number {
+  const at = booking.createdAt ? Date.parse(booking.createdAt) : 0;
+  return Number.isNaN(at) ? 0 : at;
+}
+
+/**
+ * Les demandes posées par le compte connecté. La requête reproduit ce que les
+ * règles Firestore autorisent déjà — mon uid, ou l'e-mail du jeton — pour que les
+ * fiches posées avant que l'uid soit enregistré restent lisibles. L'ancien lecteur
+ * prendrait un e-mail en paramètre et renvoyait une liste vide quand la base
+ * refusait : « aucune demande » et « lecture impossible » devenaient la même
+ * phrase à l'écran. L'échec remonte donc séparé, et la liste est triée ici plutôt
+ * qu'avec `orderBy`, qui exigerait un index composé pour une disjonction.
+ */
+export async function getMyBookingsFromFirestore(): Promise<TravelerBookingsResult> {
+  const uid = getVerifiedUid();
+  const email = getVerifiedEmail();
+  if (!uid || !email) {
+    return { signedIn: false, bookings: [], error: null };
+  }
+
   try {
-    const q = query(collection(db, 'bookings'), where('travelerEmail', '==', userEmail));
+    const q = query(
+      collection(db, 'bookings'),
+      or(where('travelerUid', '==', uid), where('travelerEmail', '==', email))
+    );
     const querySnapshot = await getDocs(q);
     const results: BookingRecord[] = [];
     querySnapshot.forEach((docSnap) => {
       results.push({ id: docSnap.id, ...docSnap.data() } as BookingRecord);
     });
-    return results;
-  } catch (error) {
-    console.warn('Firestore get bookings error:', error);
-    return [];
+    results.sort((a, b) => bookedAt(b) - bookedAt(a));
+    return { signedIn: true, bookings: results, error: null };
+  } catch (error: any) {
+    console.warn('Firestore traveler bookings error:', error);
+    const message = typeof error?.message === 'string' ? error.message.trim() : '';
+    return { signedIn: true, bookings: [], error: message || 'Lecture impossible' };
   }
 }
 

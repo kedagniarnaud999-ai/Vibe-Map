@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Bookmark, 
   Sparkles, 
@@ -10,13 +10,19 @@ import {
   CheckCircle2, 
   Compass, 
   Calendar,
+  CalendarCheck,
+  AlertCircle,
+  LogIn,
+  DollarSign,
   ArrowRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { UserPreferences, Place, Story } from '../../types';
+import { UserPreferences, Place, Story, UserRole } from '../../types';
+import { getMyBookingsFromFirestore, BookingRecord } from '../../lib/firebase';
+import { formatBookingWhen, formatInstant } from '../../lib/slots';
 import { useI18n } from '../../lib/i18n';
 import { UserAvatar } from '../UserAvatar';
-import { useCategoryLabel } from '../../lib/labels';
+import { useCategoryLabel, useBookingStatusLabel } from '../../lib/labels';
 
 // Paliers figes dans la maquette : seuls les compteurs rendus sont localises.
 const CULTURAL_DEPTH_LEVEL = 2;
@@ -28,6 +34,7 @@ interface JournalScreenProps {
   stories: Story[];
   onSelectPlace: (place: Place) => void;
   onSelectStory: (story: Story) => void;
+  onOpenAuth: (targetRole?: UserRole) => void;
 }
 
 export const JournalScreen: React.FC<JournalScreenProps> = ({
@@ -35,13 +42,32 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
   places,
   stories,
   onSelectPlace,
-  onSelectStory
+  onSelectStory,
+  onOpenAuth
 }) => {
   const { lang, t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'stamps' | 'stories' | 'badges'>('stamps');
+  const [activeTab, setActiveTab] = useState<'stamps' | 'stories' | 'badges' | 'requests'>('stamps');
   const [shareNote, setShareNote] = useState<string | null>(null);
+  const [requests, setRequests] = useState<BookingRecord[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [requestsSignedIn, setRequestsSignedIn] = useState(true);
+  const [requestsError, setRequestsError] = useState<string | null>(null);
 
   const categoryLabel = useCategoryLabel();
+  const bookingStatusLabel = useBookingStatusLabel();
+
+  const loadRequests = async () => {
+    setRequestsLoading(true);
+    const result = await getMyBookingsFromFirestore();
+    setRequestsSignedIn(result.signedIn);
+    setRequests(result.bookings);
+    setRequestsError(result.error);
+    setRequestsLoading(false);
+  };
+
+  useEffect(() => {
+    loadRequests();
+  }, []);
 
   const formatCount = (value: number) => new Intl.NumberFormat(lang).format(value);
 
@@ -170,7 +196,12 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
         {[
           { id: 'stamps', label: t('Sanctuaires Visités'), icon: MapPin },
           { id: 'stories', label: t('Récits Enregistrés'), icon: BookOpen },
-          { id: 'badges', label: t('Badges Obtenus'), icon: Award }
+          { id: 'badges', label: t('Badges Obtenus'), icon: Award },
+          {
+            id: 'requests',
+            label: requests.length ? `${t('Mes demandes')} (${formatCount(requests.length)})` : t('Mes demandes'),
+            icon: CalendarCheck
+          }
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -285,6 +316,93 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {activeTab === 'requests' && (
+        <div className="space-y-4 animate-fade-in">
+          {requestsLoading && (
+            <p className="text-xs text-[#8c867c]">{t('Chargement de vos demandes…')}</p>
+          )}
+
+          {!requestsLoading && !requestsSignedIn && (
+            <div className="p-4 rounded-2xl border border-dashed border-[#dedad0] bg-[#f0ece1]/60 space-y-3">
+              <p className="text-xs text-[#5a5a40]">
+                {t('Connectez-vous avec un compte vérifié pour retrouver vos demandes.')}
+              </p>
+              <button
+                onClick={() => onOpenAuth('traveler')}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#2e5a44] text-white text-xs font-bold hover:bg-[#24493a] active:scale-95 transition-all"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>{t('Se connecter')}</span>
+              </button>
+            </div>
+          )}
+
+          {!requestsLoading && requestsSignedIn && requestsError && (
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs space-y-2">
+              <p className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{t('Vos demandes n’ont pas pu être lues.')}</span>
+              </p>
+              <p className="text-[11px] text-red-600/90 pl-6">{requestsError}</p>
+              <button
+                onClick={loadRequests}
+                className="ml-6 px-3 py-1.5 rounded-lg bg-white border border-red-200 text-red-700 text-[11px] font-bold hover:bg-red-100 transition-colors"
+              >
+                {t('Réessayer')}
+              </button>
+            </div>
+          )}
+
+          {!requestsLoading && requestsSignedIn && !requestsError && requests.length === 0 && (
+            <div className="p-5 rounded-2xl border border-dashed border-[#dedad0] bg-[#faf7f0] space-y-2 text-center">
+              <CalendarCheck className="w-6 h-6 mx-auto text-[#8c867c]" />
+              <p className="text-xs font-bold text-[#2c2926]">{t('Aucune demande posée avec ce compte.')}</p>
+              <p className="text-[11px] text-[#8c867c]">
+                {t('Une demande se pose depuis la fiche d’un médiateur, après avoir choisi une immersion.')}
+              </p>
+            </div>
+          )}
+
+          {!requestsLoading && requests.map((r) => (
+            <div
+              key={r.id || `${r.experienceId}-${r.createdAt}`}
+              className="p-4 bg-white rounded-2xl border border-[#e8e2d5] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs"
+            >
+              <div className="space-y-1">
+                <div className="font-serif font-bold text-sm text-[#2c2926]">{r.experienceTitle}</div>
+                <div className="text-[#5a5a40] font-medium flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" />
+                  <span>{t('Médiateur :')} {r.actorName}</span>
+                </div>
+                <div className="text-[11px] text-[#8c867c] flex items-center gap-2 flex-wrap">
+                  <Calendar className="w-3 h-3" />
+                  <span>{formatBookingWhen(r.dateTime, r.createdAt, lang)}</span>
+                  <span>•</span>
+                  <span>{t('Demandée le')} {formatInstant(r.createdAt || '', lang)}</span>
+                  <span>•</span>
+                  <DollarSign className="w-3 h-3 text-[#c14e2f]" />
+                  <span className="font-bold text-[#c14e2f]">{t('Montant')} : {r.price}</span>
+                </div>
+              </div>
+
+              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold self-start sm:self-auto ${
+                r.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                r.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                r.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+              }`}>
+                {bookingStatusLabel(r.status)}
+              </span>
+            </div>
+          ))}
+
+          {!requestsLoading && requests.length > 0 && (
+            <p className="text-[11px] text-[#8c867c]">
+              {t('Une demande posée ici attend une réponse : l’état change quand l’équipe la traite depuis sa console, et rien ne vous est envoyé automatiquement.')}
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -399,6 +399,17 @@ export const EN: Record<string, string> = {
   'Demande enregistrée': 'Request recorded',
   'Votre demande est enregistrée au nom de votre compte et s’ajoute à la liste des réservations de l’équipe, avec l’adresse e-mail qui y est rattachée. Rien n’est envoyé automatiquement : ni un message à {name}, ni un SMS vers votre téléphone.':
     'Your request is saved under your account and added to the team’s reservations list, along with the e-mail address attached to it. Nothing is sent automatically — no message to {name}, no text to your phone.',
+  'Mes demandes': 'My Requests',
+  'Chargement de vos demandes…': 'Loading your requests…',
+  'Connectez-vous avec un compte vérifié pour retrouver vos demandes.':
+    'Sign in with a verified account to find your requests again.',
+  'Vos demandes n’ont pas pu être lues.': 'Your requests could not be read.',
+  'Aucune demande posée avec ce compte.': 'No request has been made from this account.',
+  'Une demande se pose depuis la fiche d’un médiateur, après avoir choisi une immersion.':
+    'A request is made from a mediator’s profile, once you have chosen an immersion.',
+  'Demandée le': 'Requested on',
+  'Une demande posée ici attend une réponse : l’état change quand l’équipe la traite depuis sa console, et rien ne vous est envoyé automatiquement.':
+    'A request made here is waiting for an answer: its status changes when the team handles it from their console, and nothing is sent to you automatically.',
   'Médiateur :': 'Mediator:',
   'Durée :': 'Duration:',
   'Honoraires :': 'Honorarium:',

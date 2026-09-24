@@ -70,6 +70,26 @@ const LEGACY_TOKENS: Record<string, SlotId> = {
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T/;
 
 /**
+ * Un instant stocke, rendu dans la langue de l'interface et a l'heure du Benin. Une valeur
+ * qui n'est pas un instant est rendue vide : un texte herite se montre, une date ne
+ * s'invente pas.
+ */
+export function formatInstant(instant: string, lang: AppLanguage): string {
+  if (!ISO_INSTANT.test(instant) || Number.isNaN(Date.parse(instant))) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(lang, {
+    timeZone: WAT_TIME_ZONE,
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(instant));
+}
+
+/**
  * Le creneau d'une reservation, dans la langue de l'interface et a l'heure du Benin. Une
  * valeur qu'aucune de ces regles ne permet de resoudre est rendue telle quelle : mieux
  * vaut un texte herdite qu'une date inventee.
@@ -88,16 +108,5 @@ export function formatBookingWhen(
   const instant = legacyId && askedAt ? slotToISO(legacyId, askedAt) : dateTime;
 
   // Ni un instant ni un jeton connu : rien a calculer, et rien a inventer.
-  if (!ISO_INSTANT.test(instant) || Number.isNaN(Date.parse(instant))) {
-    return dateTime;
-  }
-
-  return new Intl.DateTimeFormat(lang, {
-    timeZone: WAT_TIME_ZONE,
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(instant));
+  return formatInstant(instant, lang) || dateTime;
 }
