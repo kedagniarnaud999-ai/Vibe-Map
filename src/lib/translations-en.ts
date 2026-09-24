@@ -411,6 +411,13 @@ export const EN: Record<string, string> = {
   'Confirmer la Demande d’Introduction': 'Confirm Introduction Request',
   'Connectez-vous avec un compte vérifié pour demander une introduction.': 'Please sign in with a verified account to request an introduction.',
   'La réservation n’a pas pu être enregistrée. Vérifiez que votre session est toujours active.': 'The booking could not be saved. Please check that your session is still active.',
+  // Les quatre etats d'une reservation tels qu'ils sont montres, l'enregistrement en base
+  // restant en anglais.
+  'En attente': 'Pending',
+  'Confirmée': 'Confirmed',
+  'Terminée': 'Completed',
+  'Annulée': 'Cancelled',
+  'Confirmer': 'Confirm',
 
   'Zone actuelle': 'Current area',
   'Ouidah & zone côtière': 'Ouidah & the coast',

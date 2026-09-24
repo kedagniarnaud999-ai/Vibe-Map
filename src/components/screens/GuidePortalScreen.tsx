@@ -21,7 +21,7 @@ import {
 import { UserProfile, Actor, UserRole } from '../../types';
 import { getGuideBookingsFromFirestore, submitGuideApplication, BookingRecord } from '../../lib/firebase';
 import { useI18n } from '../../lib/i18n';
-import { useRoleLabel } from '../../lib/labels';
+import { useRoleLabel, useBookingStatusLabel } from '../../lib/labels';
 
 interface GuidePortalScreenProps {
   user: UserProfile;
@@ -38,6 +38,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
 }) => {
   const { t } = useI18n();
   const roleLabel = useRoleLabel();
+  const bookingStatusLabel = useBookingStatusLabel();
   const [guideBookings, setGuideBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [applicationError, setApplicationError] = useState('');
@@ -395,9 +396,10 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                   <div className="flex items-center gap-2">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                       b.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      b.status === 'completed' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                      b.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                      b.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {b.status.toUpperCase()}
+                      {bookingStatusLabel(b.status)}
                     </span>
 
                   </div>

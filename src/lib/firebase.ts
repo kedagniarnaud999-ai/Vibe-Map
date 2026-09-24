@@ -25,7 +25,7 @@ import {
   serverTimestamp,
   orderBy
 } from 'firebase/firestore';
-import { UserProfile, ItineraryStop, Place, UserRole, GuideApplication } from '../types';
+import { UserProfile, ItineraryStop, Place, UserRole, GuideApplication, BookingStatus } from '../types';
 
 // Configuration from firebase-applet-config.json
 const firebaseConfig = {
@@ -342,7 +342,7 @@ export interface BookingRecord {
   price: string;
   travelerName: string;
   travelerEmail: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: BookingStatus;
   createdAt?: string;
 }
 
@@ -383,6 +383,26 @@ export async function createBookingInFirestore(booking: BookingInput): Promise<s
   } catch (error) {
     console.warn('Firestore booking error:', error);
     return null;
+  }
+}
+
+// La décision d'une réservation n'existait nulle part : le voyageur posait une
+// demande et rien, dans l'application, ne pouvait jamais y répondre, alors même
+// que le portail médiateur annonce que « l'état d'une réservation se confirme
+// depuis la console d'administration ». Le rôle n'est pas revérifié ici : les
+// règles Firestore n'accordent cette écriture qu'au claim admin du jeton, et un
+// second contrôle côté client ferait autorité à la mauvaise place. L'échec, lui,
+// remonte : une décision que la base refuse doit le dire.
+export async function setBookingStatus(
+  bookingId: string,
+  status: 'confirmed' | 'cancelled'
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await updateDoc(doc(db, 'bookings', bookingId), { status });
+    return { success: true };
+  } catch (error: any) {
+    console.warn('Firestore booking decision error:', error);
+    return { success: false, error: error?.message || 'Décision impossible' };
   }
 }
 
