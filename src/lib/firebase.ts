@@ -338,6 +338,13 @@ export interface BookingRecord {
   actorName: string;
   experienceId: string;
   experienceTitle: string;
+  /**
+   * L'instant demande, en ISO (`2026-09-25T08:00:00.000Z`), calculé sur l'horloge
+   * de Porto-Novo au moment où le voyageur pose sa demande. Les fiches écrites
+   * avant cette règle contiennent encore le libellé anglais d'origine, stocké tel
+   * quel : `formatBookingWhen` sait reconnaître les deux formes. On n'affiche donc
+   * jamais ce champ brut.
+   */
   dateTime: string;
   price: string;
   travelerName: string;

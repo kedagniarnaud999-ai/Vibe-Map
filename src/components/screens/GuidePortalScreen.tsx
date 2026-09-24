@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { UserProfile, Actor, UserRole } from '../../types';
 import { getGuideBookingsFromFirestore, submitGuideApplication, BookingRecord } from '../../lib/firebase';
+import { formatBookingWhen } from '../../lib/slots';
 import { useI18n } from '../../lib/i18n';
 import { useRoleLabel, useBookingStatusLabel } from '../../lib/labels';
 
@@ -36,7 +37,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
   onOpenAuth,
   onBackToPublic
 }) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const roleLabel = useRoleLabel();
   const bookingStatusLabel = useBookingStatusLabel();
   const [guideBookings, setGuideBookings] = useState<BookingRecord[]>([]);
@@ -386,7 +387,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                     </div>
                     <div className="text-[11px] text-[#8c867c] flex items-center gap-2">
                       <Calendar className="w-3 h-3" />
-                      <span>{b.dateTime}</span>
+                      <span>{formatBookingWhen(b.dateTime, b.createdAt, lang)}</span>
                       <span>•</span>
                       <DollarSign className="w-3 h-3 text-[#c14e2f]" />
                       <span className="font-bold text-[#c14e2f]">{b.price}</span>

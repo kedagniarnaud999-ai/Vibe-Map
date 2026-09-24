@@ -37,6 +37,7 @@ import { PLACES_DATA } from '../../data/places';
 import { useI18n } from '../../lib/i18n';
 import { commonsThumb, creditLine } from '../../lib/media';
 import { useCategoryLabel, useBookingStatusLabel } from '../../lib/labels';
+import { formatBookingWhen } from '../../lib/slots';
 
 interface AdminScreenProps {
   userRole?: UserRole;
@@ -59,7 +60,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   onOpenAuth,
   onBackToPublic
 }) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const categoryLabel = useCategoryLabel();
   const bookingStatusLabel = useBookingStatusLabel();
   const [activeTab, setActiveTab] = useState<'scraper' | 'places' | 'guides' | 'bookings' | 'applications'>('scraper');
@@ -895,7 +896,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                         {b.experienceTitle}
                       </div>
                       <div className="text-[#6b665e] mt-0.5">
-                        {t('Voyageur')} : {b.travelerName} ({b.travelerEmail}) • {t('Date')} : {b.dateTime}
+                        {t('Voyageur')} : {b.travelerName} ({b.travelerEmail}) • {t('Date')} : {formatBookingWhen(b.dateTime, b.createdAt, lang)}
                       </div>
                       <div className="text-[#c14e2f] font-bold mt-1">
                         {t('Montant')} : {b.price}
