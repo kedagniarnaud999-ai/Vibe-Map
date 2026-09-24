@@ -545,6 +545,7 @@ export default function App() {
                 stories={localizedStories}
                 onSelectPlace={handleSelectPlace}
                 onSelectStory={handleSelectStory}
+                onOpenAuth={(role) => openAuth(role === 'admin' ? 'admin' : 'public')}
               />
             )}
 
