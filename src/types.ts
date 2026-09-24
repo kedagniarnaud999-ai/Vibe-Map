@@ -197,15 +197,12 @@ export interface UserPreferences {
   interests: string[];
   savedPlaces: string[];
   completedStops: string[];
-  placesCount: number;
+  // Compteur d'itinéraires sauvegardés : son unique écriture est l'enregistrement d'un itinéraire.
   storiesCount: number;
-  connectionsCount: number;
   badges: {
     id: string;
     title: string;
-    icon: string;
     unlocked: boolean;
-    color: string;
   }[];
 }
 

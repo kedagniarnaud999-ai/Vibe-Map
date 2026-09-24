@@ -50,7 +50,7 @@ const USER_ROLES: readonly UserRole[] = ['traveler', 'guide', 'admin'];
 // Firestore keeps these for display only; the authorized role always comes from the ID token claims.
 const PROFILE_EDITABLE_FIELDS = [
   'name', 'avatar', 'vibeTag', 'travelStyle', 'language', 'notificationsEnabled',
-  'interests', 'savedPlaces', 'completedStops', 'placesCount', 'storiesCount', 'connectionsCount'
+  'interests', 'savedPlaces', 'completedStops', 'storiesCount'
 ] as const;
 
 /**
@@ -136,9 +136,7 @@ function travelerProfile(fbUser: FirebaseUser): UserProfile {
     interests: ['Spiritual', 'Historical'],
     savedPlaces: [],
     completedStops: [],
-    placesCount: 0,
     storiesCount: 0,
-    connectionsCount: 0,
     badges: []
   };
 }

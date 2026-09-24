@@ -24,10 +24,6 @@ import { useI18n } from '../../lib/i18n';
 import { UserAvatar } from '../UserAvatar';
 import { useCategoryLabel, useBookingStatusLabel } from '../../lib/labels';
 
-// Paliers figes dans la maquette : seuls les compteurs rendus sont localises.
-const CULTURAL_DEPTH_LEVEL = 2;
-const CULTURAL_DEPTH_PERCENT = 65;
-
 interface JournalScreenProps {
   user: UserPreferences;
   places: Place[];
@@ -140,53 +136,38 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
         </button>
       </div>
 
-      {/* Cultural Depth Level Card */}
+      {/* Passport Header Card */}
       <div className="bg-gradient-to-br from-[#c14e2f] via-[#a83f23] to-[#5a5a40] text-white rounded-2xl p-5 sm:p-6 shadow-md space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <UserAvatar
-              src={user.avatar}
-              name={user.name}
-              className="w-12 h-12 rounded-full object-cover border-2 border-[#d9822b]"
-              monogramClassName="text-lg"
-            />
-            <div>
-              <h3 className="font-serif font-bold text-lg leading-tight">
-                {user.name}
-              </h3>
-              <p className="text-xs text-[#d9822b] font-medium">{user.vibeTag}</p>
-            </div>
-          </div>
-
-          <span className="px-3 py-1 rounded-full bg-white/20 text-xs font-bold">
-            {t('Niveau {n}', { n: formatCount(CULTURAL_DEPTH_LEVEL) })}
-          </span>
-        </div>
-
-        {/* Level Progress */}
-        <div className="space-y-1.5">
-          <div className="flex justify-between text-xs text-white/90">
-            <span>{t('Progression en Profondeur Culturelle')}</span>
-            <span className="font-bold">{t('{pct} % avant Érudit', { pct: formatCount(CULTURAL_DEPTH_PERCENT) })}</span>
-          </div>
-          <div className="w-full h-2.5 bg-black/20 rounded-full overflow-hidden">
-            <div className="h-full bg-[#d9822b] rounded-full w-[65%]" />
+        <div className="flex items-center gap-3">
+          <UserAvatar
+            src={user.avatar}
+            name={user.name}
+            className="w-12 h-12 rounded-full object-cover border-2 border-[#d9822b]"
+            monogramClassName="text-lg"
+          />
+          <div>
+            <h3 className="font-serif font-bold text-lg leading-tight">
+              {user.name}
+            </h3>
+            <p className="text-xs text-[#d9822b] font-medium">{user.vibeTag}</p>
           </div>
         </div>
 
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20 text-center">
           <div>
-            <span className="font-serif font-bold text-lg block">{formatCount(user.placesCount)}</span>
-            <span className="text-[10px] text-white/80 uppercase">{t('Sanctuaires Visités')}</span>
+            <span className="font-serif font-bold text-lg block">{formatCount(user.savedPlaces.length)}</span>
+            <span className="text-[10px] text-white/80 uppercase">{t('Sites enregistrés')}</span>
+          </div>
+          <div>
+            <span className="font-serif font-bold text-lg block">
+              {requestsLoading ? '—' : formatCount(new Set(requests.map((r) => r.actorId)).size)}
+            </span>
+            <span className="text-[10px] text-white/80 uppercase">{t('Médiateurs contactés')}</span>
           </div>
           <div>
             <span className="font-serif font-bold text-lg block">{formatCount(user.storiesCount)}</span>
-            <span className="text-[10px] text-white/80 uppercase">{t('Récits Décodés')}</span>
-          </div>
-          <div>
-            <span className="font-serif font-bold text-lg block">{formatCount(user.connectionsCount)}</span>
-            <span className="text-[10px] text-white/80 uppercase">{t('Gardiens Rencontrés')}</span>
+            <span className="text-[10px] text-white/80 uppercase">{t('Itinéraires enregistrés')}</span>
           </div>
         </div>
       </div>
@@ -194,8 +175,8 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       {/* Tabs */}
       <div className="flex border-b border-[#e8e2d5] gap-6">
         {[
-          { id: 'stamps', label: t('Sanctuaires Visités'), icon: MapPin },
-          { id: 'stories', label: t('Récits Enregistrés'), icon: BookOpen },
+          { id: 'stamps', label: t('Sites enregistrés'), icon: MapPin },
+          { id: 'stories', label: t('Tous les récits'), icon: BookOpen },
           { id: 'badges', label: t('Badges Obtenus'), icon: Award },
           {
             id: 'requests',
@@ -238,7 +219,7 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                   className="w-full h-full object-cover"
                 />
                 <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-[#c14e2f] text-white text-[8px] font-bold">
-                  {t('Visité')}
+                  {t('Enregistré')}
                 </span>
               </div>
 
@@ -289,7 +270,17 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
       )}
 
       {activeTab === 'badges' && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
+          {user.badges.length === 0 && (
+            <div className="p-4 rounded-2xl border border-dashed border-[#dedad0] bg-[#f0ece1]/60">
+              <p className="text-xs text-[#5a5a40]">
+                {t('Aucun badge décerné sur ce compte. L’application n’attribue pas encore de distinction.')}
+              </p>
+            </div>
+          )}
+
+          {user.badges.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {user.badges.map((badge) => (
             <div
               key={badge.id}
@@ -315,7 +306,9 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
                 </span>
               </div>
             </div>
-          ))}
+            ))}
+            </div>
+          )}
         </div>
       )}
 
