@@ -29,13 +29,14 @@ import {
   getAllRSVPsForAdmin,
   getAllGuideApplicationsForAdmin,
   decideGuideApplication,
+  setBookingStatus,
   apiFetch,
   BookingRecord 
 } from '../../lib/firebase';
 import { PLACES_DATA } from '../../data/places';
 import { useI18n } from '../../lib/i18n';
 import { commonsThumb, creditLine } from '../../lib/media';
-import { useCategoryLabel } from '../../lib/labels';
+import { useCategoryLabel, useBookingStatusLabel } from '../../lib/labels';
 
 interface AdminScreenProps {
   userRole?: UserRole;
@@ -60,6 +61,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 }) => {
   const { t } = useI18n();
   const categoryLabel = useCategoryLabel();
+  const bookingStatusLabel = useBookingStatusLabel();
   const [activeTab, setActiveTab] = useState<'scraper' | 'places' | 'guides' | 'bookings' | 'applications'>('scraper');
   const [isCatalogPublishing, setIsCatalogPublishing] = useState(false);
   const [searchSiteQuery, setSearchSiteQuery] = useState('');
@@ -70,6 +72,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [rsvps, setRsvps] = useState<any[]>([]);
   const [guideApps, setGuideApps] = useState<GuideApplication[]>([]);
   const [decisionError, setDecisionError] = useState<string | null>(null);
+  const [pendingDecisionId, setPendingDecisionId] = useState<string | null>(null);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -343,6 +346,34 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       alert(t('Guide agréé. Son rôle a été accordé et ses sessions précédentes ont été révoquées.'));
     }
   };
+
+  // Une réservation posée ne trouvait jusqu'ici personne pour y répondre : l'écran
+  // d'administration la listait sans écriture possible. Le rôle n'est pas revérifié ici,
+  // les règles Firestore n'accordent cette mise à jour qu'au claim admin du jeton.
+  const decideBooking = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
+    if (pendingDecisionId) return;
+
+    setDecisionError(null);
+    setPendingDecisionId(bookingId);
+    const result = await setBookingStatus(bookingId, status);
+    setPendingDecisionId(null);
+
+    if (!result.success) {
+      setDecisionError(result.error || t('Décision impossible : vérifiez les droits administrateur et la disponibilité du serveur.'));
+      return;
+    }
+
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status } : b)));
+  };
+
+  // La banderole d'échec est partagée : deux onglets peuvent désormais la remplir, et un
+  // message rangé dans l'onglet des agréments serait invisible depuis les réservations.
+  const decisionBanner = decisionError ? (
+    <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+      <span>{decisionError}</span>
+    </div>
+  ) : null;
 
   const resetPlaceForm = () => {
     setNewPlaceName('');
@@ -773,12 +804,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               </p>
             </div>
 
-            {decisionError && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{decisionError}</span>
-              </div>
-            )}
+            {decisionBanner}
 
             {guideApps.length === 0 ? (
               <div className="p-8 text-center bg-[#faf7f0] rounded-2xl border border-[#e8e2d5] text-xs text-[#6b665e]">
@@ -851,6 +877,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               {t("Réservations d'Immersions et Visites ({n})", { n: bookings.length })}
             </h3>
 
+            {decisionBanner}
+
             {bookings.length === 0 ? (
               <div className="p-8 text-center bg-[#faf7f0] rounded-2xl border border-[#e8e2d5] text-xs text-[#6b665e]">
                 {t('Aucune réservation enregistrée pour le moment.')}
@@ -873,13 +901,38 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                         {t('Montant')} : {b.price}
                       </div>
                     </div>
-                    <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${
-                      b.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      b.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                      b.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {b.status.toUpperCase()}
-                    </span>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${
+                        b.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        b.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                        b.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {bookingStatusLabel(b.status)}
+                      </span>
+
+                      {b.id && b.status !== 'completed' && b.status !== 'cancelled' && (
+                        <div className="flex items-center gap-2">
+                          {b.status === 'pending' && (
+                            <button
+                              onClick={() => decideBooking(b.id!, 'confirmed')}
+                              disabled={pendingDecisionId !== null}
+                              className="px-3 py-1.5 rounded-xl bg-[#2e5a44] text-white text-[11px] font-bold hover:bg-[#204030] flex items-center gap-1 shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>{t('Confirmer')}</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => decideBooking(b.id!, 'cancelled')}
+                            disabled={pendingDecisionId !== null}
+                            className="px-3 py-1.5 rounded-xl bg-red-100 text-red-700 text-[11px] font-bold hover:bg-red-200 flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            <span>{t('Annuler')}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

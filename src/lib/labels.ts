@@ -1,4 +1,4 @@
-import { ActorKind, Category, UserRole } from '../types';
+import { ActorKind, BookingStatus, Category, UserRole } from '../types';
 import { useI18n } from './i18n';
 
 /**
@@ -46,4 +46,23 @@ export const useActorKindLabel = () => {
   };
 
   return (value: ActorKind) => labels[value] ?? value;
+};
+
+/**
+ * L'administration et le portail mediateur listent les memes reservations : une seule
+ * table de libelles, pour qu'un statut ne s'affiche pas en anglais d'un cote et en
+ * francais de l'autre. Une valeur inconnue reste montre telle quelle plutot que
+ * remplacee par un libelle qui n'aurait rien a voir avec la donnee.
+ */
+export const useBookingStatusLabel = () => {
+  const { t } = useI18n();
+
+  const labels: Record<BookingStatus, string> = {
+    pending: t('En attente'),
+    confirmed: t('Confirmée'),
+    completed: t('Terminée'),
+    cancelled: t('Annulée')
+  };
+
+  return (value: BookingStatus) => labels[value] ?? value;
 };

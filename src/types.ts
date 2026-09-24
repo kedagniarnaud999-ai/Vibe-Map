@@ -227,6 +227,12 @@ export interface GuideApplication {
   submittedAt: string;
 }
 
+/**
+ * Les quatre etats d'une reservation, tels qu'ils sont persistes dans Firestore.
+ * Le libelle affiche suit la langue de l'interface, la valeur stockee ne bouge pas.
+ */
+export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
+
 export interface ItineraryStop {
   id: string;
   time: string;
