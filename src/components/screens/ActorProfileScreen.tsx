@@ -19,6 +19,7 @@ import {
 import { Actor } from '../../types';
 import { monogram } from '../../lib/media';
 import { createBookingInFirestore } from '../../lib/firebase';
+import { FIRST_SLOT_ID, slotToISO, type SlotId } from '../../lib/slots';
 import { DemoProfileBadge } from '../DemoProfileBadge';
 import { useI18n } from '../../lib/i18n';
 
@@ -28,17 +29,12 @@ interface ActorProfileScreenProps {
   requireSession: () => boolean;
 }
 
-// Valeur exacte du premier créneau proposé au <select> plus bas. Initialiser l'état
-// hors de cette liste laisse le sélecteur vide à l'écran et enregistre, dans la
-// réservation, un horaire que le voyageur n'a pourtant jamais choisi.
-const FIRST_SLOT = 'Tomorrow, 09:00 AM (Recommended Morning Sanctuary Walk)';
-
 export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, onBack, requireSession }) => {
   const { t } = useI18n();
   const [selectedExperience, setSelectedExperience] = useState<any | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState('');
-  const [bookingDate, setBookingDate] = useState(FIRST_SLOT);
+  const [bookingSlot, setBookingSlot] = useState<SlotId>(FIRST_SLOT_ID);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openBookingDrawer = (exp: any) => {
@@ -69,7 +65,7 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
       actorName: actor.name,
       experienceId: selectedExperience.id || 'exp-1',
       experienceTitle: selectedExperience.title,
-      dateTime: bookingDate,
+      dateTime: slotToISO(bookingSlot),
       price: selectedExperience.price
     });
 
@@ -401,18 +397,19 @@ export const ActorProfileScreen: React.FC<ActorProfileScreenProps> = ({ actor, o
                     {t('Date et heure souhaitées')}
                   </label>
                   <select
-                    value={bookingDate}
-                    onChange={(e) => setBookingDate(e.target.value)}
+                    value={bookingSlot}
+                    onChange={(e) => setBookingSlot(e.target.value as SlotId)}
                     className="w-full p-3 rounded-xl bg-white border border-[#e8e2d5] text-xs font-medium focus:border-[#c14e2f] focus:outline-none"
                   >
-                    {/* value kept as the stored Firestore payload token; only the visible label is translated */}
-                    <option value={FIRST_SLOT}>
+                    {/* Ces trois valeurs sont les cles de `SLOTS` : un selecteur renvoie une
+                        chaine, et un mot qui n'y figure pas n'a pas d'heure a resoudre. */}
+                    <option value="morning">
                       {t('Demain, 09h00 (Randonnée matinale au sanctuaire, recommandée)')}
                     </option>
-                    <option value="Tomorrow, 03:00 PM (Afternoon Sunset Walk)">
+                    <option value="sunset">
                       {t('Demain, 15h00 (Randonnée du coucher de soleil)')}
                     </option>
-                    <option value="Saturday, 10:00 AM (Weekend Guided Deep Dive)">
+                    <option value="saturday">
                       {t('Samedi, 10h00 (Immersion guidée approfondie le week-end)')}
                     </option>
                   </select>
