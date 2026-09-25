@@ -188,7 +188,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
         <div className="space-y-1 text-center sm:text-left flex-1">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
             <h3 className="font-serif font-bold text-xl text-[#2c2926]">
-              {user.name}
+              {user.name || t('Aucun compte ouvert')}
             </h3>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold flex items-center gap-1 ${
               userRole === 'admin' ? 'bg-[#2c2926] text-amber-400 border border-amber-400/30' :

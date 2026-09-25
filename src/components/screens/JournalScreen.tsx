@@ -128,52 +128,80 @@ export const JournalScreen: React.FC<JournalScreenProps> = ({
           </h2>
         </div>
 
-        <button
-          onClick={handleSharePassport}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
-        >
-          <Share2 className="w-3.5 h-3.5" />
-          <span>{shareNote ?? t('Partager mon passeport')}</span>
-        </button>
+        {user.id && (
+          <button
+            onClick={handleSharePassport}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#c14e2f] text-white text-xs font-bold shadow hover:bg-[#a83f23] active:scale-95 transition-all"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>{shareNote ?? t('Partager mon passeport')}</span>
+          </button>
+        )}
       </div>
 
       {/* Passport Header Card */}
-      <div className="bg-gradient-to-br from-[#c14e2f] via-[#a83f23] to-[#5a5a40] text-white rounded-2xl p-5 sm:p-6 shadow-md space-y-4">
-        <div className="flex items-center gap-3">
-          <UserAvatar
-            src={user.avatar}
-            name={user.name}
-            className="w-12 h-12 rounded-full object-cover border-2 border-[#d9822b]"
-            monogramClassName="text-lg"
-          />
-          <div>
-            <h3 className="font-serif font-bold text-lg leading-tight">
-              {user.name}
-            </h3>
-            {user.travelStyle && (
-              <p className="text-xs text-[#d9822b] font-medium">{travelStyleLabel(user.travelStyle)}</p>
-            )}
+      {user.id ? (
+        <div className="bg-gradient-to-br from-[#c14e2f] via-[#a83f23] to-[#5a5a40] text-white rounded-2xl p-5 sm:p-6 shadow-md space-y-4">
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              src={user.avatar}
+              name={user.name}
+              className="w-12 h-12 rounded-full object-cover border-2 border-[#d9822b]"
+              monogramClassName="text-lg"
+            />
+            <div>
+              <h3 className="font-serif font-bold text-lg leading-tight">
+                {user.name}
+              </h3>
+              {user.travelStyle && (
+                <p className="text-xs text-[#d9822b] font-medium">{travelStyleLabel(user.travelStyle)}</p>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20 text-center">
-          <div>
-            <span className="font-serif font-bold text-lg block">{formatCount(user.savedPlaces.length)}</span>
-            <span className="text-[10px] text-white/80 uppercase">{t('Sites enregistrés')}</span>
-          </div>
-          <div>
-            <span className="font-serif font-bold text-lg block">
-              {requestsLoading ? '—' : formatCount(new Set(requests.map((r) => r.actorId)).size)}
-            </span>
-            <span className="text-[10px] text-white/80 uppercase">{t('Médiateurs contactés')}</span>
-          </div>
-          <div>
-            <span className="font-serif font-bold text-lg block">{formatCount(user.storiesCount)}</span>
-            <span className="text-[10px] text-white/80 uppercase">{t('Itinéraires enregistrés')}</span>
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20 text-center">
+            <div>
+              <span className="font-serif font-bold text-lg block">{formatCount(user.savedPlaces.length)}</span>
+              <span className="text-[10px] text-white/80 uppercase">{t('Sites enregistrés')}</span>
+            </div>
+            <div>
+              <span className="font-serif font-bold text-lg block">
+                {requestsLoading ? '—' : formatCount(new Set(requests.map((r) => r.actorId)).size)}
+              </span>
+              <span className="text-[10px] text-white/80 uppercase">{t('Médiateurs contactés')}</span>
+            </div>
+            <div>
+              <span className="font-serif font-bold text-lg block">{formatCount(user.storiesCount)}</span>
+              <span className="text-[10px] text-white/80 uppercase">{t('Itinéraires enregistrés')}</span>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gradient-to-br from-[#c14e2f] via-[#a83f23] to-[#5a5a40] text-white rounded-2xl p-5 sm:p-6 shadow-md space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="w-12 h-12 rounded-full border-2 border-[#d9822b] bg-white/10 flex items-center justify-center">
+              <Compass className="w-5 h-5" />
+            </span>
+            <div>
+              <h3 className="font-serif font-bold text-lg leading-tight">
+                {t('Aucun compte ouvert')}
+              </h3>
+              <p className="text-xs text-[#d9822b] font-medium">
+                {t('Connectez-vous pour que vos sites enregistrés, vos demandes et vos itinéraires soient rattachés à ce passeport.')}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onOpenAuth('traveler')}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#2e5a44] text-white text-xs font-bold hover:bg-[#24493a] active:scale-95 transition-all"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>{t('Se connecter')}</span>
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex border-b border-[#e8e2d5] gap-6">

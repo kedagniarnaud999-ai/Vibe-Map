@@ -402,6 +402,9 @@ export const EN: Record<string, string> = {
   'Chargement de vos demandes…': 'Loading your requests…',
   'Connectez-vous avec un compte vérifié pour retrouver vos demandes.':
     'Sign in with a verified account to find your requests again.',
+  'Aucun compte ouvert': 'Not signed in',
+  'Connectez-vous pour que vos sites enregistrés, vos demandes et vos itinéraires soient rattachés à ce passeport.':
+    'Sign in so your saved sites, your requests and your itineraries attach to this passport.',
   'Vos demandes n’ont pas pu être lues.': 'Your requests could not be read.',
   'Aucune demande posée avec ce compte.': 'No request has been made from this account.',
   'Une demande se pose depuis la fiche d’un médiateur, après avoir choisi une immersion.':
