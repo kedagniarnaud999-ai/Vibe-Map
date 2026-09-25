@@ -177,21 +177,21 @@ async function sessionOrShell(fbUser: FirebaseUser, displayName?: string): Promi
   }
 }
 
-export async function loginWithGoogle(): Promise<{ user: UserProfile | null; error?: string }> {
+export async function loginWithGoogle(): Promise<{ user: UserProfile | null; errorCode?: string }> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return { user: await sessionOrShell(result.user) };
   } catch (error: any) {
-    return { user: null, error: error?.message || 'Erreur lors de la connexion Google' };
+    return { user: null, errorCode: error?.code };
   }
 }
 
-export async function loginWithEmail(email: string, pass: string): Promise<{ user: UserProfile | null; error?: string }> {
+export async function loginWithEmail(email: string, pass: string): Promise<{ user: UserProfile | null; errorCode?: string }> {
   try {
     const result = await signInWithEmailAndPassword(auth, email, pass);
     return { user: await sessionOrShell(result.user) };
   } catch (error: any) {
-    return { user: null, error: error?.message };
+    return { user: null, errorCode: error?.code };
   }
 }
 
@@ -199,12 +199,12 @@ export async function registerWithEmail(
   email: string,
   pass: string,
   name: string
-): Promise<{ user: UserProfile | null; error?: string }> {
+): Promise<{ user: UserProfile | null; errorCode?: string }> {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, pass);
     return { user: await sessionOrShell(result.user, name) };
   } catch (error: any) {
-    return { user: null, error: error?.message };
+    return { user: null, errorCode: error?.code };
   }
 }
 
