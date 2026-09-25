@@ -211,6 +211,8 @@ export interface UserPreferences {
 
 export type UserProfile = UserPreferences;
 
+export type GuideApplicationStatus = 'pending' | 'approved' | 'rejected';
+
 export interface GuideApplication {
   id?: string;
   userId: string;
@@ -223,7 +225,7 @@ export interface GuideApplication {
   specialties: string[];
   bio: string;
   idDocumentUrl?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: GuideApplicationStatus;
   submittedAt: string;
 }
 

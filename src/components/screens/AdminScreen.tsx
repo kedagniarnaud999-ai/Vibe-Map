@@ -36,7 +36,7 @@ import {
 import { PLACES_DATA } from '../../data/places';
 import { useI18n } from '../../lib/i18n';
 import { commonsThumb, creditLine } from '../../lib/media';
-import { useCategoryLabel, useBookingStatusLabel } from '../../lib/labels';
+import { useCategoryLabel, useBookingStatusLabel, useGuideApplicationStatusLabel } from '../../lib/labels';
 import { formatBookingWhen } from '../../lib/slots';
 
 interface AdminScreenProps {
@@ -63,6 +63,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const { t, lang } = useI18n();
   const categoryLabel = useCategoryLabel();
   const bookingStatusLabel = useBookingStatusLabel();
+  const applicationStatusLabel = useGuideApplicationStatusLabel();
   const [activeTab, setActiveTab] = useState<'scraper' | 'places' | 'guides' | 'bookings' | 'applications'>('scraper');
   const [isCatalogPublishing, setIsCatalogPublishing] = useState(false);
   const [searchSiteQuery, setSearchSiteQuery] = useState('');
@@ -827,17 +828,17 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                           app.status === 'approved' ? 'bg-green-100 text-green-800' :
                           app.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
                         }`}>
-                          {app.status.toUpperCase()}
+                          {applicationStatusLabel(app.status)}
                         </span>
                       </div>
                       <div className="text-[#6b665e] flex flex-wrap gap-3 text-[11px]">
                         <span>📧 {app.email}</span>
                         <span>📱 {app.phone?.trim() || t('Non communiqué')}</span>
-                        <span>📍 {app.region}</span>
+                        <span>📍 {app.region?.trim() || t('Non communiqué')}</span>
                         <span>⭐ {t("{n} ans d'expérience", { n: app.experienceYears })}</span>
                       </div>
                       <p className="text-[11px] text-[#5a5a40]">
-                        🗣️ {t('Langues')} : {app.languages?.join(', ')} • {t('Spécialités')} : {app.specialties?.join(', ')}
+                        🗣️ {t('Langues')} : {app.languages?.join(', ') || t('Non communiqué')} • {t('Spécialités')} : {app.specialties?.join(', ') || t('Non communiqué')}
                       </p>
                       {app.bio && (
                         <p className="text-[11px] text-[#8c867c] italic mt-1 bg-white p-2 rounded-lg border border-[#e8e2d5]">
