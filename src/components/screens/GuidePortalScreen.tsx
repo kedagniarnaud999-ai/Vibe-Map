@@ -86,13 +86,13 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
       // userId and email are stamped from the verified session by submitGuideApplication;
       // the client never declares who is applying.
       const res = await submitGuideApplication({
-        fullName: applicantName,
+        fullName: applicantName.trim(),
         phone: applicantPhone.trim(),
         region: applicantRegion.trim(),
         experienceYears: Number.parseInt(applicantExp, 10) || 0,
         languages: applicantLanguages.split(',').map(s => s.trim()).filter(Boolean),
         specialties: applicantSpecialties.split(',').map(s => s.trim()).filter(Boolean),
-        bio: applicantBio
+        bio: applicantBio.trim()
       });
       if (res.success) {
         setSubmittedSuccess(true);
@@ -176,6 +176,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                       value={applicantName}
                       onChange={(e) => setApplicantName(e.target.value)}
                       required
+                      pattern=".*\S.*"
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
                     />
                   </div>
@@ -196,7 +197,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                       <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Années de pratique')}</label>
                       <input
                         type="number"
-                        min={1}
+                        min="0"
                         max={40}
                         value={applicantExp}
                         onChange={(e) => setApplicantExp(e.target.value)}
