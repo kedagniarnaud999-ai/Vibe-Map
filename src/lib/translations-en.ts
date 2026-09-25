@@ -588,6 +588,7 @@ export const EN: Record<string, string> = {
   'Reconnecter mon Compte': 'Sign In Again',
   'Postuler pour devenir Médiateur Culturel Agréé :': 'Apply to become an Approved Cultural Mediator:',
   'Téléphone / WhatsApp': 'Phone / WhatsApp',
+  'Non communiqué': 'Not provided',
   'Années de pratique': 'Years of practice',
   'Ex: Ouidah, Danxomè, Ganvié...': 'E.g. Ouidah, Danxomè, Ganvié...',
   'Langues pratiquées': 'Languages spoken',
