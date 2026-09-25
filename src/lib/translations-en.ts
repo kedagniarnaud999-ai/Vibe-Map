@@ -589,7 +589,6 @@ export const EN: Record<string, string> = {
   'Postuler pour devenir Médiateur Culturel Agréé :': 'Apply to become an Approved Cultural Mediator:',
   'Téléphone / WhatsApp': 'Phone / WhatsApp',
   'Années de pratique': 'Years of practice',
-  'Régions & Spécialités': 'Regions & Specialties',
   'Ex: Ouidah, Danxomè, Ganvié...': 'E.g. Ouidah, Danxomè, Ganvié...',
   'Langues pratiquées': 'Languages spoken',
   'Présentation': 'Introduction',
