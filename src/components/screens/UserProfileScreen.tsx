@@ -14,7 +14,6 @@ import {
   LogOut,
   Shield,
   Layers,
-  Database,
   Phone,
   FileText,
   MapPin,
@@ -173,7 +172,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
           className="px-3.5 py-1.5 rounded-xl bg-white border border-[#e8e2d5] text-xs font-semibold text-[#c14e2f] hover:bg-[#faf7f0] flex items-center gap-1.5 shadow-2xs cursor-pointer"
         >
           <LogIn className="w-3.5 h-3.5" />
-          <span>{t('Changer de Compte')}</span>
+          <span>{user.id ? t('Changer de Compte') : t('Se connecter')}</span>
         </button>
       </div>
 
@@ -190,35 +189,33 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
             <h3 className="font-serif font-bold text-xl text-[#2c2926]">
               {user.name || t('Aucun compte ouvert')}
             </h3>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold flex items-center gap-1 ${
-              userRole === 'admin' ? 'bg-[#2c2926] text-amber-400 border border-amber-400/30' :
-              userRole === 'guide' ? 'bg-[#5a5a40] text-white' : 'bg-[#fceee9] text-[#c14e2f]'
-            }`}>
-              {userRole === 'admin' ? (
-                <>
-                  <Shield className="w-3 h-3 text-amber-400" />
-                  <span>👑 {t('Administrateur / Conservateur')}</span>
-                </>
-              ) : userRole === 'guide' ? (
-                <>
-                  <Award className="w-3 h-3 text-white" />
-                  <span>🎖️ {t('Médiateur Culturel Agréé')}</span>
-                </>
-              ) : (
-                <>
-                  <Compass className="w-3 h-3 text-[#c14e2f]" />
-                  <span>🎒 {t('Voyageur du Patrimoine')}</span>
-                </>
-              )}
-            </span>
+            {user.id && (
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold flex items-center gap-1 ${
+                userRole === 'admin' ? 'bg-[#2c2926] text-amber-400 border border-amber-400/30' :
+                userRole === 'guide' ? 'bg-[#5a5a40] text-white' : 'bg-[#fceee9] text-[#c14e2f]'
+              }`}>
+                {userRole === 'admin' ? (
+                  <>
+                    <Shield className="w-3 h-3 text-amber-400" />
+                    <span>👑 {t('Administrateur / Conservateur')}</span>
+                  </>
+                ) : userRole === 'guide' ? (
+                  <>
+                    <Award className="w-3 h-3 text-white" />
+                    <span>🎖️ {t('Médiateur Culturel Agréé')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Compass className="w-3 h-3 text-[#c14e2f]" />
+                    <span>🎒 {t('Voyageur du Patrimoine')}</span>
+                  </>
+                )}
+              </span>
+            )}
           </div>
-          <p className="text-xs text-[#8c867c]">{user.email}</p>
-          <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <span className="inline-flex items-center gap-1 text-[11px] text-[#2e5a44] bg-green-50 px-2 py-0.5 rounded-md border border-green-200">
-              <Database className="w-3 h-3" />
-              <span>{t('Base Firestore & PostgreSQL Connectée')}</span>
-            </span>
-          </div>
+          {user.email && (
+            <p className="text-xs text-[#8c867c]">{user.email}</p>
+          )}
         </div>
       </div>
 

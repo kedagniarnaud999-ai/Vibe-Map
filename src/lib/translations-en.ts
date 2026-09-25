@@ -109,7 +109,6 @@ export const EN: Record<string, string> = {
   'Administrateur / Conservateur': 'Administrator / Curator',
   'Médiateur Culturel Agréé': 'Accredited Cultural Mediator',
   'Voyageur du Patrimoine': 'Heritage Traveller',
-  'Base Firestore & PostgreSQL Connectée': 'Firestore & PostgreSQL database connected',
   'Espace Conservateur du Patrimoine': 'Heritage Curator Portal',
   'Supervision des sites réels, brouillons d’ingestion appuyés sur des sources, décisions d’agrément et suivi des réservations.':
     'Oversight of real sites, ingestion drafts backed by sources, accreditation decisions and booking follow-up.',
