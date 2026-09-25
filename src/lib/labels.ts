@@ -100,3 +100,38 @@ export const useTravelStyleLabel = () => {
 
   return (value: TravelStyle) => labels[value] ?? value;
 };
+
+/**
+ * Les codes sont ceux que la table de messages du SDK empaqueté connaît : le paquet livré
+ * n'emporte pas ses phrases anglaises, donc la chaine qu'un visiteur lirait sans ce registre
+ * est `Firebase: Error (auth/wrong-password).`. Les trois codes d'identifiants refusés
+ * (`wrong-password`, `user-not-found`, `invalid-credential`) disent un seul mot, comme les
+ * trois codes de fenetre Google : trois mots differents feraient de ce formulaire un oracle
+ * d'existence de comptes. Un code inconnu rend le mot deja traduit que l'appelant fournit.
+ */
+export const useAuthErrorLabel = () => {
+  const { t } = useI18n();
+
+  const labels: Record<string, string> = {
+    'invalid-email': t('Format d’adresse email invalide.'),
+    'wrong-password': t('Email ou mot de passe incorrect.'),
+    'user-not-found': t('Email ou mot de passe incorrect.'),
+    'invalid-credential': t('Email ou mot de passe incorrect.'),
+    'user-disabled': t('Ce compte a été désactivé.'),
+    'email-already-in-use': t('Cette adresse email est déjà utilisée.'),
+    'weak-password': t('Mot de passe trop simple.'),
+    'too-many-requests': t('Trop de tentatives. Réessayez dans un instant.'),
+    'network-request-failed': t('Connexion réseau impossible. Vérifiez votre connexion.'),
+    'operation-not-allowed': t('Ce mode de connexion n’est pas activé sur ce projet.'),
+    'internal-error': t('Le service de connexion a répondu une erreur. Réessayez.'),
+    'popup-closed-by-user': t('Fenêtre de connexion fermée avant la fin.'),
+    'cancelled-popup-request': t('Fenêtre de connexion fermée avant la fin.'),
+    'popup-blocked': t('Fenêtre de connexion fermée avant la fin.'),
+    'account-exists-with-different-credential': t('Un compte existe déjà avec cette adresse, via un autre mode de connexion.')
+  };
+
+  return (code: string | undefined, fallback: string) => {
+    const key = code?.replace(/^auth\//, '');
+    return (key && labels[key]) || fallback;
+  };
+};

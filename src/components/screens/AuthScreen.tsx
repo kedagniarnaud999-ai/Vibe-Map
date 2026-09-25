@@ -22,7 +22,7 @@ import {
   submitGuideApplication
 } from '../../lib/firebase';
 import { useI18n } from '../../lib/i18n';
-import { useRoleLabel } from '../../lib/labels';
+import { useAuthErrorLabel, useRoleLabel } from '../../lib/labels';
 
 interface AuthScreenProps {
   initialPortal?: 'public' | 'admin';
@@ -42,6 +42,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   onCancel
 }) => {
   const { t } = useI18n();
+  const authErrorLabel = useAuthErrorLabel();
   const roleLabel = useRoleLabel();
   // View state: 'public' (Travelers and Guide applicants) vs 'admin' (dissociated portal)
   const [portalMode, setPortalMode] = useState<'public' | 'admin'>(initialPortal);
@@ -82,13 +83,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   const handleAuthResult = async (
-    result: { user: UserProfile | null; error?: string },
-    guideNotice?: string
+    result: { user: UserProfile | null; errorCode?: string },
+    guideNotice?: string,
+    fallback = t('Connexion impossible. Vérifiez votre email et votre mot de passe.')
   ) => {
     setLoading(false);
 
     if (!result.user) {
-      setErrorMessage(result.error || t('Connexion impossible. Vérifiez votre email et votre mot de passe.'));
+      setErrorMessage(authErrorLabel(result.errorCode, fallback));
       return;
     }
 
@@ -129,7 +131,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         setLoading(false);
 
         if (!res.user) {
-          setErrorMessage(res.error || t('Erreur lors de la création de compte'));
+          setErrorMessage(authErrorLabel(res.errorCode, t('Erreur lors de la création de compte')));
           return;
         }
 
@@ -174,11 +176,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     try {
       await handleAuthResult(
         await loginWithGoogle(),
-        t('Connexion réussie. Déposez une demande d’agrément pour accéder à l’espace Guide.')
+        t('Connexion réussie. Déposez une demande d’agrément pour accéder à l’espace Guide.'),
+        t('Erreur lors de la connexion Google')
       );
     } catch (err: any) {
       setLoading(false);
-      setErrorMessage(err?.message || t('Erreur de connexion Google'));
+      setErrorMessage(err?.message || t('Erreur lors de la connexion Google'));
     }
   };
 
@@ -194,7 +197,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
     setLoading(true);
     try {
-      await handleAuthResult(await loginWithEmail(email, password));
+      await handleAuthResult(
+        await loginWithEmail(email, password),
+        undefined,
+        t("Erreur de connexion à l'administration.")
+      );
     } catch (err: any) {
       setLoading(false);
       setErrorMessage(err?.message || t("Erreur de connexion à l'administration."));
