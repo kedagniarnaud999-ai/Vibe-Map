@@ -546,7 +546,6 @@ export const EN: Record<string, string> = {
   'Validez les compétences des guides locaux postulant pour accompagner des visiteurs.':
     'Review the skills of the local guides applying to accompany visitors.',
   "Aucune demande d'agrément en attente.": 'No approval request pending.',
-  "{n} ans d'expérience": '{n} years of experience',
   'Langues': 'Languages',
   'Spécialités': 'Specialties',
   'Agréer Guide': 'Approve Guide',

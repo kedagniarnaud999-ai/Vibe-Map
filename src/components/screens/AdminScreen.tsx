@@ -822,7 +822,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-serif font-bold text-sm text-[#2c2926]">
-                          {app.fullName}
+                          {app.fullName?.trim() || t('Non communiqué')}
                         </span>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                           app.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -835,14 +835,16 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                         <span>📧 {app.email}</span>
                         <span>📱 {app.phone?.trim() || t('Non communiqué')}</span>
                         <span>📍 {app.region?.trim() || t('Non communiqué')}</span>
-                        <span>⭐ {t("{n} ans d'expérience", { n: app.experienceYears })}</span>
+                        <span>⭐ {app.experienceYears === 1
+                          ? t('{count} an d’expérience', { count: app.experienceYears })
+                          : t('{count} ans d’expérience', { count: app.experienceYears })}</span>
                       </div>
                       <p className="text-[11px] text-[#5a5a40]">
                         🗣️ {t('Langues')} : {app.languages?.join(', ') || t('Non communiqué')} • {t('Spécialités')} : {app.specialties?.join(', ') || t('Non communiqué')}
                       </p>
-                      {app.bio && (
+                      {app.bio?.trim() && (
                         <p className="text-[11px] text-[#8c867c] italic mt-1 bg-white p-2 rounded-lg border border-[#e8e2d5]">
-                          "{app.bio}"
+                          "{app.bio.trim()}"
                         </p>
                       )}
                     </div>

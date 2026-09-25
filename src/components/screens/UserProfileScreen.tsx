@@ -102,13 +102,13 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
       // userId and email come from the verified session inside submitGuideApplication:
       // the applicant cannot declare who they are.
       const res = await submitGuideApplication({
-        fullName: applicantName,
+        fullName: applicantName.trim(),
         phone: applicantPhone.trim(),
         region: applicantRegion.trim(),
         experienceYears: Number.parseInt(applicantExperience, 10) || 0,
         languages: applicantLanguages.split(',').map(s => s.trim()).filter(Boolean),
         specialties: applicantSpecialties.split(',').map(s => s.trim()).filter(Boolean),
-        bio: applicantBio
+        bio: applicantBio.trim()
       });
 
       if (res.success) {
@@ -437,6 +437,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                     value={applicantName}
                     onChange={(e) => setApplicantName(e.target.value)}
                     required
+                    pattern=".*\S.*"
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                   />
                 </div>
@@ -462,7 +463,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                     </label>
                     <input
                       type="number"
-                      min={1}
+                      min="0"
                       max={40}
                       value={applicantExperience}
                       onChange={(e) => setApplicantExperience(e.target.value)}
@@ -522,6 +523,9 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                     rows={3}
                     value={applicantBio}
                     onChange={(e) => setApplicantBio(e.target.value)}
+                    // Mesuré : un navigateur ignore `pattern` sur un textarea, et React ne le
+                    // déclare pas dans ses types. Tronquer à la sortie est le seul garde possible.
+                    onBlur={(e) => setApplicantBio(e.target.value.trim())}
                     placeholder={t("Décrivez votre parcours, votre attachement aux traditions et la façon dont vous accompagnez les visiteurs...")}
                     required
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none resize-none"
