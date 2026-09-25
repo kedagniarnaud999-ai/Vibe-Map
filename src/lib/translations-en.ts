@@ -551,6 +551,8 @@ export const EN: Record<string, string> = {
   'Spécialités': 'Specialties',
   'Agréer Guide': 'Approve Guide',
   'Rejeter': 'Reject',
+  'Agréée': 'Approved',
+  'Rejetée': 'Rejected',
   "Réservations d'Immersions et Visites ({n})": 'Immersion & Tour Bookings ({n})',
   'Aucune réservation enregistrée pour le moment.': 'No booking recorded yet.',
   'Date': 'Date',

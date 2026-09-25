@@ -1,4 +1,4 @@
-import { ActorKind, BookingStatus, Category, TravelStyle, UserRole } from '../types';
+import { ActorKind, BookingStatus, Category, GuideApplicationStatus, TravelStyle, UserRole } from '../types';
 import { useI18n } from './i18n';
 
 /**
@@ -65,6 +65,23 @@ export const useBookingStatusLabel = () => {
   };
 
   return (value: BookingStatus) => labels[value] ?? value;
+};
+
+/**
+ * Une demande d'agrement se decide dans la file d'attente de l'admin, et l'identifiant stocke
+ * (`pending`, `approved`, `rejected`) sert aussi aux couleurs de la pastille et aux filtres :
+ * seuls les mots affiches passent par la table.
+ */
+export const useGuideApplicationStatusLabel = () => {
+  const { t } = useI18n();
+
+  const labels: Record<GuideApplicationStatus, string> = {
+    pending: t('En attente'),
+    approved: t('Agréée'),
+    rejected: t('Rejetée')
+  };
+
+  return (value: GuideApplicationStatus) => labels[value] ?? value;
 };
 
 /**
