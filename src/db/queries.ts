@@ -9,9 +9,10 @@ export async function getOrCreateUser(uid: string, email: string, name?: string,
       .values({
         uid,
         email,
-        name: name || 'Voyageur Curieux',
+        // Ces trois colonnes sont nullables : ce que le client n'envoie pas reste inconnu,
+        // et le miroir n'a pas a completer une identite que personne n'a declaree.
+        name: name ?? null,
         avatar: avatar || '',
-        // Les deux colonnes sont nullables : ce que le client n'envoie pas reste inconnu.
         vibeTag: vibeTag ?? null,
         travelStyle: travelStyle ?? null,
       })
