@@ -103,7 +103,7 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
       // the applicant cannot declare who they are.
       const res = await submitGuideApplication({
         fullName: applicantName,
-        phone: applicantPhone,
+        phone: applicantPhone.trim(),
         region: applicantRegion.trim(),
         experienceYears: Number.parseInt(applicantExperience, 10) || 0,
         languages: applicantLanguages.split(',').map(s => s.trim()).filter(Boolean),

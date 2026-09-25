@@ -418,6 +418,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         value={guidePhone}
                         onChange={(e) => setGuidePhone(e.target.value)}
                         placeholder="+229 97..."
+                        required
                         className="w-full pl-8 pr-2 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                       />
                     </div>

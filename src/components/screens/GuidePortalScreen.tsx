@@ -87,7 +87,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
       // the client never declares who is applying.
       const res = await submitGuideApplication({
         fullName: applicantName,
-        phone: applicantPhone,
+        phone: applicantPhone.trim(),
         region: applicantRegion.trim(),
         experienceYears: Number.parseInt(applicantExp, 10) || 0,
         languages: applicantLanguages.split(',').map(s => s.trim()).filter(Boolean),

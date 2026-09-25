@@ -832,7 +832,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                       </div>
                       <div className="text-[#6b665e] flex flex-wrap gap-3 text-[11px]">
                         <span>📧 {app.email}</span>
-                        <span>📱 {app.phone}</span>
+                        <span>📱 {app.phone?.trim() || t('Non communiqué')}</span>
                         <span>📍 {app.region}</span>
                         <span>⭐ {t("{n} ans d'expérience", { n: app.experienceYears })}</span>
                       </div>
