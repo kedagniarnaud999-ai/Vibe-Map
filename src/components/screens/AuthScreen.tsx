@@ -53,11 +53,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  // Guide fields start empty: an accreditation request may only carry what the applicant typed.
   const [guidePhone, setGuidePhone] = useState('');
-  const [guideRegion, setGuideRegion] = useState('Ouidah');
-  const [guideSpecialties, setGuideSpecialties] = useState('Histoire Royale, Sanctuaires Vodun');
-  const [guideLanguages, setGuideLanguages] = useState('Français');
-  const [guideExperienceYears, setGuideExperienceYears] = useState('5');
+  const [guideRegion, setGuideRegion] = useState('');
+  const [guideSpecialties, setGuideSpecialties] = useState('');
+  const [guideLanguages, setGuideLanguages] = useState('');
+  const [guideExperienceYears, setGuideExperienceYears] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -140,7 +141,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             experienceYears: Number.parseInt(guideExperienceYears, 10) || 0,
             languages: splitList(guideLanguages),
             specialties: splitList(guideSpecialties),
-            bio: `Médiateur culturel spécialisé en ${guideSpecialties} (${guideRegion}).`
+            bio: ''
           });
 
           finishWithSession(
@@ -433,6 +434,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         value={guideRegion}
                         onChange={(e) => setGuideRegion(e.target.value)}
                         placeholder="Ouidah, Abomey..."
+                        required
                         className="w-full pl-8 pr-2 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                       />
                     </div>
@@ -450,6 +452,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       max="70"
                       value={guideExperienceYears}
                       onChange={(e) => setGuideExperienceYears(e.target.value)}
+                      required
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                     />
                   </div>
@@ -463,6 +466,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       value={guideLanguages}
                       onChange={(e) => setGuideLanguages(e.target.value)}
                       placeholder={t('Français, Fon, English')}
+                      required
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                     />
                   </div>
@@ -477,6 +481,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     value={guideSpecialties}
                     onChange={(e) => setGuideSpecialties(e.target.value)}
                     placeholder={t('Ex: Rituels Vodun, Histoire Royale, Écotourisme...')}
+                    required
                     className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                   />
                 </div>

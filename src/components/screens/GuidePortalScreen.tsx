@@ -44,13 +44,14 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [applicationError, setApplicationError] = useState('');
 
-  // Application form state if not accredited
+  // Application form state if not accredited. Nothing starts filled: a request carries the
+  // applicant's own words, never an example we typed for them.
   const [applicantName, setApplicantName] = useState(user.name);
   const [applicantPhone, setApplicantPhone] = useState('');
-  const [applicantRegion, setApplicantRegion] = useState('Ouidah, Abomey');
-  const [applicantExp, setApplicantExp] = useState(3);
-  const [applicantLanguages, setApplicantLanguages] = useState('Français, Fon, English');
-  const [applicantSpecialties, setApplicantSpecialties] = useState('Histoire Royale, Rituels Vodun');
+  const [applicantRegion, setApplicantRegion] = useState('');
+  const [applicantExp, setApplicantExp] = useState('');
+  const [applicantLanguages, setApplicantLanguages] = useState('');
+  const [applicantSpecialties, setApplicantSpecialties] = useState('');
   const [applicantBio, setApplicantBio] = useState('');
   const [submittingApp, setSubmittingApp] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
@@ -87,10 +88,10 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
       const res = await submitGuideApplication({
         fullName: applicantName,
         phone: applicantPhone,
-        region: applicantRegion,
-        experienceYears: Number(applicantExp) || 1,
-        languages: applicantLanguages.split(',').map(s => s.trim()),
-        specialties: applicantSpecialties.split(',').map(s => s.trim()),
+        region: applicantRegion.trim(),
+        experienceYears: Number.parseInt(applicantExp, 10) || 0,
+        languages: applicantLanguages.split(',').map(s => s.trim()).filter(Boolean),
+        specialties: applicantSpecialties.split(',').map(s => s.trim()).filter(Boolean),
         bio: applicantBio
       });
       if (res.success) {
@@ -198,19 +199,32 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                         min={1}
                         max={40}
                         value={applicantExp}
-                        onChange={(e) => setApplicantExp(Number(e.target.value))}
+                        onChange={(e) => setApplicantExp(e.target.value)}
+                        required
                         className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Régions & Spécialités')}</label>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Région & Circuits Principaux')}</label>
+                    <input
+                      type="text"
+                      value={applicantRegion}
+                      onChange={(e) => setApplicantRegion(e.target.value)}
+                      placeholder={t('Ex: Ouidah, Danxomè, Ganvié...')}
+                      required
+                      className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#2c2926] mb-1">{t('Spécialités Culturelles & Domaines')}</label>
                     <input
                       type="text"
                       value={applicantSpecialties}
                       onChange={(e) => setApplicantSpecialties(e.target.value)}
-                      placeholder={t('Ex: Ouidah, Danxomè, Ganvié...')}
+                      placeholder={t('Ex: Rituels Vodun, Histoire Royale, Écotourisme...')}
                       required
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
                     />
@@ -223,6 +237,7 @@ export const GuidePortalScreen: React.FC<GuidePortalScreenProps> = ({
                       value={applicantLanguages}
                       onChange={(e) => setApplicantLanguages(e.target.value)}
                       placeholder={t('Français, Fon, English')}
+                      required
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs"
                     />
                   </div>

@@ -56,14 +56,14 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
     setTimeout(() => setSaveToast(false), 2800);
   };
 
-  // Guide accreditation modal
+  // Guide accreditation modal. Nothing starts filled: a request is the applicant's own words.
   const [showGuideModal, setShowGuideModal] = useState(false);
   const [applicantName, setApplicantName] = useState(user.name);
   const [applicantPhone, setApplicantPhone] = useState('');
-  const [applicantRegion, setApplicantRegion] = useState('Ouidah & Abomey');
-  const [applicantExperience, setApplicantExperience] = useState(3);
-  const [applicantLanguages, setApplicantLanguages] = useState('Français, Fon, English');
-  const [applicantSpecialties, setApplicantSpecialties] = useState('Histoire Royale, Rituels Vodun, Écotourisme');
+  const [applicantRegion, setApplicantRegion] = useState('');
+  const [applicantExperience, setApplicantExperience] = useState('');
+  const [applicantLanguages, setApplicantLanguages] = useState('');
+  const [applicantSpecialties, setApplicantSpecialties] = useState('');
   const [applicantBio, setApplicantBio] = useState('');
   const [applyingLoading, setApplyingLoading] = useState(false);
   const [appliedSuccess, setAppliedSuccess] = useState(false);
@@ -104,10 +104,10 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
       const res = await submitGuideApplication({
         fullName: applicantName,
         phone: applicantPhone,
-        region: applicantRegion,
-        experienceYears: Number(applicantExperience) || 1,
-        languages: applicantLanguages.split(',').map(s => s.trim()),
-        specialties: applicantSpecialties.split(',').map(s => s.trim()),
+        region: applicantRegion.trim(),
+        experienceYears: Number.parseInt(applicantExperience, 10) || 0,
+        languages: applicantLanguages.split(',').map(s => s.trim()).filter(Boolean),
+        specialties: applicantSpecialties.split(',').map(s => s.trim()).filter(Boolean),
         bio: applicantBio
       });
 
@@ -465,7 +465,8 @@ export const UserProfileScreen: React.FC<UserProfileScreenProps> = ({
                       min={1}
                       max={40}
                       value={applicantExperience}
-                      onChange={(e) => setApplicantExperience(Number(e.target.value))}
+                      onChange={(e) => setApplicantExperience(e.target.value)}
+                      required
                       className="w-full px-3 py-2 bg-[#faf7f0] border border-[#e8e2d5] rounded-xl text-xs text-[#2c2926] focus:border-[#5a5a40] focus:outline-none"
                     />
                   </div>
